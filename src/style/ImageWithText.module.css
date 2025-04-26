@@ -1,0 +1,27 @@
+/* styles/ImageWithText.module.css */
+.imageContainer {
+    position: relative;
+    width: 400px;
+    height: 500px;
+    /* Adjust this as needed */
+}
+
+.imageWrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    /* Makes sure the image is behind the text */
+}
+
+.textOverlay {
+    position: absolute;
+    color: rgb(2, 27, 60);
+    font-size: 10px;
+    font-weight: normal;
+  
+    z-index: 1;
+    /* Ensures the text is above the image */
+}

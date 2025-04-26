@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# سامانه تیکتینگ
 
-## Getting Started
+سامانه تیکتینگ برای مدیریت تیکت‌های مراکز آزمون
 
-First, run the development server:
+## سطوح دسترسی
+
+سامانه دارای 5 سطح دسترسی به ترتیب زیر می‌باشد:
+
+1. مسئول مرکز آزمون
+2. کارشناس فناوری منطقه - کارشناس سنجش منطقه
+3. کارشناس سنجش استان - کارشناس فناوری استان
+4. مدیر کل
+5. مدیر سیستم
+
+## ویژگی‌ها
+
+- سیستم احراز هویت با کد ملی و رمز عبور
+- مدیریت استان‌ها، مناطق و مراکز آزمون
+- مدیریت کاربران در سطوح مختلف
+- ثبت تیکت توسط مسئولین مراکز آزمون
+- پاسخگویی به تیکت‌ها توسط کارشناسان
+- امکان پیوست تصویر به تیکت
+- نمایش وضعیت تیکت‌ها (دیده نشده، دیده شده، در حال بررسی، پاسخ داده شده)
+- داشبورد مدیریتی برای مشاهده وضعیت کلی مناطق
+- نمایش وضعیت مناطق به صورت رنگی (سبز و قرمز) برای مدیر کل
+
+## پیش‌نیازها
+
+- Node.js نسخه 18.0.0 یا بالاتر
+- MongoDB
+- npm یا yarn
+
+## نصب و راه‌اندازی
+
+1. کلون کردن مخزن:
+
+```bash
+git clone <آدرس مخزن>
+cd ticket
+```
+
+2. نصب وابستگی‌ها:
+
+```bash
+npm install
+# یا
+yarn install
+```
+
+3. ایجاد فایل `.env.local` در ریشه پروژه با محتوای زیر:
+
+```
+MONGODB_URI=mongodb://localhost:27017/ticket-system
+NEXTAUTH_SECRET=your-secret-key
+NEXTAUTH_URL=http://localhost:3000
+# اختیاری: برای تعیین رمز عبور اولیه مدیر سیستم (پیش‌فرض: admin123456)
+ADMIN_PASSWORD=your-admin-password
+```
+
+4. ایجاد کاربر مدیر سیستم:
+
+```bash
+npm run init-db
+# یا
+yarn init-db
+```
+
+5. راه‌اندازی برنامه در محیط توسعه:
 
 ```bash
 npm run dev
-# or
+# یا
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+6. برنامه در آدرس `http://localhost:3000` قابل دسترسی خواهد بود.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## ورود به سیستم
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+پس از راه‌اندازی اولیه، می‌توانید با اطلاعات زیر به عنوان مدیر سیستم وارد شوید:
 
-## Learn More
+- کد ملی: `1111111111`
+- رمز عبور: `admin123456` (یا رمز تعیین شده در `ADMIN_PASSWORD`)
 
-To learn more about Next.js, take a look at the following resources:
+## نحوه استفاده
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. ابتدا به عنوان مدیر سیستم وارد شوید
+2. سال تحصیلی جدید ایجاد کنید
+3. استان‌ها و مناطق را تعریف کنید
+4. کاربران مختلف را ایجاد کنید (مدیر کل، کارشناسان استان، کارشناسان منطقه و مسئولین مراکز آزمون)
+5. مراکز آزمون را تعریف کنید
+6. مسئولین مراکز آزمون می‌توانند تیکت ثبت کنند و کارشناسان به آن‌ها پاسخ دهند
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## تکنولوژی‌های استفاده شده
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 15
+- TailwindCSS
+- MongoDB و Mongoose
+- NextAuth.js
+- React Hook Form
+- React Icons

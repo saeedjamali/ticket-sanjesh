@@ -1,0 +1,113 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import connectDB from "@/lib/db";
+import Ticket from "@/models/Ticket";
+import { ROLES, getRolePermissions } from "@/lib/permissions";
+
+export async function PUT(request, { params }) {
+  try {
+    const session = await auth();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await connectDB();
+
+    const ticket = await Ticket.findById(params.id);
+    if (!ticket) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
+    // Check if user has permission to update status
+    const permissions = getRolePermissions(session.user.role);
+    let canUpdateStatus = false;
+
+    // مسئول مرکز آزمون می‌تواند وضعیت تیکت خودش را از پیش‌نویس به دیده‌نشده تغییر دهد
+    if (
+      session.user.role === ROLES.EXAM_CENTER_MANAGER &&
+      ticket.status === "draft" &&
+      session.user.id === ticket.createdBy.toString() &&
+      session.user.examCenter === ticket.examCenter.toString()
+    ) {
+      canUpdateStatus = true;
+    } else if (permissions.canRespondToTickets) {
+      if (
+        (session.user.role === ROLES.DISTRICT_EDUCATION_EXPERT &&
+          ticket.receiver === "education") ||
+        (session.user.role === ROLES.DISTRICT_TECH_EXPERT &&
+          ticket.receiver === "tech")
+      ) {
+        // District expert can only update status for their district's tickets
+        if (session.user.district === ticket.district.toString()) {
+          canUpdateStatus = true;
+        }
+      }
+    }
+
+    if (!canUpdateStatus) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Parse request body
+    const { status } = await request.json();
+
+    // بررسی معتبر بودن وضعیت
+    if (!status) {
+      return NextResponse.json(
+        { error: "Status is required" },
+        { status: 400 }
+      );
+    }
+
+    // مسئول مرکز آزمون فقط می‌تواند وضعیت پیش‌نویس را به دیده‌نشده تغییر دهد
+    if (
+      session.user.role === ROLES.EXAM_CENTER_MANAGER &&
+      ticket.status === "draft" &&
+      status !== "new"
+    ) {
+      return NextResponse.json(
+        { error: "Invalid status transition" },
+        { status: 400 }
+      );
+    }
+
+    // کارشناس‌ها می‌توانند وضعیت را به دیده‌شده، در حال بررسی، یا پاسخ داده شده تغییر دهند
+    if (
+      permissions.canRespondToTickets &&
+      !["seen", "inProgress", "resolved"].includes(status)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid status value" },
+        { status: 400 }
+      );
+    }
+
+    // Update status
+    ticket.status = status;
+    ticket.updatedAt = new Date();
+
+    // Ensure the type field is set correctly based on receiver if it's missing
+    if (!ticket.type || ticket.type === "UNKNOWN") {
+      console.log("Setting ticket type based on receiver:", ticket.receiver);
+      if (ticket.receiver === "education") {
+        ticket.type = "EDUCATION";
+      } else if (ticket.receiver === "tech") {
+        ticket.type = "TECH";
+      } else {
+        // Default fallback
+        ticket.type = "UNKNOWN";
+      }
+      console.log("Ticket type set to:", ticket.type);
+    }
+
+    await ticket.save();
+
+    return NextResponse.json(ticket);
+  } catch (error) {
+    console.error("Error in PUT /api/tickets/[id]/status:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}

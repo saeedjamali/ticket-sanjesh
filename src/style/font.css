@@ -1,0 +1,78 @@
+/* IranYekan Font */
+@font-face {
+    font-family: "IranYekan";
+    src: url("/fonts/iranyekan/iranyekanwebregular.woff2") format("woff2"),
+        url("/fonts/iranyekan/iranyekanwebregular.woff") format("woff");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "IranYekan";
+    src: url("/fonts/iranyekan/iranyekanwebmedium.woff2") format("woff2"),
+        url("/fonts/iranyekan/iranyekanwebmedium.woff") format("woff");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "IranYekan";
+    src: url("/fonts/iranyekan/iranyekanwebbold.woff2") format("woff2"),
+        url("/fonts/iranyekan/iranyekanwebbold.woff") format("woff");
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* IRANSans Font */
+@font-face {
+    font-family: "IRANSans";
+    src: url("/fonts/iransans/IRANSansWeb.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "IRANSans";
+    src: url("/fonts/iransans/IRANSansWeb.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "IRANSans";
+    src: url("/fonts/iransans/IranSans.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Shabnam Font */
+@font-face {
+    font-family: "Shabnam";
+    src: url("/fonts/shabnam/Shabnam.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Shabnam";
+    src: url("/fonts/shabnam/Shabnam-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Apply fonts to elements */
+:root {
+    --font-primary: "IranYekan", "IRANSans", "Shabnam", system-ui, -apple-system, sans-serif;
+}
+
+body {
+    font-family: var(--font-primary);
+}

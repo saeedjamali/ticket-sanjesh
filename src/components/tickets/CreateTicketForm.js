@@ -1,0 +1,310 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+
+export default function CreateTicketForm({ user, ticket, isEditing = false }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(ticket?.image || "");
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: isEditing
+      ? {
+          title: ticket.title,
+          priority: ticket.priority,
+          description: ticket.description,
+          receiver: ticket.receiver,
+        }
+      : {},
+  });
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Check file type
+    if (!file.type.startsWith("image/")) {
+      setError("لطفا یک فایل تصویر انتخاب کنید.");
+      return;
+    }
+
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError("حجم تصویر باید کمتر از 2 مگابایت باشد.");
+      return;
+    }
+
+    setSelectedImage(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setError("");
+  };
+
+  const onSubmit = async (data, isDraft = false) => {
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("title", data.title);
+      formData.append("priority", data.priority);
+      formData.append("description", data.description);
+      formData.append("receiver", data.receiver);
+
+      // اضافه کردن وضعیت پیش‌نویس
+      if (isDraft) {
+        formData.append("status", "draft");
+      } else {
+        formData.append("status", "new");
+      }
+
+      if (selectedImage) {
+        formData.append("image", selectedImage);
+      }
+
+      // نمایش اطلاعات کاربر در کنسول
+      console.log("Current user data:", user);
+
+      // اضافه کردن اطلاعات کاربر به URL برای احراز هویت
+      let url = isEditing ? `/api/tickets/${ticket._id}` : "/api/tickets";
+
+      // اضافه کردن پارامترهای کاربر به URL
+      if (user) {
+        url += `?userRole=${user.role}`;
+
+        if (user.examCenter) {
+          url += `&examCenter=${user.examCenter}`;
+        }
+
+        if (user.district) {
+          url += `&district=${user.district}`;
+        }
+
+        if (user.province) {
+          url += `&province=${user.province}`;
+        }
+
+        if (user.id) {
+          url += `&userId=${user.id}`;
+        }
+      }
+
+      console.log("Submitting ticket to:", url);
+      const method = isEditing ? "PUT" : "POST";
+
+      // دریافت توکن احراز هویت از localStorage
+      const authToken = localStorage.getItem("authToken");
+      console.log("Auth token available:", !!authToken);
+
+      // تنظیم هدرهای درخواست - فقط هدرهای مربوط به احراز هویت
+      const headers = {};
+
+      if (authToken) {
+        headers["Authorization"] = `Bearer ${authToken}`;
+      }
+
+      console.log("Request headers:", headers);
+      console.log("Form data entries:", [...formData.entries()]);
+
+      const response = await fetch(url, {
+        method,
+        body: formData,
+        headers,
+      });
+
+      console.log("Response status:", response.status);
+      console.log(
+        "Response headers:",
+        Object.fromEntries([...response.headers.entries()])
+      );
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        console.error("Error response text:", responseText);
+
+        let errorMessage = "خطا در عملیات";
+        let errorData = {};
+
+        try {
+          errorData = JSON.parse(responseText);
+          errorMessage =
+            errorData.message || errorData.error || "خطا در عملیات";
+          console.error("Parsed error data:", errorData);
+        } catch (e) {
+          console.error("Failed to parse error response as JSON:", e);
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const responseData = await response.json();
+      console.log("Ticket successfully submitted:", responseData);
+
+      router.push("/dashboard/tickets");
+      router.refresh();
+    } catch (error) {
+      console.error("Error submitting ticket:", error);
+      setError(error.message || "خطا در عملیات. لطفا دوباره تلاش کنید.");
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {error && (
+        <div className="rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/50 dark:text-red-200">
+          {error}
+        </div>
+      )}
+
+      <div className="form-group">
+        <label htmlFor="title" className="form-label">
+          عنوان تیکت
+        </label>
+        <input
+          id="title"
+          type="text"
+          className={`form-control ${errors.title ? "border-red-500" : ""}`}
+          placeholder="عنوان مشکل را وارد کنید"
+          {...register("title", { required: "عنوان تیکت الزامی است" })}
+        />
+        {errors.title && (
+          <p className="mt-1 text-xs text-red-500">{errors.title.message}</p>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="priority" className="form-label">
+          فوریت
+        </label>
+        <select
+          id="priority"
+          className={`form-control ${errors.priority ? "border-red-500" : ""}`}
+          {...register("priority", { required: "انتخاب فوریت الزامی است" })}
+        >
+          <option value="">انتخاب کنید</option>
+          <option value="high">آنی</option>
+          <option value="medium">فوری</option>
+          <option value="low">عادی</option>
+        </select>
+        {errors.priority && (
+          <p className="mt-1 text-xs text-red-500">{errors.priority.message}</p>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="description" className="form-label">
+          شرح مشکل
+        </label>
+        <textarea
+          id="description"
+          rows="5"
+          className={`form-control ${
+            errors.description ? "border-red-500" : ""
+          }`}
+          placeholder="لطفا مشکل را به طور کامل شرح دهید"
+          {...register("description", {
+            required: "شرح مشکل الزامی است",
+            minLength: {
+              value: 10,
+              message: "شرح مشکل باید حداقل 10 کاراکتر باشد",
+            },
+          })}
+        ></textarea>
+        {errors.description && (
+          <p className="mt-1 text-xs text-red-500">
+            {errors.description.message}
+          </p>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="receiver" className="form-label">
+          دریافت کننده
+        </label>
+        <select
+          id="receiver"
+          className={`form-control ${errors.receiver ? "border-red-500" : ""}`}
+          {...register("receiver", {
+            required: "انتخاب دریافت کننده الزامی است",
+          })}
+        >
+          <option value="">انتخاب کنید</option>
+          <option value="education">کارشناس سنجش منطقه</option>
+          <option value="tech">کارشناس فناوری منطقه</option>
+        </select>
+        {errors.receiver && (
+          <p className="mt-1 text-xs text-red-500">{errors.receiver.message}</p>
+        )}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="image" className="form-label">
+          تصویر خطا (اختیاری)
+        </label>
+        <input
+          id="image"
+          type="file"
+          accept="image/*"
+          className="form-control"
+          onChange={handleImageChange}
+        />
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          حداکثر حجم فایل: 2 مگابایت
+        </p>
+
+        {previewUrl && (
+          <div className="mt-2">
+            <img
+              src={previewUrl}
+              alt="پیش نمایش"
+              className="h-32 w-auto rounded-md object-contain"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-end space-x-4 space-x-reverse pt-4">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="rounded bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          disabled={isSubmitting}
+        >
+          انصراف
+        </button>
+
+        {!isEditing && (
+          <button
+            type="button"
+            onClick={handleSubmit((data) => onSubmit(data, true))}
+            className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
+            disabled={isSubmitting}
+          >
+            ذخیره پیش‌نویس
+          </button>
+        )}
+
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={isSubmitting}
+          onClick={handleSubmit((data) => onSubmit(data, false))}
+        >
+          {isSubmitting
+            ? "در حال ثبت..."
+            : isEditing
+            ? "به‌روزرسانی تیکت"
+            : "ثبت تیکت"}
+        </button>
+      </div>
+    </form>
+  );
+}

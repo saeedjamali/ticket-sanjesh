@@ -1,8 +1,22 @@
+@import url("../style/font.css");
 @import "tailwindcss";
+
+* {
+  font-family: iransans;
+}
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #0070f3;
+  --primary-dark: #0050b3;
+  --success: #28a745;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --info: #17a2b8;
+  --light-gray: #f8f9fa;
+  --gray: #6c757d;
+  --dark-gray: #343a40;
 }
 
 @theme inline {
@@ -16,11 +30,100 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --primary: #3291ff;
+    --primary-dark: #0761d1;
+    --light-gray: #1a1a1a;
+    --gray: #adb5bd;
+    --dark-gray: #ced4da;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+}
+
+.btn {
+  @apply px-4 py-2 rounded font-medium text-white transition-colors;
+}
+
+.btn-primary {
+  @apply bg-[var(--primary)] hover:bg-[var(--primary-dark)];
+}
+
+.btn-danger {
+  @apply bg-[var(--danger)] hover:opacity-90;
+}
+
+.btn-success {
+  @apply bg-[var(--success)] hover:opacity-90;
+}
+
+.card {
+  @apply bg-white dark:bg-[var(--dark-gray)] rounded-lg shadow p-4;
+}
+
+.form-control {
+  @apply block w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded;
+}
+
+.form-label {
+  @apply block mb-1 text-sm font-medium;
+}
+
+.form-group {
+  @apply mb-4;
+}
+
+.badge {
+  @apply px-2 py-1 text-xs font-semibold rounded-full;
+}
+
+.badge-success {
+  @apply bg-[var(--success)] text-white;
+}
+
+.badge-danger {
+  @apply bg-[var(--danger)] text-white;
+}
+
+.badge-warning {
+  @apply bg-[var(--warning)] text-black;
+}
+
+.badge-info {
+  @apply bg-[var(--info)] text-white;
+}
+
+.status-draft {
+  @apply bg-gray-500 text-white;
+}
+
+.status-new {
+  @apply bg-[var(--info)] text-white;
+}
+
+.status-seen {
+  @apply bg-[var(--warning)] text-black;
+}
+
+.status-inProgress {
+  @apply bg-[var(--primary)] text-white;
+}
+
+.status-resolved {
+  @apply bg-[var(--success)] text-white;
+}
+
+table {
+  @apply w-full text-sm text-left;
+}
+
+th {
+  @apply px-4 py-2 font-medium text-gray-900 dark:text-gray-100;
+}
+
+td {
+  @apply px-4 py-3 border-t border-gray-200 dark:border-gray-700;
 }
