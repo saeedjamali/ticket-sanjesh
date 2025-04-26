@@ -117,12 +117,12 @@ export default function LoginForm() {
         </button>
       </form>
 
-      <div className="mt-6 text-center">
+      {/* <div className="mt-6 text-center">
         <p className="text-sm text-gray-600">
           راهنما: برای ورود به سیستم از کد ملی <strong>1111111111</strong> و رمز
           عبور <strong>123456</strong> استفاده کنید
         </p>
-      </div>
+      </div> */}
     </div>
   );
 }

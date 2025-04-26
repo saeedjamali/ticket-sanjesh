@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
+import { AUTH_CONFIG } from "./config";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-jwt-secret-key-here";
 const JWT_REFRESH_SECRET =

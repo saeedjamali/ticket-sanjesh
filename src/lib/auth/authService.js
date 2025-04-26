@@ -1,6 +1,6 @@
 import { tokenService } from "./tokenService";
 import { AUTH_CONFIG } from "./config";
-import connectDB from "@/lib/dbConnect";
+import connectDB from "@/lib/db";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";

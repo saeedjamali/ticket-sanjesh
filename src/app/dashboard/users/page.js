@@ -25,9 +25,10 @@ export default function UsersPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        cache: "no-store"
+        cache: "no-store",
       });
 
+      console.log("usersResponse--->", usersResponse);
       if (!usersResponse.ok) {
         const errorData = await usersResponse.json();
         if (usersResponse.status === 401) {
@@ -51,7 +52,7 @@ export default function UsersPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        cache: "no-store"
+        cache: "no-store",
       });
 
       if (!provincesResponse.ok) {
@@ -65,7 +66,9 @@ export default function UsersPage() {
 
       const provincesData = await provincesResponse.json();
       if (!provincesData.success) {
-        throw new Error(provincesData.error || "خطا در دریافت اطلاعات استان‌ها");
+        throw new Error(
+          provincesData.error || "خطا در دریافت اطلاعات استان‌ها"
+        );
       }
 
       setProvinces(provincesData.provinces || []);
@@ -77,7 +80,7 @@ export default function UsersPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        cache: "no-store"
+        cache: "no-store",
       });
 
       if (!districtsResponse.ok) {
@@ -103,7 +106,7 @@ export default function UsersPage() {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        cache: "no-store"
+        cache: "no-store",
       });
 
       if (!examCentersResponse.ok) {
@@ -117,7 +120,9 @@ export default function UsersPage() {
 
       const examCentersData = await examCentersResponse.json();
       if (!examCentersData.success) {
-        throw new Error(examCentersData.error || "خطا در دریافت اطلاعات مراکز آزمون");
+        throw new Error(
+          examCentersData.error || "خطا در دریافت اطلاعات مراکز آزمون"
+        );
       }
 
       setExamCenters(examCentersData.examCenters || []);
@@ -772,6 +777,7 @@ export default function UsersPage() {
           password: passwordChange.newPassword,
         }),
       });
+      console.log("response--->", response);
 
       if (!response.ok) {
         const errorData = await response.json();

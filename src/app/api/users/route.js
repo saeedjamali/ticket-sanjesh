@@ -2,15 +2,20 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
-import { ROLES, getRolePermissions } from "@/lib/permissions";
+import { ROLES } from "@/lib/permissions";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
+import validateToken from "@/lib/validateToken";
 
 // GET /api/users - دریافت لیست کاربران
 export async function GET(request) {
   try {
-    const session = await auth();
-    if (!session) {
+    await connectDB();
+
+    const userAuth = await validateToken(request);
+
+    console.log("userAuth--------------->", userAuth);
+    if (!userAuth) {
       return NextResponse.json(
         { success: false, error: "عدم احراز هویت" },
         { status: 401 }
@@ -20,6 +25,8 @@ export async function GET(request) {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
+
+    console.log("searchParams--------------->", searchParams);
     const role = searchParams.get("role");
     const province = searchParams.get("province");
     const district = searchParams.get("district");
@@ -57,17 +64,17 @@ export async function GET(request) {
     }
 
     // محدودیت‌های دسترسی بر اساس نقش
-    if (session.user.role !== ROLES.SYSTEM_ADMIN) {
+    if (userAuth.role !== ROLES.SYSTEM_ADMIN) {
       if (
-        session.user.role === ROLES.PROVINCE_EDUCATION_EXPERT ||
-        session.user.role === ROLES.PROVINCE_TECH_EXPERT
+        userAuth.role === ROLES.PROVINCE_EDUCATION_EXPERT ||
+        userAuth.role === ROLES.PROVINCE_TECH_EXPERT
       ) {
         // کارشناسان استان فقط می‌توانند کاربران استان خود را ببینند
-        query.province = session.user.province;
+        query.province = userAuth.province;
         query.role = { $nin: [ROLES.SYSTEM_ADMIN, ROLES.GENERAL_MANAGER] };
-      } else if (session.user.role === ROLES.DISTRICT_TECH_EXPERT) {
+      } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT) {
         // کارشناسان منطقه فقط می‌توانند کاربران منطقه خود را ببینند
-        query.district = session.user.district;
+        query.district = userAuth.district;
         query.role = {
           $nin: [
             ROLES.SYSTEM_ADMIN,
@@ -130,8 +137,9 @@ export async function GET(request) {
 // POST /api/users - ایجاد کاربر جدید
 export async function POST(request) {
   try {
-    const session = await auth();
-    if (!session) {
+    const userAuth = await validateToken(request);
+
+    if (!userAuth) {
       return NextResponse.json(
         { success: false, error: "عدم احراز هویت" },
         { status: 401 }
@@ -153,10 +161,10 @@ export async function POST(request) {
     // بررسی دسترسی کاربر برای ایجاد نقش
     let hasPermission = false;
 
-    if (session.user.role === ROLES.SYSTEM_ADMIN) {
+    if (userAuth.role === ROLES.SYSTEM_ADMIN) {
       // مدیر سیستم می‌تواند هر نوع کاربری را ایجاد کند
       hasPermission = true;
-    } else if (session.user.role === ROLES.GENERAL_MANAGER) {
+    } else if (userAuth.role === ROLES.GENERAL_MANAGER) {
       // مدیر کل می‌تواند کارشناسان استان را ایجاد کند
       if (
         [ROLES.PROVINCE_EDUCATION_EXPERT, ROLES.PROVINCE_TECH_EXPERT].includes(
@@ -165,7 +173,7 @@ export async function POST(request) {
       ) {
         hasPermission = true;
       }
-    } else if (session.user.role === ROLES.PROVINCE_TECH_EXPERT) {
+    } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
       // کارشناس فناوری استان می‌تواند کارشناسان منطقه را ایجاد کند
       if (
         [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT].includes(
@@ -174,7 +182,7 @@ export async function POST(request) {
       ) {
         hasPermission = true;
         // باید برای استان خودشان باشد
-        if (data.province !== session.user.province) {
+        if (data.province !== userAuth.province) {
           hasPermission = false;
         }
       }
@@ -292,8 +300,9 @@ export async function POST(request) {
 // PUT /api/users - بروزرسانی کاربر
 export async function PUT(request) {
   try {
-    const session = await auth();
-    if (!session) {
+    const userAuth = await validateToken(request);
+
+    if (!userAuth) {
       return NextResponse.json(
         { success: false, error: "عدم احراز هویت" },
         { status: 401 }
@@ -322,10 +331,10 @@ export async function PUT(request) {
     // بررسی دسترسی برای ویرایش کاربر
     let hasPermission = false;
 
-    if (session.user.role === ROLES.SYSTEM_ADMIN) {
+    if (userAuth.role === ROLES.SYSTEM_ADMIN) {
       // مدیر سیستم می‌تواند هر کاربری را ویرایش کند
       hasPermission = true;
-    } else if (session.user.role === ROLES.GENERAL_MANAGER) {
+    } else if (userAuth.role === ROLES.GENERAL_MANAGER) {
       // مدیر کل می‌تواند کارشناسان استان را ویرایش کند
       if (
         [ROLES.PROVINCE_EDUCATION_EXPERT, ROLES.PROVINCE_TECH_EXPERT].includes(
@@ -334,7 +343,7 @@ export async function PUT(request) {
       ) {
         hasPermission = true;
       }
-    } else if (session.user.role === ROLES.PROVINCE_TECH_EXPERT) {
+    } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
       // کارشناس فناوری استان می‌تواند کارشناسان منطقه را ویرایش کند
       if (
         [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT].includes(
@@ -343,7 +352,7 @@ export async function PUT(request) {
       ) {
         hasPermission = true;
         // باید برای استان خودشان باشد
-        if (user.province.toString() !== session.user.province) {
+        if (user.province.toString() !== userAuth.province) {
           hasPermission = false;
         }
       }
@@ -384,7 +393,7 @@ export async function PUT(request) {
     // فقط مدیر سیستم و مدیر کل می‌توانند نقش را تغییر دهند
     if (
       data.role &&
-      [ROLES.SYSTEM_ADMIN, ROLES.GENERAL_MANAGER].includes(session.user.role)
+      [ROLES.SYSTEM_ADMIN, ROLES.GENERAL_MANAGER].includes(userAuth.role)
     ) {
       user.role = data.role;
     }
@@ -392,7 +401,7 @@ export async function PUT(request) {
     // بروزرسانی فیلدهای مکانی با توجه به دسترسی
     if (
       data.province &&
-      [ROLES.SYSTEM_ADMIN, ROLES.GENERAL_MANAGER].includes(session.user.role)
+      [ROLES.SYSTEM_ADMIN, ROLES.GENERAL_MANAGER].includes(userAuth.role)
     ) {
       user.province = data.province;
     }
@@ -403,7 +412,7 @@ export async function PUT(request) {
         ROLES.SYSTEM_ADMIN,
         ROLES.GENERAL_MANAGER,
         ROLES.PROVINCE_TECH_EXPERT,
-      ].includes(session.user.role)
+      ].includes(userAuth.role)
     ) {
       user.district = data.district;
     }
@@ -415,7 +424,7 @@ export async function PUT(request) {
         ROLES.GENERAL_MANAGER,
         ROLES.PROVINCE_TECH_EXPERT,
         ROLES.DISTRICT_TECH_EXPERT,
-      ].includes(session.user.role)
+      ].includes(userAuth.role)
     ) {
       user.examCenter = data.examCenter;
     }
@@ -423,7 +432,7 @@ export async function PUT(request) {
     // فقط مدیر سیستم و مدیر کل می‌توانند وضعیت فعال بودن را تغییر دهند
     if (
       data.isActive !== undefined &&
-      [ROLES.SYSTEM_ADMIN, ROLES.GENERAL_MANAGER].includes(session.user.role)
+      [ROLES.SYSTEM_ADMIN, ROLES.GENERAL_MANAGER].includes(userAuth.role)
     ) {
       // جلوگیری از غیرفعال کردن آخرین مدیر سیستم
       if (user.role === ROLES.SYSTEM_ADMIN && user.isActive && !data.isActive) {
@@ -472,8 +481,9 @@ export async function PUT(request) {
 // PATCH /api/users/password - Change user password
 export async function PATCH(request) {
   try {
-    const session = await auth();
-    if (!session) {
+    const userAuth = await validateToken(request);
+
+    if (!userAuth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -497,10 +507,10 @@ export async function PATCH(request) {
     // Check if user has permission to change this user's password
     let hasPermission = false;
 
-    if (session.user.role === ROLES.SYSTEM_ADMIN) {
+    if (userAuth.role === ROLES.SYSTEM_ADMIN) {
       // System admin can change any user's password
       hasPermission = true;
-    } else if (session.user.role === ROLES.GENERAL_MANAGER) {
+    } else if (userAuth.role === ROLES.GENERAL_MANAGER) {
       // General manager can change province experts' passwords
       if (
         [ROLES.PROVINCE_EDUCATION_EXPERT, ROLES.PROVINCE_TECH_EXPERT].includes(
@@ -509,7 +519,7 @@ export async function PATCH(request) {
       ) {
         hasPermission = true;
       }
-    } else if (session.user.role === ROLES.PROVINCE_TECH_EXPERT) {
+    } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
       // Province tech expert can change district experts' passwords
       if (
         [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT].includes(
@@ -519,21 +529,21 @@ export async function PATCH(request) {
         hasPermission = true;
 
         // Must be for their own province
-        if (user.province.toString() !== session.user.province) {
+        if (user.province.toString() !== userAuth.province) {
           hasPermission = false;
         }
       }
-    } else if (session.user.role === ROLES.DISTRICT_TECH_EXPERT) {
+    } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT) {
       // District tech expert can change exam center managers' passwords
       if (user.role === ROLES.EXAM_CENTER_MANAGER) {
         hasPermission = true;
 
         // Must be for their own district
-        if (user.district.toString() !== session.user.district) {
+        if (user.district.toString() !== userAuth.district) {
           hasPermission = false;
         }
       }
-    } else if (session.user.id === user._id.toString()) {
+    } else if (userAuth.id === user._id.toString()) {
       // Users can change their own password
       // For changing own password, current password should be verified in a real system
       hasPermission = true;

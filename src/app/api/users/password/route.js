@@ -4,12 +4,14 @@ import connectDB from "@/lib/db";
 import User from "@/models/User";
 import { ROLES } from "@/lib/permissions";
 import bcrypt from "bcryptjs";
+import validateToken from "@/lib/validateToken";
 
 // PATCH /api/users/password - Change user password
 export async function PATCH(request) {
   try {
-    const session = await auth();
-    if (!session) {
+    const userAuth = await validateToken(request);
+
+    if (!userAuth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -33,10 +35,10 @@ export async function PATCH(request) {
     // Check if user has permission to change this user's password
     let hasPermission = false;
 
-    if (session.user.role === ROLES.SYSTEM_ADMIN) {
+    if (userAuth.role === ROLES.SYSTEM_ADMIN) {
       // System admin can change any user's password
       hasPermission = true;
-    } else if (session.user.role === ROLES.GENERAL_MANAGER) {
+    } else if (userAuth.role === ROLES.GENERAL_MANAGER) {
       // General manager can change province experts' passwords
       if (
         [ROLES.PROVINCE_EDUCATION_EXPERT, ROLES.PROVINCE_TECH_EXPERT].includes(
@@ -45,7 +47,7 @@ export async function PATCH(request) {
       ) {
         hasPermission = true;
       }
-    } else if (session.user.role === ROLES.PROVINCE_TECH_EXPERT) {
+    } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
       // Province tech expert can change district experts' passwords
       if (
         [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT].includes(
@@ -55,21 +57,21 @@ export async function PATCH(request) {
         hasPermission = true;
 
         // Must be for their own province
-        if (user.province.toString() !== session.user.province) {
+        if (user.province.toString() !== userAuth.province) {
           hasPermission = false;
         }
       }
-    } else if (session.user.role === ROLES.DISTRICT_TECH_EXPERT) {
+    } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT) {
       // District tech expert can change exam center managers' passwords
       if (user.role === ROLES.EXAM_CENTER_MANAGER) {
         hasPermission = true;
 
         // Must be for their own district
-        if (user.district.toString() !== session.user.district) {
+        if (user.district.toString() !== userAuth.district) {
           hasPermission = false;
         }
       }
-    } else if (session.user.id === user._id.toString()) {
+    } else if (userAuth.id === user._id.toString()) {
       // Users can change their own password
       // For changing own password, current password should be verified in a real system
       hasPermission = true;

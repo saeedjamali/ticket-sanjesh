@@ -3,6 +3,9 @@ import { authService } from "@/lib/auth/authService";
 
 export async function GET(request) {
   try {
+    // Validate the user's session
+
+    
     const user = await authService.validateToken(request);
 
     return NextResponse.json({

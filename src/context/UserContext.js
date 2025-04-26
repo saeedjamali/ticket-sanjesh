@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 const UserContext = createContext();
@@ -10,18 +10,28 @@ export function UserProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
   const router = useRouter();
+  const initialCheckDone = useRef(false);
 
   // Check authentication status
   const checkAuth = async () => {
+    // اگر قبلاً چک شده، دیگر چک نکن
+    if (initialCheckDone.current) return;
+
     try {
-      const response = await fetch("/api/auth/validate-token");
+      console.log("Validating token..."); // برای دیباگ
+      const response = await fetch("/api/auth/validate-token", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+
       const data = await response.json();
 
       if (response.ok && data.success && data.user) {
         setUser(data.user);
       } else {
         setUser(null);
-        // Only try to refresh if we got a specific error
         if (response.status === 401) {
           const refreshed = await refreshToken();
           if (!refreshed) {
@@ -35,6 +45,7 @@ export function UserProvider({ children }) {
     } finally {
       setLoading(false);
       setInitialized(true);
+      initialCheckDone.current = true; // علامت‌گذاری که چک اولیه انجام شده
     }
   };
 
@@ -43,6 +54,10 @@ export function UserProvider({ children }) {
     try {
       const response = await fetch("/api/auth/refresh", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
       });
 
       const data = await response.json();
@@ -67,6 +82,7 @@ export function UserProvider({ children }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(userData),
+        cache: "no-store",
       });
 
       const data = await response.json();
@@ -76,6 +92,7 @@ export function UserProvider({ children }) {
       }
 
       setUser(data.user);
+      initialCheckDone.current = true; // بعد از لاگین موفق، علامت‌گذاری می‌کنیم
       return true;
     } catch (error) {
       console.error("Login error:", error);
@@ -86,23 +103,32 @@ export function UserProvider({ children }) {
   // Logout
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", {
+      const response = await fetch("/api/auth/logout", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
       });
+
+      if (!response.ok) {
+        console.error("Logout failed:", response.status);
+      }
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
       setUser(null);
+      initialCheckDone.current = false; // ریست کردن وضعیت چک در زمان خروج
       router.push("/login");
     }
   };
 
   // Check auth on mount
   useEffect(() => {
-    if (!initialized) {
+    if (!initialCheckDone.current) {
       checkAuth();
     }
-  }, [initialized]);
+  }, []); // فقط یکبار در زمان mount اجرا شود
 
   // Setup token refresh interval
   useEffect(() => {
