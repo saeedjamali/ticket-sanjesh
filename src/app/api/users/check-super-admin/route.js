@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongoose";
 import User from "@/models/User";
-import { validateToken } from "@/lib/validateToken";
+
 import { ROLES } from "@/lib/permissions";
+import { authService } from "@/lib/auth/authService";
 
 export async function GET(request) {
   try {
     await connectDB();
 
     // بررسی توکن و دریافت اطلاعات کاربر
-    const user = await validateToken();
+    const user = await authService.validateToken(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: "لطفا وارد حساب کاربری خود شوید" },

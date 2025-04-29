@@ -55,7 +55,7 @@ AcademicYearSchema.pre("save", function (next) {
 
 // حذف ایندکس قدیمی year در صورت وجود
 const AcademicYear =
-  mongoose.models.AcademicYear ||
+  mongoose.models?.AcademicYear ||
   mongoose.model("AcademicYear", AcademicYearSchema);
 
 // تلاش برای حذف ایندکس قدیمی

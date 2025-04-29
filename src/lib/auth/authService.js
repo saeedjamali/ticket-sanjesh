@@ -19,6 +19,7 @@ class AuthService {
         .populate("district", "name")
         .populate("examCenter", "name");
 
+      console.log("user in AuthService Login---->", user);
       // Check if user exists
       if (!user) {
         throw new Error("کد ملی یا رمز عبور اشتباه است");
@@ -31,6 +32,7 @@ class AuthService {
 
       // Verify password
       const isPasswordValid = await bcrypt.compare(password, user.password);
+
       if (!isPasswordValid) {
         throw new Error("کد ملی یا رمز عبور اشتباه است");
       }
@@ -57,8 +59,10 @@ class AuthService {
         district: user.district,
         examCenter: user.examCenter,
         academicYear: user.academicYear,
+        refreshToken: refreshToken,
       };
 
+      console.log("userData---->", userData);
       return {
         accessToken,
         refreshToken,
@@ -82,21 +86,6 @@ class AuthService {
       const decoded = await tokenService.verifyAccessToken(accessToken);
       if (!decoded || !decoded.userId) {
         throw new Error("Invalid access token");
-      }
-
-      // اگر کاربر تست است، اطلاعات تست را برگردانیم
-      if (decoded.userId === TEST_USER_ID.toString()) {
-        return {
-          id: TEST_USER_ID.toString(),
-          fullName: "مدیر سیستم",
-          nationalId: "1111111111",
-          role: "systemAdmin",
-          isActive: true,
-          province: null,
-          district: null,
-          examCenter: null,
-          academicYear: "1402-1403",
-        };
       }
 
       // Connect to database
@@ -133,46 +122,16 @@ class AuthService {
     try {
       // Verify refresh token
       const decoded = await tokenService.verifyRefreshToken(refreshToken);
+     
       if (!decoded || !decoded.userId) {
         throw new Error("Invalid refresh token");
-      }
-
-      // اگر کاربر تست است، اطلاعات تست را برگردانیم
-      if (decoded.userId === TEST_USER_ID.toString()) {
-        const payload = {
-          userId: TEST_USER_ID.toString(),
-          role: "systemAdmin",
-        };
-
-        const accessToken = await tokenService.generateAccessToken(payload);
-        const newRefreshToken = await tokenService.generateRefreshToken(
-          payload
-        );
-
-        const userData = {
-          id: TEST_USER_ID.toString(),
-          fullName: "مدیر سیستم",
-          nationalId: "1111111111",
-          role: "systemAdmin",
-          isActive: true,
-          province: null,
-          district: null,
-          examCenter: null,
-          academicYear: "1402-1403",
-        };
-
-        return {
-          accessToken,
-          refreshToken: newRefreshToken,
-          user: userData,
-        };
       }
 
       // Connect to database
       await connectDB();
 
       // Get user
-      const user = await User.findById(decoded.userId)
+      const user = await User.findOne({ _id: decoded.userId, refreshToken })
         .populate("province district examCenter")
         .lean();
 
@@ -187,7 +146,7 @@ class AuthService {
       };
 
       const accessToken = await tokenService.generateAccessToken(payload);
-      const newRefreshToken = await tokenService.generateRefreshToken(payload);
+      // const newRefreshToken = await tokenService.generateRefreshToken(payload);
 
       // Format user data
       const userData = {
@@ -204,7 +163,7 @@ class AuthService {
 
       return {
         accessToken,
-        refreshToken: newRefreshToken,
+        refreshToken,
         user: userData,
       };
     } catch (error) {

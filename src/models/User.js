@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-
+require("./Province");
+require("./District");
+require("./ExamCenter");
 console.log("Initializing User model");
 
 // Check mongoose connection
@@ -51,6 +53,9 @@ const UserSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true,
+  },
+  refreshToken: {
+    type: String,
   },
   createdAt: {
     type: Date,

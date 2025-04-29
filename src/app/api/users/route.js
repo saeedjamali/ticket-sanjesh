@@ -5,14 +5,14 @@ import User from "@/models/User";
 import { ROLES } from "@/lib/permissions";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
-import validateToken from "@/lib/validateToken";
+import { authService } from "@/lib/auth/authService";
 
 // GET /api/users - دریافت لیست کاربران
 export async function GET(request) {
   try {
     await connectDB();
 
-    const userAuth = await validateToken(request);
+    const userAuth = await authService.validateToken(request);
 
     console.log("userAuth--------------->", userAuth);
     if (!userAuth) {
@@ -137,7 +137,7 @@ export async function GET(request) {
 // POST /api/users - ایجاد کاربر جدید
 export async function POST(request) {
   try {
-    const userAuth = await validateToken(request);
+    const userAuth = await authService.validateToken(request);
 
     if (!userAuth) {
       return NextResponse.json(
@@ -258,7 +258,8 @@ export async function POST(request) {
     }
 
     // رمزنگاری رمز عبور
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(data.password, salt);
 
     // ایجاد کاربر جدید
     const user = await User.create({
@@ -300,7 +301,7 @@ export async function POST(request) {
 // PUT /api/users - بروزرسانی کاربر
 export async function PUT(request) {
   try {
-    const userAuth = await validateToken(request);
+    const userAuth = await authService.validateToken(request);
 
     if (!userAuth) {
       return NextResponse.json(
@@ -481,7 +482,7 @@ export async function PUT(request) {
 // PATCH /api/users/password - Change user password
 export async function PATCH(request) {
   try {
-    const userAuth = await validateToken(request);
+    const userAuth = await authService.validateToken(request);
 
     if (!userAuth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -554,7 +555,8 @@ export async function PATCH(request) {
     }
 
     // Hash new password
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(data.password, salt);
 
     // Update password
     user.password = hashedPassword;

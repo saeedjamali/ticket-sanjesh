@@ -4,12 +4,12 @@ import connectDB from "@/lib/db";
 import User from "@/models/User";
 import { ROLES } from "@/lib/permissions";
 import bcrypt from "bcryptjs";
-import validateToken from "@/lib/validateToken";
+import { authService } from "@/lib/auth/authService";
 
 // PATCH /api/users/password - Change user password
 export async function PATCH(request) {
   try {
-    const userAuth = await validateToken(request);
+    const userAuth = await authService.validateToken(request);
 
     if (!userAuth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -81,12 +81,15 @@ export async function PATCH(request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    
     // Hash new password
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(data.password, salt);
+   
     // Update password
     user.password = hashedPassword;
-    await user.save();
+    
+    await User.findByIdAndUpdate(user._id, { password: hashedPassword });
 
     return NextResponse.json({ success: true });
   } catch (error) {

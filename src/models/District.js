@@ -68,6 +68,6 @@ districtSchema.post("save", async function () {
 });
 
 const District =
-  mongoose.models.District || mongoose.model("District", districtSchema);
+  mongoose.models?.District || mongoose.model("District", districtSchema);
 
 export default District;

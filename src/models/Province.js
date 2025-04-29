@@ -52,6 +52,6 @@ provinceSchema.methods.decrementDistrictsCount = async function () {
 };
 
 const Province =
-  mongoose.models.Province || mongoose.model("Province", provinceSchema);
+  mongoose.models?.Province || mongoose.model("Province", provinceSchema);
 
 export default Province;

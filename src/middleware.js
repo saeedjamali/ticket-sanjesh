@@ -13,6 +13,7 @@ const PUBLIC_PATHS = [
 const PUBLIC_PREFIXES = ["/api/public/", "/_next/", "/fonts/", "/images/"];
 
 export async function middleware(request) {
+  console.log("request in middleware--->", request.nextUrl.origin);
   const pathname = request.nextUrl.pathname;
 
   // Allow public paths

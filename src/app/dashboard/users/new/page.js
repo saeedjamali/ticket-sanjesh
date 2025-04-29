@@ -61,6 +61,8 @@ export default function NewUserPage() {
           cache: "no-store",
         });
         const examCentersData = await examCentersResponse.json();
+
+        console.log("examCentersData--->", examCentersData);
         if (examCentersData.success) {
           setExamCenters(examCentersData.examCenters);
         }

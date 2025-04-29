@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/dashboard/Header";
 import Footer from "@/components/dashboard/Footer";
 import Sidebar from "@/components/dashboard/Sidebar";
 import Link from "next/link";
@@ -8,6 +7,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserContext } from "@/context/UserContext";
 import Loading from "@/components/ui/Loading";
+import LogoutButton from "@/components/LogoutButton";
+
+import Header from "@/components/Header";
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
@@ -52,9 +54,13 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div dir="rtl" className="flex min-h-screen">
+      {/* <Header /> */}
       <Sidebar user={user} />
-      <div className="flex flex-col flex-1">
-        <div className="flex-1 p-6">{children}</div>
+      <div className="flex-1 flex flex-col">
+        <Header />
+        <main className="flex-1 overflow-auto bg-gray-50">
+          <div className="container mx-auto p-6">{children}</div>
+        </main>
         <Footer />
       </div>
     </div>

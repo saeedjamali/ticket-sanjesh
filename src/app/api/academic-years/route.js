@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import AcademicYear from "@/models/AcademicYear";
-import validateToken from "@/lib/validateToken";
 import connectDB from "@/lib/db";
 import { ROLES } from "@/lib/permissions";
+import { authService } from "@/lib/auth/authService";
 
 // GET /api/academic-years - دریافت لیست سال‌های تحصیلی
 export async function GET(request) {
   try {
     await connectDB();
 
-    const user = await validateToken(request);
+    const user = await authService.validateToken(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: "عدم احراز هویت" },

@@ -1,9 +1,11 @@
+import { authService } from "@/lib/auth/authService";
 import { NextResponse } from "next/server";
-import validateToken from "@/lib/validateToken";
+
 
 export async function GET(request) {
   try {
-    const user = await validateToken();
+    const user = await authService.validateToken(request);
+    console.log("user from api------>", user);
     if (!user) {
       return NextResponse.json(
         { success: false, error: "لطفا وارد حساب کاربری خود شوید" },

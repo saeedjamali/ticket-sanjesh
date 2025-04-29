@@ -6,16 +6,17 @@ import User from "@/models/User";
 import { ROLES, getRolePermissions } from "@/lib/permissions";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
-import validateToken from "@/lib/validateToken";
+
 import jwt from "jsonwebtoken";
 import District from "@/models/District";
+import { authService } from "@/lib/auth/authService";
 
 // GET /api/exam-centers - Retrieve exam centers
 export async function GET(request) {
   try {
     await connectDB();
 
-    const user = await validateToken(request);
+    const user = await authService.validateToken(request);
     console.log("user--->", user);
     if (!user) {
       return NextResponse.json(

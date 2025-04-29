@@ -3,15 +3,16 @@ import connectDB from "@/lib/db";
 import Province from "@/models/Province";
 import District from "@/models/District";
 import AcademicYear from "@/models/AcademicYear";
-import validateToken from "@/lib/validateToken";
+
 import { ROLES } from "@/lib/permissions";
+import { authService } from "@/lib/auth/authService";
 
 // GET /api/provinces - دریافت همه استان‌ها
 export async function GET(request) {
   try {
     await connectDB();
 
-    const user = await validateToken(request);
+    const user = await authService.validateToken(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: "عدم احراز هویت" },
@@ -54,7 +55,10 @@ export async function POST(request) {
     }
 
     // بررسی دسترسی کاربر
-    if (user.role !== ROLES.SYSTEM_ADMIN && user.role !== ROLES.GENERAL_MANAGER) {
+    if (
+      user.role !== ROLES.SYSTEM_ADMIN &&
+      user.role !== ROLES.GENERAL_MANAGER
+    ) {
       return NextResponse.json(
         { success: false, error: "شما دسترسی لازم برای این عملیات را ندارید" },
         { status: 403 }
@@ -141,7 +145,10 @@ export async function PUT(request, { params }) {
     }
 
     // بررسی دسترسی کاربر
-    if (user.role !== ROLES.SYSTEM_ADMIN && user.role !== ROLES.GENERAL_MANAGER) {
+    if (
+      user.role !== ROLES.SYSTEM_ADMIN &&
+      user.role !== ROLES.GENERAL_MANAGER
+    ) {
       return NextResponse.json(
         { success: false, error: "شما دسترسی لازم برای این عملیات را ندارید" },
         { status: 403 }
@@ -231,7 +238,10 @@ export async function DELETE(request, { params }) {
     }
 
     // بررسی دسترسی کاربر
-    if (user.role !== ROLES.SYSTEM_ADMIN && user.role !== ROLES.GENERAL_MANAGER) {
+    if (
+      user.role !== ROLES.SYSTEM_ADMIN &&
+      user.role !== ROLES.GENERAL_MANAGER
+    ) {
       return NextResponse.json(
         { success: false, error: "شما دسترسی لازم برای این عملیات را ندارید" },
         { status: 403 }

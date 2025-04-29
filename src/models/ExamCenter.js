@@ -19,8 +19,8 @@ const examCenterSchema = new mongoose.Schema(
       required: [true, "منطقه مرکز آزمون الزامی است"],
     },
     manager: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
+      trim: true,
     },
     capacity: {
       type: Number,
@@ -64,12 +64,6 @@ const examCenterSchema = new mongoose.Schema(
   }
 );
 
-// ایندکس‌ها برای بهبود عملکرد
-examCenterSchema.index({ code: 1 }, { unique: true });
-examCenterSchema.index({ district: 1 });
-examCenterSchema.index({ manager: 1 });
-examCenterSchema.index({ academicYear: 1 });
-
 // میدل‌ور برای پر کردن خودکار updatedAt
 examCenterSchema.pre("save", function (next) {
   if (this.isModified()) {
@@ -98,6 +92,6 @@ examCenterSchema.methods.isInDistrict = function (districtId) {
 };
 
 const ExamCenter =
-  mongoose.models.ExamCenter || mongoose.model("ExamCenter", examCenterSchema);
+  mongoose.models?.ExamCenter || mongoose.model("ExamCenter", examCenterSchema);
 
 export default ExamCenter;

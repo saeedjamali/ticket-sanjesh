@@ -34,7 +34,7 @@ export default function LoginForm() {
       });
 
       const data = await response.json();
-
+      console.log("data in login form--->", data);
       if (!response.ok) {
         throw new Error(data.error || data.message || "خطا در ورود به سیستم");
       }

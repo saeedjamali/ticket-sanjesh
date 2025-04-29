@@ -4,7 +4,8 @@ import District from "@/models/District";
 import ExamCenter from "@/models/ExamCenter";
 import AcademicYear from "@/models/AcademicYear";
 import dbConnect from "@/lib/dbConnect";
-import validateToken from "@/lib/validateToken";
+import { authService } from "@/lib/auth/authService";
+
 
 // GET /api/districts - Retrieve all districts
 export async function GET(request) {
@@ -14,7 +15,7 @@ export async function GET(request) {
     await dbConnect();
     console.log("GET /api/districts - Connected to database");
 
-    const user = await validateToken(request);
+    const user = await authService.validateToken(request);
     if (!user) {
       console.log("GET /api/districts - User authentication: false");
       return NextResponse.json(

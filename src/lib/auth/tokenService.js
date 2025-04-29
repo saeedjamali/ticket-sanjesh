@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
+import * as jose from "jose";
 import { AUTH_CONFIG } from "./config";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-jwt-secret-key-here";
@@ -78,7 +79,7 @@ export const tokenService = {
         throw new Error("Refresh token expired");
       }
       console.error("Refresh token verification error:", error);
-      throw new Error("Invalid refresh token");
+       throw new Error("Invalid refresh token");
     }
   },
 

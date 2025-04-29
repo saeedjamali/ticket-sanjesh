@@ -13,6 +13,7 @@ import {
   FaChevronDown,
   FaChevronUp,
 } from "react-icons/fa";
+import LogoutButton from "../LogoutButton";
 
 const icons = {
   dashboard: <FaHome className="h-5 w-5" />,
@@ -36,8 +37,8 @@ export default function Sidebar({ user }) {
       <div className="mb-8">
         <h2 className="text-xl font-bold mb-6 text-center">پنل کاربری</h2>
       </div>
-      <nav>
-        <ul className="space-y-2">
+      <nav className="flex flex-col justify-between ">
+        <ul className="space-y-2 ">
           {menuItems.map((item) => (
             <li key={item.path}>
               {item.submenu ? (
@@ -93,6 +94,9 @@ export default function Sidebar({ user }) {
             </li>
           ))}
         </ul>
+        {/* <div className="pt-4">
+          <LogoutButton />
+        </div> */}
       </nav>
     </aside>
   );

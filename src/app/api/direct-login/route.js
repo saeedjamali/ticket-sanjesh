@@ -1,58 +1,36 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
+
 import bcrypt from "bcryptjs";
-import connectDB from "@/lib/db";
+
 import User from "@/models/User";
 import { tokenService } from "@/lib/auth/tokenService";
 import { cookies } from "next/headers";
 import dbConnect from "@/lib/dbConnect";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-} from "@/lib/auth/tokenService";
-
-// Define UserSchema here in case the import fails
-const UserSchema = new mongoose.Schema({
-  nationalId: { type: String, required: true, unique: true, trim: true },
-  password: { type: String, required: true },
-  fullName: { type: String, required: true },
-  role: {
-    type: String,
-    enum: [
-      "systemAdmin",
-      "generalManager",
-      "provinceEducationExpert",
-      "provinceTechExpert",
-      "districtEducationExpert",
-      "districtTechExpert",
-      "examCenterManager",
-    ],
-    required: true,
-  },
-  province: { type: mongoose.Schema.Types.ObjectId, ref: "Province" },
-  district: { type: mongoose.Schema.Types.ObjectId, ref: "District" },
-  examCenter: { type: mongoose.Schema.Types.ObjectId, ref: "ExamCenter" },
-  createdAt: { type: Date, default: Date.now },
-  academicYear: { type: String },
-});
 
 export async function POST(request) {
   try {
     await dbConnect();
 
-    const { username, password } = await request.json();
+    const { nationalId, password } = await request.json();
 
     // Find user or create test user if not exists
-    let user = await User.findOne({ username });
+
+    let user = await User.findOne({ nationalId });
+
     if (!user) {
-      user = await User.create({
-        username,
-        password,
-        role: "USER",
-        name: "کاربر تست",
-        phone: "09123456789",
-        email: "test@test.com",
-      });
+      return NextResponse.json(
+        { message: "چنین کاربری یافت نشد" },
+        { status: 404 }
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+ 
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        { message: "کد ملی یا رمز عبور اشتباه است" },
+        { status: 404 }
+      );
     }
 
     // Generate tokens using tokenService object
@@ -66,6 +44,9 @@ export async function POST(request) {
       role: user.role,
     });
 
+    const addRefreshTokenToUser = await User.findByIdAndUpdate(user._id, {
+      refreshToken,
+    });
     // Set cookies
     const cookieStore = cookies();
     cookieStore.set("access-token", accessToken, {
