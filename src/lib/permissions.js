@@ -152,21 +152,21 @@ export function getMenuItemsByRole(role) {
     });
   }
 
-  // منوی گزارش‌ها - برای مدیران و کارشناسان
-  if (
-    role === ROLES.SYSTEM_ADMIN ||
-    role === ROLES.GENERAL_MANAGER ||
-    role === ROLES.PROVINCE_EDUCATION_EXPERT ||
-    role === ROLES.PROVINCE_TECH_EXPERT ||
-    role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-    role === ROLES.DISTRICT_TECH_EXPERT
-  ) {
-    menuItems.push({
-      label: "گزارش‌ها",
-      path: "/dashboard/reports",
-      icon: "reports",
-    });
-  }
+  // // منوی گزارش‌ها - برای مدیران و کارشناسان
+  // if (
+  //   role === ROLES.SYSTEM_ADMIN ||
+  //   role === ROLES.GENERAL_MANAGER ||
+  //   role === ROLES.PROVINCE_EDUCATION_EXPERT ||
+  //   role === ROLES.PROVINCE_TECH_EXPERT ||
+  //   role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+  //   role === ROLES.DISTRICT_TECH_EXPERT
+  // ) {
+  //   menuItems.push({
+  //     label: "گزارش‌ها",
+  //     path: "/dashboard/reports",
+  //     icon: "reports",
+  //   });
+  // }
 
   // منوی تنظیمات - فقط برای مدیران سیستم
   if (role === ROLES.SYSTEM_ADMIN) {

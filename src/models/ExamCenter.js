@@ -19,8 +19,8 @@ const examCenterSchema = new mongoose.Schema(
       required: [true, "منطقه مرکز آزمون الزامی است"],
     },
     manager: {
-      type: String,
-      trim: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     capacity: {
       type: Number,
@@ -63,6 +63,8 @@ const examCenterSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+
 
 // میدل‌ور برای پر کردن خودکار updatedAt
 examCenterSchema.pre("save", function (next) {

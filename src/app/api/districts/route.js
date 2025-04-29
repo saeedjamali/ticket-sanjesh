@@ -6,7 +6,6 @@ import AcademicYear from "@/models/AcademicYear";
 import dbConnect from "@/lib/dbConnect";
 import { authService } from "@/lib/auth/authService";
 
-
 // GET /api/districts - Retrieve all districts
 export async function GET(request) {
   try {
@@ -79,7 +78,7 @@ export async function POST(request) {
     await dbConnect();
     console.log("POST /api/districts - Connected to database");
 
-    const user = await validateToken(request);
+    const user = await authService.validateToken(request);
     if (!user) {
       console.log("POST /api/districts - User authentication: false");
       return NextResponse.json(
@@ -179,7 +178,7 @@ export async function PUT(request) {
     await dbConnect();
     console.log("PUT /api/districts - Connected to database");
 
-    const user = await validateToken(request);
+    const user = await authService.validateToken(request);
     if (!user) {
       console.log("PUT /api/districts - User authentication: false");
       return NextResponse.json(
@@ -277,7 +276,7 @@ export async function DELETE(request) {
     await dbConnect();
     console.log("DELETE /api/districts - Connected to database");
 
-    const user = await validateToken(request);
+    const user = await authService.validateToken(request);
     if (!user) {
       console.log("DELETE /api/districts - User authentication: false");
       return NextResponse.json(

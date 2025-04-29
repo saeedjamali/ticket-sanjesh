@@ -93,7 +93,7 @@ export async function DELETE(request, { params }) {
   try {
     await connectDB();
 
-    const user = await validateToken(request);
+    const user = await authService.validateToken(request);
     if (!user) {
       return NextResponse.json(
         { success: false, error: "عدم احراز هویت" },

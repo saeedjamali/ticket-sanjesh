@@ -90,7 +90,7 @@ export async function GET(request, { params }) {
     }
 
     // روش 1: تلاش برای احراز هویت با توکن
-    const userFromToken = await validateToken(request);
+    const userFromToken = await authService.validateToken(request);
 
     // روش 2: استفاده از کوکی و تقلید سشن برای سازگاری با کد قبلی
     const authCookie = request.cookies.get("authToken")?.value;
@@ -384,7 +384,7 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     // روش 1: تلاش برای احراز هویت با توکن
-    const userFromToken = await validateToken(request);
+    const userFromToken = await authService.validateToken(request);
 
     // روش 2: استفاده از کوکی و تقلید سشن برای سازگاری با کد قبلی
     const authCookie = request.cookies.get("authToken")?.value;

@@ -577,7 +577,7 @@ export default function ExamCentersPage() {
               </select>
             </div>
 
-            <div>
+            {/* <div>
               <label
                 htmlFor="manager"
                 className="block text-sm font-medium text-gray-700 mb-1"
@@ -592,7 +592,7 @@ export default function ExamCentersPage() {
                 onChange={handleInputChange}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-            </div>
+            </div> */}
 
             <div>
               <label

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
+import ExamCenter from "@/models/ExamCenter";
 import { ROLES } from "@/lib/permissions";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
@@ -275,6 +276,7 @@ export async function POST(request) {
       academicYear: academicYear.name,
     });
 
+    await ExamCenter.findByIdAndUpdate(data.examCenter, { manager: user._id });
     // حذف رمز عبور از پاسخ
     const userResponse = user.toObject();
     delete userResponse.password;

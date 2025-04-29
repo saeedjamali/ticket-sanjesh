@@ -56,7 +56,7 @@ async function validateToken(request) {
 export async function POST(request, { params }) {
   try {
     // روش 1: تلاش برای احراز هویت با توکن
-    const userFromToken = await validateToken(request);
+    const userFromToken = await authService.validateToken(request);
 
     // روش 2: استفاده از کوئری استرینگ (برای سادگی در تست)
     const { searchParams } = new URL(request.url);
