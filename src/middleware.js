@@ -30,12 +30,14 @@ export async function middleware(request) {
 
     // Verify access token
     try {
+      
       const decoded = await tokenService.verifyAccessToken(accessToken);
       if (!decoded || !decoded.userId) {
         throw new Error("Invalid access token");
       }
       return NextResponse.next();
     } catch (tokenError) {
+      console.log("tokenError in middleware--->", tokenError);
       // If access token is expired or invalid, try refresh token
       const refreshToken = request.cookies.get("refresh-token")?.value;
       if (!refreshToken) {
@@ -50,7 +52,7 @@ export async function middleware(request) {
         }
 
         // Redirect to refresh endpoint to get new tokens
-        const refreshUrl = new URL("/api/auth/refresh", request.url);
+        const refreshUrl = new URL("/", request.url);
         return NextResponse.redirect(refreshUrl);
       } catch (refreshError) {
         console.error("Refresh token error:", refreshError);

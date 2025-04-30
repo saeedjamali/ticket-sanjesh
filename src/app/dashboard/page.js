@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getRoleName } from "@/lib/permissions";
-import TicketCharts from "@/components/dashboard/TicketCharts";
+import TicketStats from "@/components/dashboard/TicketStats";
 import DistrictsGrid from "@/components/dashboard/DistrictsGrid";
 import ProvinceExamCenters from "@/components/dashboard/ProvinceExamCenters";
 import { useUserContext } from "@/context/UserContext";
@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [dbStatus, setDbStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showCharts, setShowCharts] = useState(true);
+  const [showStats, setShowStats] = useState(true);
   const [showDistrictsGrid, setShowDistrictsGrid] = useState(true);
   const [showExamCenters, setShowExamCenters] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
@@ -144,6 +144,61 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* بخش آمار تیکت‌ها */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">گزارش تیکت‌ها</h2>
+          <button
+            onClick={() => setShowStats(!showStats)}
+            className="flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm"
+          >
+            {showStats ? (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-4 h-4 ml-1"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+                <span>مخفی کردن</span>
+              </>
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-4 h-4 ml-1"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                  />
+                </svg>
+                <span>نمایش</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {showStats && (
+          <div className="bg-white shadow-sm rounded-lg p-6">
+            <TicketStats />
+          </div>
+        )}
+      </div>
+
       {/* بخش مراکز امتحانی استان - فقط برای مدیران کل و کارشناسان استان */}
       {isProvinceUser && (
         <div className="mt-8">
@@ -200,61 +255,6 @@ export default function DashboardPage() {
           )}
         </div>
       )}
-
-      {/* بخش نمودارهای آماری */}
-      <div className="mt-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">گزارش تیکت‌ها</h2>
-          <button
-            onClick={() => setShowCharts(!showCharts)}
-            className="flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md text-sm"
-          >
-            {showCharts ? (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-4 h-4 ml-1"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                  />
-                </svg>
-                <span>مخفی کردن</span>
-              </>
-            ) : (
-              <>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-4 h-4 ml-1"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                  />
-                </svg>
-                <span>نمایش</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        {showCharts && (
-          <div className="bg-white shadow-sm rounded-lg p-6">
-            <TicketCharts />
-          </div>
-        )}
-      </div>
 
       {/* بخش وضعیت اتصال به دیتابیس */}
       <div className="mt-8">

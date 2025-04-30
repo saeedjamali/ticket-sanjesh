@@ -102,7 +102,7 @@ export async function POST(request, { params }) {
     // بروزرسانی وضعیت تیکت
     if (isAdmin) {
       // اگر پاسخ از طرف کارشناس باشد
-      if (ticket.status === "new" || ticket.status === "inProgress") {
+      if (ticket.status === "seen" || ticket.status === "inProgress") {
         ticket.status = "resolved";
       }
     } else {

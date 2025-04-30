@@ -90,15 +90,12 @@ export async function GET(request, { params }) {
       );
     }
 
-    // بروزرسانی وضعیت تیکت به seen اگر از طرف کارشناس باشد
-    const isAdmin = [
-      ROLES.DISTRICT_ADMIN,
-      ROLES.PROVINCE_ADMIN,
-      ROLES.ADMIN,
-      ROLES.SUPER_ADMIN,
-      ROLES.SYSTEM_ADMIN,
+    // بروزرسانی وضعیت تیکت به seen اگر از طرف کارشناس منطقه باشد
+    const isDistrictExpert = [
+      ROLES.DISTRICT_TECH_EXPERT,
+      ROLES.DISTRICT_EDUCATION_EXPERT,
     ].includes(user.role);
-    if (isAdmin && ticket.status === "new") {
+    if (isDistrictExpert && ticket.status === "new") {
       ticket.status = "seen";
       await ticket.save();
     }
