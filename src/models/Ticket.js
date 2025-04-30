@@ -80,6 +80,10 @@ const TicketSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
+      isAdmin: {
+        type: Boolean,
+        default: false,
+      },
       createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

@@ -12,220 +12,105 @@ import { authService } from "@/lib/auth/authService";
 
 export async function GET(request, { params }) {
   try {
-    const id = await params?.id;
-    console.log("params---->", id);
-    // بررسی معتبر بودن id
-    if (!id || id === "undefined") {
-      console.error("Invalid ticket ID: undefined or empty");
-      return NextResponse.json(
-        {
-          error: "Invalid ticket ID",
-          message: "The ticket ID is undefined or invalid",
-        },
-        { status: 400 }
-      );
-    }
-
-    // بررسی اینکه آیا id یک ObjectId معتبر است
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      console.error(`Invalid ticket ID format: ${id}`);
-      return NextResponse.json(
-        {
-          error: "Invalid ticket ID format",
-          message: `The provided ticket ID (${id}) is not a valid MongoDB ObjectId`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // روش 1: تلاش برای احراز هویت ا توکن
-    const user = await authService.validateToken(request);
-
-    console.log("user---->", user);
-
-    if (!user) {
-      console.log(`GET /api/tickets/${id} - No authenticated user found`);
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     await connectDB();
 
-    try {
-      const ticket = await Ticket.findById(id)
-        .populate("createdBy", "fullName")
-        .populate("examCenter", "name")
-        .populate("district", "name")
-        .populate("province", "name")
-        .populate("responses.createdBy", "fullName")
-        .lean();
-
-      console.log("ticket---->", ticket);
-      if (!ticket) {
-        return NextResponse.json(
-          { error: "Ticket not found" },
-          { status: 404 }
-        );
-      }
-
-      // Check if user has permission to view this ticket
-      let canViewTicket = false;
-
-      if (user.role === ROLES.EXAM_CENTER_MANAGER) {
-        // مسئول مرکز آزمون می‌تواند تمام تیکت‌های مرکز خود را ببیند
-        if (
-          user.examCenter &&
-          ticket.examCenter &&
-          (user.examCenter === ticket.examCenter._id.toString() ||
-            user.examCenter === ticket.examCenter._id)
-        ) {
-          canViewTicket = true;
-          console.log(
-            "Exam center manager can view this ticket (same exam center)"
-          );
-        }
-
-        // همچنین مسئول مرکز آزمون می‌تواند تیکت‌هایی که خودش ایجاد کرده را ببیند
-        if (
-          user.id &&
-          ticket.createdBy &&
-          (user.id === ticket.createdBy._id.toString() ||
-            user.id === ticket.createdBy._id)
-        ) {
-          canViewTicket = true;
-          console.log("Exam center manager can view this ticket (creator)");
-        }
-      } else if (user.role === ROLES.DISTRICT_EDUCATION_EXPERT) {
-        // کارشناس سنجش منطقه فقط تیکت‌های سنجش منطقه خودش را می‌بیند
-        if (
-          ticket.district &&
-          (user.district === ticket.district._id.toString() ||
-            user.district === ticket.district._id) &&
-          (ticket.receiver === "education" || ticket.type === "EDUCATION")
-        ) {
-          canViewTicket = true;
-        }
-      } else if (user.role === ROLES.DISTRICT_TECH_EXPERT) {
-        // کارشناس فناوری منطقه فقط تیکت‌های فناوری منطقه خودش را می‌بیند
-        if (
-          ticket.district &&
-          (user.district === ticket.district._id.toString() ||
-            user.district === ticket.district._id) &&
-          (ticket.receiver === "tech" || ticket.type === "TECH")
-        ) {
-          canViewTicket = true;
-        }
-      } else if (user.role === ROLES.PROVINCE_EDUCATION_EXPERT) {
-        // کارشناس سنجش استان فقط تیکت‌های سنجش استان خودش را می‌بیند
-        if (
-          ticket.province &&
-          (user.province === ticket.province._id.toString() ||
-            user.province === ticket.province._id) &&
-          (ticket.receiver === "education" || ticket.type === "EDUCATION")
-        ) {
-          canViewTicket = true;
-        }
-      } else if (user.role === ROLES.PROVINCE_TECH_EXPERT) {
-        // کارشناس فناوری استان فقط تیکت‌های فناوری استان خودش را می‌بیند
-        if (
-          ticket.province &&
-          (user.province === ticket.province._id.toString() ||
-            user.province === ticket.province._id) &&
-          (ticket.receiver === "tech" || ticket.type === "TECH")
-        ) {
-          canViewTicket = true;
-        }
-      } else if (user.role === ROLES.GENERAL_MANAGER) {
-        // مدیر کل فقط تیکت‌های استان خود را می‌بیند
-        if (
-          ticket.province &&
-          user.province &&
-          (user.province === ticket.province._id.toString() ||
-            user.province === ticket.province._id)
-        ) {
-          canViewTicket = true;
-          console.log("General manager can view this ticket (same province)");
-        } else {
-          console.log(
-            "General manager cannot view this ticket (different province)"
-          );
-        }
-      } else if (user.role === ROLES.SYSTEM_ADMIN) {
-        // مدیر سیستم تمام تیکت‌ها را می‌بیند
-        canViewTicket = true;
-      }
-
-      console.log(`GET /api/tickets/${id} - Can view ticket:`, canViewTicket);
-
-      if (!canViewTicket) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-
-      // Automatically update ticket status to "seen" when viewed by district or province experts
-      // Only update if status is "new" (unseen) and the viewer is the appropriate expert
-      if (
-        ticket.status === "new" &&
-        ((user.role === ROLES.DISTRICT_EDUCATION_EXPERT &&
-          ticket.receiver === "education") ||
-          (user.role === ROLES.DISTRICT_TECH_EXPERT &&
-            ticket.receiver === "tech") ||
-          (user.role === ROLES.PROVINCE_EDUCATION_EXPERT &&
-            ticket.receiver === "education") ||
-          (user.role === ROLES.PROVINCE_TECH_EXPERT &&
-            ticket.receiver === "tech"))
-      ) {
-        console.log(
-          `Automatically updating ticket status from "new" to "seen"`
-        );
-
-        // Ensure the type field is set correctly based on receiver
-        let ticketUpdate = { status: "seen" };
-
-        // Update type if needed
-        if (!ticket.type || ticket.type === "UNKNOWN") {
-          console.log(
-            "Setting ticket type based on receiver:",
-            ticket.receiver
-          );
-          if (ticket.receiver === "education") {
-            ticketUpdate.type = "EDUCATION";
-            // Update the response object too
-            ticket.type = "EDUCATION";
-          } else if (ticket.receiver === "tech") {
-            ticketUpdate.type = "TECH";
-            // Update the response object too
-            ticket.type = "TECH";
-          }
-          console.log("Ticket type updated to:", ticketUpdate.type);
-        }
-
-        // Update the ticket in the database
-        await Ticket.findByIdAndUpdate(id, ticketUpdate);
-
-        // Update the status in our response object
-        ticket.status = "seen";
-        console.log(`Ticket status updated to "seen"`);
-      }
-
-      return NextResponse.json({ ticket });
-    } catch (dbError) {
-      console.error(`Error retrieving ticket ${id} from database:`, dbError);
+    // اعتبارسنجی توکن
+    const user = await authService.validateToken(request);
+    if (!user) {
       return NextResponse.json(
-        {
-          error: "Database error",
-          message: dbError.message,
-          stack: dbError.stack,
-        },
-        { status: 500 }
+        { success: false, message: "لطفا وارد شوید" },
+        { status: 401 }
       );
     }
+
+    // یافتن تیکت
+    const ticket = await Ticket.findById(params.id)
+      .populate("createdBy", "role province district examCenter")
+      .populate("province", "_id name")
+      .populate("district", "_id name")
+      .populate("examCenter", "_id name");
+
+    if (!ticket) {
+      return NextResponse.json(
+        { success: false, message: "تیکت مورد نظر یافت نشد" },
+        { status: 404 }
+      );
+    }
+
+    // بررسی دسترسی
+    let canView = false;
+
+    console.log("user---->", user);
+    console.log("ticket---->", ticket);
+    console.log(
+      "user.role---->",
+      user.role,
+      "--------",
+      ROLES.DISTRICT_TECH_EXPERT
+    );
+    switch (user.role) {
+      case ROLES.EXAM_CENTER_MANAGER:
+        // مسئول مرکز فقط می‌تواند تیکت‌های خودش را ببیند
+        canView = ticket.createdBy._id.toString() === user.id.toString();
+        console.log("canView---->", canView);
+        break;
+
+      case ROLES.DISTRICT_TECH_EXPERT:
+        // کارشناس منطقه می‌تواند تیکت‌های مراکز منطقه خود را ببیند
+        canView = ticket.district?._id.toString() === user.district?.toString();
+        break;
+      case ROLES.DISTRICT_EDUCATION_EXPERT:
+        canView = ticket.district?._id.toString() === user.district?.toString();
+
+        break;
+      case ROLES.PROVINCE_EDUCATION_EXPERT:
+        // کارشناس استان می‌تواند تیکت‌های مراکز و مناطق استان خود را ببیند
+        canView = ticket.province?._id.toString() === user.province?.toString();
+        break;
+
+      case ROLES.PROVINCE_TECH_EXPERT:
+        canView = ticket.province?._id.toString() === user.province?.toString();
+        break;
+
+      case ROLES.ADMIN:
+      case ROLES.SUPER_ADMIN:
+      case ROLES.SYSTEM_ADMIN:
+        // مدیران سیستم به همه تیکت‌ها دسترسی دارند
+        canView = true;
+        break;
+
+      default:
+        canView = false;
+    }
+    console.log("canView---->", canView);
+    if (!canView) {
+      return NextResponse.json(
+        { success: false, message: "شما دسترسی به این تیکت ندارید" },
+        { status: 403 }
+      );
+    }
+
+    // بروزرسانی وضعیت تیکت به seen اگر از طرف کارشناس باشد
+    const isAdmin = [
+      ROLES.DISTRICT_ADMIN,
+      ROLES.PROVINCE_ADMIN,
+      ROLES.ADMIN,
+      ROLES.SUPER_ADMIN,
+      ROLES.SYSTEM_ADMIN,
+    ].includes(user.role);
+    if (isAdmin && ticket.status === "new") {
+      ticket.status = "seen";
+      await ticket.save();
+    }
+
+    return NextResponse.json({
+      success: true,
+      ticket,
+    });
   } catch (error) {
-    console.error(`Error in GET /api/tickets/${id}:`, error);
+    console.error("Error in ticket view:", error);
     return NextResponse.json(
-      {
-        error: "Internal Server Error",
-        message: error.message,
-        stack: error.stack,
-      },
+      { success: false, message: "خطا در دریافت اطلاعات تیکت" },
       { status: 500 }
     );
   }
