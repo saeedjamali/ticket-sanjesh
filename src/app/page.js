@@ -7,9 +7,9 @@ export default async function Home() {
   const cookieStore = await cookies();
   const authToken = cookieStore?.get("refresh-token");
 
-  const user = await authService.refreshToken(authToken?.value);
+  const {user} = await authService.refreshToken(authToken?.value);
 
-  if (user.user) {
+  if (user) {
     redirect("/dashboard");
   } else {
     redirect("/login");

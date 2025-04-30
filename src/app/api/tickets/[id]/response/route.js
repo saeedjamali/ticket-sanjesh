@@ -5,6 +5,7 @@ import Ticket from "@/models/Ticket";
 import { ROLES, getRolePermissions } from "@/lib/permissions";
 import jwt from "jsonwebtoken";
 import User from "@/models/User";
+import { authService } from "@/lib/auth/authService";
 
 // تابع احراز هویت با توکن
 async function validateToken(request) {

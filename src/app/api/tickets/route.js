@@ -12,6 +12,7 @@ import { writeFile } from "fs/promises";
 import { mkdir } from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
 import dbConnect from "@/lib/dbConnect";
+import { authService } from "@/lib/auth/authService";
 
 // تابع احراز هویت با توکن
 async function validateToken(request) {
@@ -66,7 +67,7 @@ export async function GET(req) {
     await dbConnect();
 
     // روش 1: تلاش برای احراز هویت با توکن
-    const userFromToken = await validateToken(req);
+    const userFromToken = await authService.validateToken(req);
 
     // روش 2: استفاده از کوکی و تقلید سشن برای سازگاری با کد قبلی
     const authCookie = req.cookies.get("authToken")?.value;

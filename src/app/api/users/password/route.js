@@ -81,14 +81,13 @@ export async function PATCH(request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    
     // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(data.password, salt);
-   
+    // const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
     // Update password
     user.password = hashedPassword;
-    
+    console.log("hashedPassword---->", hashedPassword);
     await User.findByIdAndUpdate(user._id, { password: hashedPassword });
 
     return NextResponse.json({ success: true });

@@ -78,8 +78,8 @@ async function initDatabase() {
     } else {
       // Create admin user
       const adminPassword = process.env.ADMIN_PASSWORD || "admin123456";
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(adminPassword, salt);
+      // const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
       const adminUser = new User({
         nationalId: "1111111111", // Default national ID for admin

@@ -80,8 +80,8 @@ async function resetAdminPassword() {
 
     // Reset password
     const adminPassword = process.env.ADMIN_PASSWORD || "admin123456";
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(adminPassword, salt);
+    // const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
     // Update admin user
     adminUser.password = hashedPassword;

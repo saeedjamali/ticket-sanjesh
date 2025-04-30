@@ -1,18 +1,19 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { authService } from "./auth/authService";
 
-export async function checkUserRole(allowedRoles) {
-  const session = await auth();
+export async function checkUserRole(allowedRoles, user) {
+  console.log("user---->", user);
 
-  if (!session || !session.user) {
+  if (!user ) {
     redirect("/auth/login");
   }
 
-  if (!allowedRoles.includes(session.user.role)) {
+  if (!allowedRoles.includes(user.role)) {
     redirect("/access-denied");
   }
 
-  return session.user;
+  return user;
 }
 
 export const ROLES = {

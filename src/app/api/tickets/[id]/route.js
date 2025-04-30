@@ -8,61 +8,14 @@ import jwt from "jsonwebtoken";
 import User from "@/models/User";
 import path from "path";
 import { writeFile, mkdir } from "fs/promises";
-
-// تابع احراز هویت با توکن
-async function validateToken(request) {
-  try {
-    // دریافت توکن از هدر
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return null;
-    }
-
-    const token = authHeader.split(" ")[1];
-    if (!token) {
-      return null;
-    }
-
-    // بررسی اعتبار توکن (بصورت ساده)
-    try {
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || "your-secret-key"
-      );
-
-      // بارگذاری اطلاعات کاربر از پایگاه داده
-      await connectDB();
-      const user = await User.findById(decoded.userId);
-
-      if (!user) {
-        return null;
-      }
-
-      return {
-        id: user._id.toString(),
-        role: user.role,
-        examCenter: user.examCenter?.toString(),
-        district: user.district?.toString(),
-        province: user.province?.toString(),
-        academicYear: user.academicYear,
-      };
-    } catch (error) {
-      console.error("Token validation error:", error);
-      return null;
-    }
-  } catch (error) {
-    console.error("Auth error:", error);
-    return null;
-  }
-}
+import { authService } from "@/lib/auth/authService";
 
 export async function GET(request, { params }) {
   try {
-    console.log(`GET /api/tickets/${params.id} - request received`);
-    console.log(`Ticket ID parameter: ${params.id}`);
-
-    // بررسی معتبر بودن params.id
-    if (!params.id || params.id === "undefined") {
+    const id = await params?.id;
+    console.log("params---->", id);
+    // بررسی معتبر بودن id
+    if (!id || id === "undefined") {
       console.error("Invalid ticket ID: undefined or empty");
       return NextResponse.json(
         {
@@ -73,97 +26,32 @@ export async function GET(request, { params }) {
       );
     }
 
-    console.log(
-      `Is valid ObjectId: ${mongoose.Types.ObjectId.isValid(params.id)}`
-    );
-
-    // بررسی اینکه آیا params.id یک ObjectId معتبر است
-    if (!mongoose.Types.ObjectId.isValid(params.id)) {
-      console.error(`Invalid ticket ID format: ${params.id}`);
+    // بررسی اینکه آیا id یک ObjectId معتبر است
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.error(`Invalid ticket ID format: ${id}`);
       return NextResponse.json(
         {
           error: "Invalid ticket ID format",
-          message: `The provided ticket ID (${params.id}) is not a valid MongoDB ObjectId`,
+          message: `The provided ticket ID (${id}) is not a valid MongoDB ObjectId`,
         },
         { status: 400 }
       );
     }
 
-    // روش 1: تلاش برای احراز هویت با توکن
-    const userFromToken = await authService.validateToken(request);
+    // روش 1: تلاش برای احراز هویت ا توکن
+    const user = await authService.validateToken(request);
 
-    // روش 2: استفاده از کوکی و تقلید سشن برای سازگاری با کد قبلی
-    const authCookie = request.cookies.get("authToken")?.value;
-    let userFromCookie = null;
-
-    if (authCookie) {
-      try {
-        // فرض می‌کنیم که localStorage قبلاً کاربر را ذخیره کرده است
-        const userCookie = request.cookies.get("user")?.value;
-        if (userCookie) {
-          userFromCookie = JSON.parse(decodeURIComponent(userCookie));
-        }
-      } catch (cookieError) {
-        console.error("Cookie parsing error:", cookieError);
-      }
-    }
-
-    // روش 3: استفاده از پارامتر کوئری استرینگ (برای سادگی در تست)
-    const { searchParams } = new URL(request.url);
-    const userRoleParam = searchParams.get("userRole");
-    const examCenterId = searchParams.get("examCenter");
-    const districtId = searchParams.get("district");
-    const provinceId = searchParams.get("province");
-    const userIdParam = searchParams.get("userId");
-
-    console.log(`Query parameters received:`, {
-      userRole: userRoleParam,
-      examCenter: examCenterId,
-      district: districtId,
-      province: provinceId,
-      userId: userIdParam,
-    });
-
-    let userFromQuery = null;
-    if (userRoleParam) {
-      userFromQuery = {
-        id: userIdParam || "test-user-id",
-        role: userRoleParam,
-        examCenter: examCenterId,
-        district: districtId,
-        province: provinceId,
-      };
-    }
-
-    // اولویت‌بندی منابع احراز هویت
-    const user =
-      userFromToken || userFromCookie || userFromQuery || (await auth())?.user;
-
-    console.log(
-      `GET /api/tickets/${params.id} - authenticated user:`,
-      user
-        ? {
-            id: user.id,
-            role: user.role,
-            examCenter: user.examCenter,
-            district: user.district,
-            province: user.province,
-          }
-        : "null"
-    );
+    console.log("user---->", user);
 
     if (!user) {
-      console.log(
-        `GET /api/tickets/${params.id} - No authenticated user found`
-      );
+      console.log(`GET /api/tickets/${id} - No authenticated user found`);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectDB();
-    console.log(`GET /api/tickets/${params.id} - Database connected`);
 
     try {
-      const ticket = await Ticket.findById(params.id)
+      const ticket = await Ticket.findById(id)
         .populate("createdBy", "fullName")
         .populate("examCenter", "name")
         .populate("district", "name")
@@ -171,34 +59,13 @@ export async function GET(request, { params }) {
         .populate("responses.createdBy", "fullName")
         .lean();
 
-      console.log(
-        `GET /api/tickets/${params.id} - Ticket found:`,
-        ticket ? "yes" : "no"
-      );
-
+      console.log("ticket---->", ticket);
       if (!ticket) {
-        console.log(`Ticket with ID ${params.id} not found in database`);
         return NextResponse.json(
           { error: "Ticket not found" },
           { status: 404 }
         );
       }
-
-      console.log(`Ticket details (partial):`, {
-        _id: ticket._id,
-        createdBy: ticket.createdBy
-          ? {
-              _id: ticket.createdBy._id,
-              fullName: ticket.createdBy.fullName,
-            }
-          : "undefined",
-        examCenter: ticket.examCenter
-          ? {
-              _id: ticket.examCenter._id,
-              name: ticket.examCenter.name,
-            }
-          : "undefined",
-      });
 
       // Check if user has permission to view this ticket
       let canViewTicket = false;
@@ -227,17 +94,6 @@ export async function GET(request, { params }) {
           canViewTicket = true;
           console.log("Exam center manager can view this ticket (creator)");
         }
-
-        console.log(`Comparison details:`, {
-          userId: user.id,
-          ticketCreatedById: ticket.createdBy
-            ? ticket.createdBy._id
-            : "undefined",
-          userExamCenter: user.examCenter,
-          ticketExamCenter: ticket.examCenter
-            ? ticket.examCenter._id
-            : "undefined",
-        });
       } else if (user.role === ROLES.DISTRICT_EDUCATION_EXPERT) {
         // کارشناس سنجش منطقه فقط تیکت‌های سنجش منطقه خودش را می‌بیند
         if (
@@ -298,10 +154,7 @@ export async function GET(request, { params }) {
         canViewTicket = true;
       }
 
-      console.log(
-        `GET /api/tickets/${params.id} - Can view ticket:`,
-        canViewTicket
-      );
+      console.log(`GET /api/tickets/${id} - Can view ticket:`, canViewTicket);
 
       if (!canViewTicket) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -346,19 +199,16 @@ export async function GET(request, { params }) {
         }
 
         // Update the ticket in the database
-        await Ticket.findByIdAndUpdate(params.id, ticketUpdate);
+        await Ticket.findByIdAndUpdate(id, ticketUpdate);
 
         // Update the status in our response object
         ticket.status = "seen";
         console.log(`Ticket status updated to "seen"`);
       }
 
-      return NextResponse.json(ticket);
+      return NextResponse.json({ ticket });
     } catch (dbError) {
-      console.error(
-        `Error retrieving ticket ${params.id} from database:`,
-        dbError
-      );
+      console.error(`Error retrieving ticket ${id} from database:`, dbError);
       return NextResponse.json(
         {
           error: "Database error",
@@ -369,7 +219,7 @@ export async function GET(request, { params }) {
       );
     }
   } catch (error) {
-    console.error(`Error in GET /api/tickets/${params.id}:`, error);
+    console.error(`Error in GET /api/tickets/${id}:`, error);
     return NextResponse.json(
       {
         error: "Internal Server Error",
@@ -430,7 +280,7 @@ export async function PUT(request, { params }) {
 
     await connectDB();
 
-    const ticket = await Ticket.findById(params.id);
+    const ticket = await Ticket.findById(id);
     if (!ticket) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }

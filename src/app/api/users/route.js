@@ -259,9 +259,9 @@ export async function POST(request) {
     }
 
     // رمزنگاری رمز عبور
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(data.password, salt);
-
+    // const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(data.password, 12);
+    console.log("hashedPassword 11---->", hashedPassword);
     // ایجاد کاربر جدید
     const user = await User.create({
       fullName: data.fullName.trim(),
@@ -275,8 +275,13 @@ export async function POST(request) {
       createdAt: new Date(),
       academicYear: academicYear.name,
     });
-
-    await ExamCenter.findByIdAndUpdate(data.examCenter, { manager: user._id });
+    console.log("hashedPassword 22---->", hashedPassword);
+    console.log("user---->", user);
+    if (requiresExamCenter.includes(data.role)) {
+      await ExamCenter.findByIdAndUpdate(data.examCenter, {
+        manager: user._id,
+      });
+    }
     // حذف رمز عبور از پاسخ
     const userResponse = user.toObject();
     delete userResponse.password;
@@ -557,12 +562,13 @@ export async function PATCH(request) {
     }
 
     // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(data.password, salt);
+    // const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
 
+    console.log("hashedPassword---->", hashedPassword);
     // Update password
     user.password = hashedPassword;
-    await user.save();
+    await User.findByIdAndUpdate(user._id, { password: hashedPassword });
 
     return NextResponse.json({ success: true });
   } catch (error) {

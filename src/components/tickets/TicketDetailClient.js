@@ -16,7 +16,7 @@ export default function TicketDetailClient({ ticketId }) {
       try {
         const response = await fetch(`/api/tickets/${ticketId}`);
         const data = await response.json();
-
+        console.log("data---->", data);
         if (!response.ok) {
           throw new Error(data.message || "خطا در دریافت اطلاعات تیکت");
         }
