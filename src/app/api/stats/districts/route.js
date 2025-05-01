@@ -42,7 +42,8 @@ export async function GET(request) {
       districtQuery.province = provinceId;
     } else if (
       user.role === ROLES.PROVINCE_TECH_EXPERT ||
-      user.role === ROLES.PROVINCE_EDUCATION_EXPERT
+      user.role === ROLES.PROVINCE_EDUCATION_EXPERT ||
+      user.role === ROLES.GENERAL_MANAGER
     ) {
       // اگر کاربر کارشناس استان است، فقط مناطق استان خودش را ببیند
       districtQuery.province = user.province;

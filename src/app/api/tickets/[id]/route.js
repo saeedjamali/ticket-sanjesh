@@ -30,7 +30,6 @@ export async function GET(request, { params }) {
       .populate("district", "_id name")
       .populate("examCenter", "_id name");
 
-
     if (!ticket) {
       return NextResponse.json(
         { success: false, message: "تیکت مورد نظر یافت نشد" },
@@ -72,7 +71,9 @@ export async function GET(request, { params }) {
       case ROLES.PROVINCE_TECH_EXPERT:
         canView = ticket.province?._id.toString() === user.province?.toString();
         break;
-
+      case ROLES.GENERAL_MANAGER:
+        canView = ticket.province?._id.toString() === user.province?.toString();
+        break;
       case ROLES.ADMIN:
       case ROLES.SUPER_ADMIN:
       case ROLES.SYSTEM_ADMIN:

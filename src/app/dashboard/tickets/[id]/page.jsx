@@ -186,21 +186,19 @@ export default function TicketDetails() {
                                 <span onClick={getImage} className="text-blue-500 flex items-center gap-2 cursor-pointer hover:text-blue-600">
                                     <IoMdAttach />تصویر پیوست
                                 </span>
-                                {imageUrl && (
+                                {showImage && (
                                     <>
                                         <span onClick={downloadImage} className="text-green-500 flex items-center gap-2 cursor-pointer hover:text-green-600">
                                             <IoMdDownload />دانلود تصویر
                                         </span>
-                                        {showImage && (
-                                            <span onClick={hideImage} className="text-red-500 flex items-center gap-2 cursor-pointer hover:text-red-600">
-                                                <IoMdClose />مخفی کردن تصویر
-                                            </span>
-                                        )}
+                                        <span onClick={hideImage} className="text-red-500 flex items-center gap-2 cursor-pointer hover:text-red-600">
+                                            <IoMdClose />بستن تصویر
+                                        </span>
                                     </>
                                 )}
                             </div>
                             {showImage && imageUrl && (
-                                <div className="mt-2 relative">
+                                <div className="mt-2">
                                     <img
                                         src={imageUrl}
                                         alt="تصویر پیوست شده"

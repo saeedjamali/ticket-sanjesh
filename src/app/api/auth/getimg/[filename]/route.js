@@ -1,8 +1,13 @@
 import path from "path";
 import fs from "fs";
+import { authService } from "@/lib/auth/authService";
 
 export async function GET(req, { params }) {
   try {
+    const user = await authService.validateToken(req);
+    if (!user) {
+      return new Response("Unauthorized", { status: 401 });
+    }
     const { filename } = await params;
     const filePath = path.join(process.cwd(), "uploads", filename);
     console.log("filePath---->", filePath);

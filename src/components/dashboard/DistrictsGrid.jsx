@@ -12,7 +12,7 @@ export default function DistrictsGrid() {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [autoRefresh, setAutoRefresh] = useState(false);
     const [refreshInterval, setRefreshInterval] = useState(30); // Default 30 seconds
-
+    const [gridSize, setGridSize] = useState(6);
     useEffect(() => {
         fetchDistricts();
     }, []);
@@ -91,6 +91,8 @@ export default function DistrictsGrid() {
         };
     };
 
+
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -118,6 +120,16 @@ export default function DistrictsGrid() {
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900">گزارش مناطق</h2>
                 <div className="flex items-center gap-2">
+                    <select
+                        value={gridSize}
+                        onChange={(e) => setGridSize(Number(e.target.value))}
+                        className="text-sm border rounded px-2 py-1"
+                    >
+                        <option value="4">4</option>
+                        <option value="8">8</option>
+                        <option value="12">12</option>
+                        <option value="16">16</option>
+                    </select>
                     <div className="flex items-center gap-2 bg-gray-100 p-2 rounded-lg">
                         <label className="text-sm text-gray-700">بروزرسانی خودکار:</label>
                         <input
@@ -126,6 +138,7 @@ export default function DistrictsGrid() {
                             onChange={(e) => setAutoRefresh(e.target.checked)}
                             className="h-4 w-4 text-blue-600"
                         />
+
                         {autoRefresh && (
                             <select
                                 value={refreshInterval}
@@ -166,7 +179,7 @@ export default function DistrictsGrid() {
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-full bg-green-100"></div>
-                    <span className="text-sm text-gray-700">مناطق بدون تیکت یا تیکت‌های حل شده</span>
+                    <span className="text-sm text-gray-700">مناطق تیکت‌های حل شده</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-full bg-blue-100"></div>
@@ -174,7 +187,7 @@ export default function DistrictsGrid() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 ">
+            <div className={`grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-${gridSize} `}>
                 {districts.map((district) => {
                     const status = getDistrictStatus(district);
                     return (
@@ -186,9 +199,9 @@ export default function DistrictsGrid() {
                                 <h3 className="text-lg font-medium text-gray-900">
                                     {district.name}
                                 </h3>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
+                                {/* <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
                                     {status.text}
-                                </span>
+                                </span> */}
                             </div>
 
                             <div className="space-y-2">
