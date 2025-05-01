@@ -9,7 +9,7 @@ import User from "@/models/User";
 import path from "path";
 import { writeFile, mkdir } from "fs/promises";
 import { authService } from "@/lib/auth/authService";
-
+import fs from "fs";
 export async function GET(request, { params }) {
   try {
     await connectDB();
@@ -29,6 +29,7 @@ export async function GET(request, { params }) {
       .populate("province", "_id name")
       .populate("district", "_id name")
       .populate("examCenter", "_id name");
+
 
     if (!ticket) {
       return NextResponse.json(

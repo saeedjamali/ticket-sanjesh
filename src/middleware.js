@@ -27,10 +27,9 @@ export async function middleware(request) {
     if (!accessToken) {
       throw new Error("No access token found");
     }
-
+    console.log("accessToken in middleware--->", accessToken);
     // Verify access token
     try {
-      
       const decoded = await tokenService.verifyAccessToken(accessToken);
       if (!decoded || !decoded.userId) {
         throw new Error("Invalid access token");

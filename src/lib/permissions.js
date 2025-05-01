@@ -5,7 +5,7 @@ import { authService } from "./auth/authService";
 export async function checkUserRole(allowedRoles, user) {
   console.log("user---->", user);
 
-  if (!user ) {
+  if (!user) {
     redirect("/auth/login");
   }
 

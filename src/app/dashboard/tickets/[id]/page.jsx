@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { format } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
+import Link from "next/link";
+import { IoMdAttach, IoMdDownload, IoMdClose } from "react-icons/io";
 
 export default function TicketDetails() {
     const params = useParams();
@@ -13,6 +15,8 @@ export default function TicketDetails() {
     const [loading, setLoading] = useState(true);
     const [replyText, setReplyText] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [imageUrl, setImageUrl] = useState(null);
+    const [showImage, setShowImage] = useState(false);
 
     useEffect(() => {
         fetchTicket();
@@ -36,6 +40,55 @@ export default function TicketDetails() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const getImage = async () => {
+        try {
+            if (!ticket?.image) return;
+
+            // اگر تصویر یک URL کامل است، مستقیماً از آن استفاده می‌کنیم
+            if (ticket.image.startsWith('http')) {
+                setImageUrl(ticket.image);
+                setShowImage(true);
+                return;
+            }
+
+            // در غیر این صورت، تصویر را از سرور دریافت می‌کنیم
+            const response = await fetch(`/api/auth/getimg/${ticket.image}`);
+            if (!response.ok) {
+                throw new Error('خطا در دریافت تصویر');
+            }
+
+            // دریافت تصویر به صورت blob
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            setImageUrl(url);
+            setShowImage(true);
+        } catch (error) {
+            console.error("Error fetching image:", error);
+            toast.error("خطا در دریافت تصویر");
+        }
+    };
+
+    const downloadImage = async () => {
+        try {
+            if (!imageUrl) return;
+
+            // ایجاد لینک دانلود
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = `ticket-image-${ticket.ticketNumber || 'attachment'}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Error downloading image:", error);
+            toast.error("خطا در دانلود تصویر");
+        }
+    };
+
+    const hideImage = () => {
+        setShowImage(false);
     };
 
     const handleReply = async () => {
@@ -126,7 +179,37 @@ export default function TicketDetails() {
 
                 <div className="mt-6">
                     <h2 className="text-lg font-semibold mb-2">توضیحات</h2>
-                    <p className="text-gray-700 whitespace-pre-wrap">{ticket.description}</p>
+                    <p className="text-gray-700 whitespace-pre-wrap p-2 mb-8">{ticket.description}</p>
+                    {ticket?.image && (
+                        <div className="mb-8">
+                            <div className="flex items-center gap-4 mb-4">
+                                <span onClick={getImage} className="text-blue-500 flex items-center gap-2 cursor-pointer hover:text-blue-600">
+                                    <IoMdAttach />تصویر پیوست
+                                </span>
+                                {imageUrl && (
+                                    <>
+                                        <span onClick={downloadImage} className="text-green-500 flex items-center gap-2 cursor-pointer hover:text-green-600">
+                                            <IoMdDownload />دانلود تصویر
+                                        </span>
+                                        {showImage && (
+                                            <span onClick={hideImage} className="text-red-500 flex items-center gap-2 cursor-pointer hover:text-red-600">
+                                                <IoMdClose />مخفی کردن تصویر
+                                            </span>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                            {showImage && imageUrl && (
+                                <div className="mt-2 relative">
+                                    <img
+                                        src={imageUrl}
+                                        alt="تصویر پیوست شده"
+                                        className="max-w-full h-auto rounded-lg shadow"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -15,107 +15,19 @@ import dbConnect from "@/lib/dbConnect";
 import { authService } from "@/lib/auth/authService";
 
 // تابع احراز هویت با توکن
-async function validateToken(request) {
-  try {
-    // دریافت توکن از هدر
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return null;
-    }
-
-    const token = authHeader.split(" ")[1];
-    if (!token) {
-      return null;
-    }
-
-    // بررسی اعتبار توکن (بصورت ساده)
-    // در سیستم واقعی باید از کلید محرمانه استفاده کنید
-    try {
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || "your-secret-key"
-      );
-
-      // بارگذاری اطلاعات کاربر از پایگاه داده
-      await connectDB();
-      const user = await User.findById(decoded.userId);
-
-      if (!user) {
-        return null;
-      }
-
-      return {
-        id: user._id.toString(),
-        role: user.role,
-        examCenter: user.examCenter?.toString(),
-        district: user.district?.toString(),
-        province: user.province?.toString(),
-        academicYear: user.academicYear,
-      };
-    } catch (error) {
-      console.error("Token validation error:", error);
-      return null;
-    }
-  } catch (error) {
-    console.error("Auth error:", error);
-    return null;
-  }
-}
 
 export async function GET(req) {
   try {
     await dbConnect();
 
     // روش 1: تلاش برای احراز هویت با توکن
-    const userFromToken = await authService.validateToken(req);
-
-    // روش 2: استفاده از کوکی و تقلید سشن برای سازگاری با کد قبلی
-    const authCookie = req.cookies.get("authToken")?.value;
-    let userFromCookie = null;
-
-    if (authCookie) {
-      try {
-        // فرض می‌کنیم که localStorage قبلاً کاربر را ذخیره کرده است
-        // این فقط برای مطابقت با رفتار localStorage است
-        const userCookie = req.cookies.get("user")?.value;
-        if (userCookie) {
-          userFromCookie = JSON.parse(decodeURIComponent(userCookie));
-        }
-      } catch (cookieError) {
-        console.error("Cookie parsing error:", cookieError);
-      }
+    const user = await authService.validateToken(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // روش 3: استفاده از پارامتر کوئری استرینگ (برای سادگی در تست)
     const { searchParams } = new URL(req.url);
-    const userRoleParam = searchParams.get("userRole");
-    const examCenterId = searchParams.get("examCenter");
-    const districtId = searchParams.get("district");
-    const provinceId = searchParams.get("province");
-    const userIdParam = searchParams.get("userId");
-
-    console.log("Query parameters:", {
-      userRole: userRoleParam,
-      examCenter: examCenterId,
-      district: districtId,
-      province: provinceId,
-      userId: userIdParam,
-    });
-
-    let userFromQuery = null;
-    if (userRoleParam) {
-      userFromQuery = {
-        id: userIdParam || "test-user-id",
-        role: userRoleParam,
-        examCenter: examCenterId,
-        district: districtId,
-        province: provinceId,
-      };
-    }
-
-    // اولویت‌بندی منابع احراز هویت
-    const user = userFromToken || userFromCookie || userFromQuery;
-
     console.log("GET /api/tickets - user from auth:", user);
 
     if (!user) {
@@ -435,46 +347,13 @@ export async function GET(req) {
 export async function POST(request) {
   try {
     // روش 1: تلاش برای احراز هویت با توکن
-    const userFromToken = await authService.validateToken(request);
-
-    // روش 2: استفاده از کوکی و تقلید سشن برای سازگاری با کد قبلی
-    const authCookie = request.cookies.get("authToken")?.value;
-    let userFromCookie = null;
-
-    if (authCookie) {
-      try {
-        const userCookie = request.cookies.get("user")?.value;
-        if (userCookie) {
-          userFromCookie = JSON.parse(decodeURIComponent(userCookie));
-        }
-      } catch (cookieError) {
-        console.error("Cookie parsing error:", cookieError);
-      }
+    const user = await authService.validateToken(request);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "عدم احراز هویت" },
+        { status: 401 }
+      );
     }
-
-    // روش 3: استفاده از پارامتر کوئری استرینگ (برای سادگی در تست)
-    const { searchParams } = new URL(request.url);
-    const userRoleParam = searchParams.get("userRole");
-    const examCenterParam = searchParams.get("examCenter");
-    const districtParam = searchParams.get("district");
-    const provinceParam = searchParams.get("province");
-    const userIdParam = searchParams.get("userId");
-
-    let userFromQuery = null;
-    if (userRoleParam) {
-      userFromQuery = {
-        id: userIdParam || "test-user-id",
-        role: userRoleParam,
-        examCenter: examCenterParam,
-        district: districtParam,
-        province: provinceParam,
-      };
-    }
-
-    // اولویت‌بندی منابع احراز هویت
-    const user = userFromToken || userFromCookie || userFromQuery;
-
-    console.log("POST /api/tickets - user from auth:", user);
 
     if (!user) {
       console.log(
@@ -493,12 +372,6 @@ export async function POST(request) {
 
     // پردازش داده‌های فرم
     const formData = await request.formData();
-    console.log("POST /api/tickets - Form data received");
-
-    // لاگ تمام مقادیر formData
-    for (const pair of formData.entries()) {
-      console.log(`Form data - ${pair[0]}: ${pair[1]}`);
-    }
 
     // بررسی اعتبار ObjectId کاربر
     let userId = null;
@@ -615,7 +488,7 @@ export async function POST(request) {
     if (image && image.size > 0) {
       try {
         // اطمینان از وجود دایرکتوری آپلود
-        const uploadDir = path.join(process.cwd(), "public/uploads");
+        const uploadDir = path.join(process.cwd(), "/uploads");
 
         // ایجاد دایرکتوری اگر وجود ندارد
         try {
@@ -639,7 +512,7 @@ export async function POST(request) {
         console.log(`Image saved to ${filePath}`);
 
         // ذخیره آدرس فایل در تیکت
-        ticket.image = `/uploads/${fileName}`;
+        ticket.image = `${fileName}`;
       } catch (uploadError) {
         console.error("Error saving uploaded image:", uploadError);
         // ادامه دادن بدون تصویر در صورت خطا
