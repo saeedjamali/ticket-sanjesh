@@ -25,9 +25,9 @@ const page = () => {
         </div>
         <p className="mt-4 text-gray-600">
           برگرد به صفحه اصلی{" "}
-          <a href="/" className="text-blue-500">
+          <Link href="/" className="text-blue-500" >
             خانه
-          </a>
+          </Link>
           .
         </p>
       </div>
