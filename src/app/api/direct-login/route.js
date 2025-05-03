@@ -54,14 +54,16 @@ export async function POST(request) {
     const cookieStore = cookies();
     cookieStore.set("access-token", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
+      // secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
     });
 
     cookieStore.set("refresh-token", refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
+      // secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
     });
