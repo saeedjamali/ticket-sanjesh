@@ -10,7 +10,7 @@ import dbConnect from "@/lib/dbConnect";
 export async function POST(request) {
   try {
     await dbConnect();
-
+    console.log("Direct Login API");
     const { nationalId, password } = await request.json();
 
     // Find user or create test user if not exists
@@ -18,6 +18,7 @@ export async function POST(request) {
     let user = await User.findOne({ nationalId });
 
     if (!user) {
+      console.log("User not found");
       return NextResponse.json(
         { message: "چنین کاربری یافت نشد" },
         { status: 404 }
@@ -25,8 +26,9 @@ export async function POST(request) {
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
- 
+
     if (!isPasswordValid) {
+      console.log("Password is not valid");
       return NextResponse.json(
         { message: "کد ملی یا رمز عبور اشتباه است" },
         { status: 404 }
@@ -38,7 +40,7 @@ export async function POST(request) {
       userId: user._id.toString(),
       role: user.role,
     });
-
+    console.log("Access token generated", accessToken);
     const refreshToken = await tokenService.generateRefreshToken({
       userId: user._id.toString(),
       role: user.role,
@@ -47,6 +49,7 @@ export async function POST(request) {
     const addRefreshTokenToUser = await User.findByIdAndUpdate(user._id, {
       refreshToken,
     });
+    console.log("Refresh token added to user", refreshToken);
     // Set cookies
     const cookieStore = cookies();
     cookieStore.set("access-token", accessToken, {

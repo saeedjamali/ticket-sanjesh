@@ -71,7 +71,7 @@ async function resetAdminPassword() {
     const User = mongoose.models.User || mongoose.model("User", UserSchema);
 
     // Find admin user
-    const adminUser = await User.findOne({ role: "generalManager" });
+    const adminUser = await User.findOne({ role: "systemAdmin" });
 
     if (!adminUser) {
       console.log("Admin user not found");

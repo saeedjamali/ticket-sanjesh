@@ -18,7 +18,7 @@ export default function LoginForm() {
     setLoading(true);
     setError(null);
     setSuccess(null);
-
+console.log("Direct Login Page")
     try {
       const response = await fetch("/api/direct-login", {
         method: "POST",
