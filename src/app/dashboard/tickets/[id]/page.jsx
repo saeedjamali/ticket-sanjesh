@@ -7,7 +7,7 @@ import { format } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
 import Link from "next/link";
 import { IoMdAttach, IoMdDownload, IoMdClose } from "react-icons/io";
-
+import { getStatusText } from "@/lib/permissions";
 export default function TicketDetails() {
     const params = useParams();
     const router = useRouter();
@@ -150,7 +150,7 @@ export default function TicketDetails() {
                         <h1 className="text-2xl font-bold mb-2">{ticket.title}</h1>
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                             <span>شماره تیکت: {ticket.ticketNumber}</span>
-                            <span>وضعیت: {ticket.status}</span>
+                            <span>وضعیت: {getStatusText(ticket.status)}</span>
                             <span>
                                 تاریخ ایجاد:{" "}
                                 {format(new Date(ticket.createdAt), "dd MMMM yyyy", {
@@ -169,9 +169,9 @@ export default function TicketDetails() {
                                 }`}
                         >
                             {ticket.priority === "high"
-                                ? "فوری"
+                                ? "آنی"
                                 : ticket.priority === "medium"
-                                    ? "متوسط"
+                                    ? "فوری"
                                     : "عادی"}
                         </span>
                     </div>

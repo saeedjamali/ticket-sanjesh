@@ -12,7 +12,7 @@ export default function DistrictsGrid() {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [autoRefresh, setAutoRefresh] = useState(false);
     const [refreshInterval, setRefreshInterval] = useState(30); // Default 30 seconds
-    const [gridSize, setGridSize] = useState(6);
+    const [gridSize, setGridSize] = useState(4);
     useEffect(() => {
         fetchDistricts();
     }, []);

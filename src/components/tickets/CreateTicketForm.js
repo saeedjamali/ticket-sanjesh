@@ -280,7 +280,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         >
           انصراف
         </button>
-
+{/* 
         {!isEditing && (
           <button
             type="button"
@@ -290,7 +290,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
           >
             ذخیره پیش‌نویس
           </button>
-        )}
+        )} */}
 
         <button
           type="submit"

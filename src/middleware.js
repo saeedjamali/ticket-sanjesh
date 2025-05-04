@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { tokenService } from "@/lib/auth/tokenService";
+import { cookies } from "next/headers";
 
 const PUBLIC_PATHS = [
   "/login",
@@ -13,75 +14,104 @@ const PUBLIC_PATHS = [
 const PUBLIC_PREFIXES = ["/api/public/", "/_next/", "/fonts/", "/images/"];
 
 export async function middleware(request) {
-  console.log("request in middleware--->", request.nextUrl.origin);
-  const pathname = request.nextUrl.pathname;
+  //  console.log("middlewawre 1----->",request.nextUrl)
 
-  // Allow public paths
-  if (isPublicPath(pathname)) {
+  const { pathname } = request.nextUrl;
+
+  // اگر مسیر /login است، middleware را ادامه بده و ریدایرکت نکن
+  // if (pathname === "/login") {
+  //   return NextResponse.next();
+  // }
+  let accessToken = request.cookies.get("token")?.value;
+  let refreshToken = request.cookies.get("refresh-token")?.value;
+  const refreshTokenPayload = await tokenService.verifyAccessToken(
+    refreshToken
+  );
+  const accessTokenPayload = await tokenService.verifyAccessToken(accessToken);
+  console.log("accessTokenPayload---->", accessTokenPayload);
+  if (accessTokenPayload) {
+    console.log("NextResponse ----------------->", request.nextUrl.pathname);
+    return NextResponse.next();
+    // return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (!refreshTokenPayload) {
+    
     return NextResponse.next();
   }
+  const newAccessToken = await tokenService.generateAccessToken({
+    phone: refreshTokenPayload.phone,
+    role: refreshTokenPayload.role,
+  });
+  const response = NextResponse.next();
+  response.cookies.set({
+    name: "token",
+    value: newAccessToken,
+    path: "/",
+    httpOnly: true,
+  });
+  return response;
+  // }
+  console.log(
+    "<---- MiddleWare is ok---->",
+    tokenService.verifyAccessToken(accessToken)
+  );
+  return NextResponse.next();
+  // const { pathname } = req.nextUrl;
+  // if (pathname === "/login") {
+  //   return NextResponse.next();
+  // }
+  // const cookieStore = await cookies();
+  // const accessToken = cookieStore?.get("access-token");
+  // const refreshToken = cookieStore?.get("refresh-token");
 
-  try {
-    // Get access token from cookie
-    const accessToken = request.cookies.get("access-token")?.value;
-    if (!accessToken) {
-      throw new Error("No access token found");
-    }
-    console.log("accessToken in middleware--->", accessToken);
-    // Verify access token
-    try {
-      const decoded = await tokenService.verifyAccessToken(accessToken);
-      if (!decoded || !decoded.userId) {
-        throw new Error("Invalid access token");
-      }
-      return NextResponse.next();
-    } catch (tokenError) {
-      console.log("tokenError in middleware--->", tokenError);
-      // If access token is expired or invalid, try refresh token
-      const refreshToken = request.cookies.get("refresh-token")?.value;
-      if (!refreshToken) {
-        throw new Error("No refresh token found");
-      }
+  // // 1. بررسی access token
+  // if (accessToken) {
+  //   console.log("accessToken---->", accessToken);
+  //   try {
+  //     await tokenService.verifyAccessToken(accessToken);
+  //     // اگر معتبر بود
+  //     const { payload } = await jwtVerify(accessToken, tokenService.secret);
+  //     req.user = payload;
+  //     console.log("req.user---->", req.user);
+  //     return NextResponse.next();
+  //   } catch (err) {
+  //     // اگر نامعتبر یا منقضی بود، ادامه بده به بررسی refresh token
+  //   }
+  // }
 
-      // Try to verify refresh token
-      try {
-        const decoded = await tokenService.verifyRefreshToken(refreshToken);
-        if (!decoded || !decoded.userId) {
-          throw new Error("Invalid refresh token");
-        }
+  // // 2. بررسی refresh token
+  // if (refreshToken) {
+  //   console.log("refreshToken---->", refreshToken);
+  //   try {
+  //     const user = await tokenService.verifyRefreshToken(refreshToken);
+  //     // اگر معتبر بود، یک access token جدید بساز و ست کن
+  //     const newAccessToken = await tokenService.generateAccessToken({
+  //       userId: user._id,
+  //       role: user.role,
+  //     });
 
-        // Redirect to refresh endpoint to get new tokens
-        const refreshUrl = new URL("/", request.url);
-        return NextResponse.redirect(refreshUrl);
-      } catch (refreshError) {
-        console.error("Refresh token error:", refreshError);
-        throw new Error("Invalid refresh token");
-      }
-    }
-  } catch (error) {
-    console.error("Auth middleware error:", error);
+  //     // ست کردن توکن جدید در کوکی
+  //     const response = NextResponse.next();
+  //     response.cookies.set("access-token", newAccessToken, {
+  //       httpOnly: true,
+  //       secure: process.env.NODE_ENV === "production",
+  //       sameSite: "lax",
+  //       path: "/",
+  //     });
+  //     req.user = user;
+  //     return response;
+  //   } catch (err) {
+  //     // اگر refresh token هم نامعتبر بود، ریدایرکت به لاگین
+  //     const absoluteUrl = `${req.nextUrl.origin}/login`;
+  //     return NextResponse.redirect(absoluteUrl);
+  //   }
+  // }
 
-    // Redirect to login for non-API routes
-    if (!pathname.startsWith("/api/")) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirectTo", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+  // // 3. ریدایرکت به صفحه لاگین (با آدرس مطلق)
+  // console.log("No access token provided");
 
-    // Return 401 for API routes
-    return new NextResponse(
-      JSON.stringify({
-        success: false,
-        message: error.message || "Unauthorized",
-      }),
-      {
-        status: 401,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  }
+  // return NextResponse.redirect(new URL("/login", req.url));
 }
 
 function isPublicPath(pathname) {

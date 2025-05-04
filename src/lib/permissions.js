@@ -198,3 +198,20 @@ export function getMenuItemsByRole(role) {
 
   return menuItems;
 }
+
+export const getStatusText = (status) => {
+  switch (status) {
+    case "draft":
+      return "پیش‌نویس";
+    case "new":
+      return "دیده نشده";
+    case "seen":
+      return "دیده شده";
+    case "inProgress":
+      return "در حال بررسی";
+    case "resolved":
+      return "پاسخ داده شده";
+    default:
+      return status;
+  }
+};

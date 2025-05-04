@@ -445,6 +445,9 @@ export default function TicketsList({ user }) {
                     فوریت
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                    فرستنده
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                     دریافت کننده
                   </th>
                   {(user.role === ROLES.GENERAL_MANAGER ||
@@ -485,6 +488,11 @@ export default function TicketsList({ user }) {
                       >
                         {getPriorityText(ticket.priority)}
                       </span>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
+                      {ticket.examCenter && ticket.examCenter.name
+                        ? ticket.examCenter.name
+                        : "---"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
                       {getReceiverText(ticket.receiver)}
