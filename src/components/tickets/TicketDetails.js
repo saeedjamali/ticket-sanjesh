@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ROLES, getRolePermissions } from "@/lib/permissions";
+import { ROLES, getRolePermissions, getStatusText } from "@/lib/permissions";
 
 export default function TicketDetails({ ticket, user }) {
   const [response, setResponse] = useState("");
@@ -23,22 +23,7 @@ export default function TicketDetails({ ticket, user }) {
     user.examCenter === ticket.examCenter._id &&
     (!ticket.responses || ticket.responses.length === 0);
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case "draft":
-        return "پیش‌نویس";
-      case "new":
-        return "دیده نشده";
-      case "seen":
-        return "دیده شده";
-      case "inProgress":
-        return "در حال بررسی";
-      case "resolved":
-        return "پاسخ داده شده";
-      default:
-        return status;
-    }
-  };
+
 
   const getStatusBadgeClass = (status) => {
     switch (status) {

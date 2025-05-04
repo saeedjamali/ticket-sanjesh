@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ROLES } from "@/lib/permissions";
+import { getStatusText, ROLES } from "@/lib/permissions";
 
 export default function TicketsList({ user }) {
   const [tickets, setTickets] = useState([]);
@@ -224,22 +224,7 @@ export default function TicketsList({ user }) {
     }
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case "draft":
-        return "پیش‌نویس";
-      case "new":
-        return "دیده نشده";
-      case "seen":
-        return "دیده شده";
-      case "inProgress":
-        return "در حال بررسی";
-      case "resolved":
-        return "پاسخ داده شده";
-      default:
-        return status;
-    }
-  };
+  
 
   const getPriorityText = (priority) => {
     switch (priority) {

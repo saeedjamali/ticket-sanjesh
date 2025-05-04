@@ -118,45 +118,10 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     // روش 1: تلاش برای احراز هویت با توکن
-    const userFromToken = await authService.validateToken(request);
-
-    // روش 2: استفاده از کوکی و تقلید سشن برای سازگاری با کد قبلی
-    const authCookie = request.cookies.get("authToken")?.value;
-    let userFromCookie = null;
-
-    if (authCookie) {
-      try {
-        const userCookie = request.cookies.get("user")?.value;
-        if (userCookie) {
-          userFromCookie = JSON.parse(decodeURIComponent(userCookie));
-        }
-      } catch (cookieError) {
-        console.error("Cookie parsing error:", cookieError);
-      }
-    }
-
-    // روش 3: استفاده از پارامتر کوئری استرینگ (برای سادگی در تست)
-    const { searchParams } = new URL(request.url);
-    const userRoleParam = searchParams.get("userRole");
-    const examCenterId = searchParams.get("examCenter");
-    const districtId = searchParams.get("district");
-    const provinceId = searchParams.get("province");
-    const userIdParam = searchParams.get("userId");
-
-    let userFromQuery = null;
-    if (userRoleParam) {
-      userFromQuery = {
-        id: userIdParam || "test-user-id",
-        role: userRoleParam,
-        examCenter: examCenterId,
-        district: districtId,
-        province: provinceId,
-      };
-    }
-
-    // اولویت‌بندی منابع احراز هویت
-    const user =
-      userFromToken || userFromCookie || userFromQuery || (await auth())?.user;
+    const user = await authService.validateToken(request);
+    const id = await params.id;
+    console.log("user---->", user);
+    console.log("id---->", id);
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -165,6 +130,7 @@ export async function PUT(request, { params }) {
     await connectDB();
 
     const ticket = await Ticket.findById(id);
+    console.log("ticket---->", ticket);
     if (!ticket) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
@@ -182,7 +148,7 @@ export async function PUT(request, { params }) {
     }
 
     // اگر تیکت پاسخی دارد، اجازه ویرایش ندارد
-    if (ticket.responses && ticket.responses.length > 0) {
+    if (ticket.status !== "new") {
       return NextResponse.json(
         { error: "Cannot edit ticket after it has been responded to" },
         { status: 403 }
@@ -191,7 +157,6 @@ export async function PUT(request, { params }) {
 
     // Process form data
     const formData = await request.formData();
-
     // اطلاعاتی که می‌توانند ویرایش شوند
     if (formData.get("title")) {
       ticket.title = formData.get("title");
@@ -221,10 +186,11 @@ export async function PUT(request, { params }) {
 
     // Handle image upload if provided
     const image = formData.get("image");
+    console.log("image----------->", image);
     if (image && image.size > 0) {
       try {
         // اطمینان از وجود دایرکتوری آپلود
-        const uploadDir = path.join(process.cwd(), "public/uploads");
+        const uploadDir = path.join(process.cwd(), "/uploads");
 
         // ایجاد دایرکتوری اگر وجود ندارد
         try {
@@ -248,13 +214,13 @@ export async function PUT(request, { params }) {
         console.log(`Image saved to ${filePath}`);
 
         // ذخیره آدرس فایل در تیکت
-        ticket.image = `/uploads/${fileName}`;
+        ticket.image = `${fileName}`;
       } catch (uploadError) {
         console.error("Error saving uploaded image:", uploadError);
         // حفظ تصویر قبلی در صورت خطا
       }
     }
-
+    console.log("ticket-------------->", ticket);
     // Update updatedAt timestamp
     ticket.updatedAt = new Date();
 

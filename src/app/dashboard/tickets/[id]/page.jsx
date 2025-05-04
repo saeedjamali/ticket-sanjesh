@@ -7,7 +7,12 @@ import { format } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
 import Link from "next/link";
 import { IoMdAttach, IoMdDownload, IoMdClose } from "react-icons/io";
-import { getStatusText } from "@/lib/permissions";
+import { getRoleName, getStatusText } from "@/lib/permissions";
+
+import { useUserContext } from "@/context/UserContext";
+import EditTicketForm from "@/components/tickets/EditTicketForm";
+import { Button } from "@mui/material";
+
 export default function TicketDetails() {
     const params = useParams();
     const router = useRouter();
@@ -17,9 +22,13 @@ export default function TicketDetails() {
     const [submitting, setSubmitting] = useState(false);
     const [imageUrl, setImageUrl] = useState(null);
     const [showImage, setShowImage] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const { user } = useUserContext();
 
+    console.log("user in ticket details ---->", user);
     useEffect(() => {
         fetchTicket();
+        console.log("ticket in ticket details ---->", ticket);
     }, [params.id]);
 
     const fetchTicket = async () => {
@@ -125,6 +134,41 @@ export default function TicketDetails() {
         }
     };
 
+    const handleReferToProvince = async (ticketId) => {
+        console.log("ارجاع به استان");
+        try {
+            const res = await fetch(`/api/tickets/${ticketId}/change-status`, {
+                method: "PUT",
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                console.error("Failed to change status:", errorData.message);
+                // نمایش خطا به کاربر
+                alert(`خطا: ${errorData.message}`);
+                return;
+            }
+
+            const updatedTicket = await res.json();
+            console.log("Status changed successfully:", updatedTicket);
+            // صفحه را رفرش کنید یا state را آپدیت کنید
+            alert("وضعیت تیکت با موفقیت به 'ارجاع به استان' تغییر یافت.");
+            location.reload();
+            // مثلاً: router.refresh();
+        } catch (error) {
+            console.error("Error calling API:", error);
+            alert("خطا در ارتباط با سرور.");
+        }
+
+        // در JSX دکمه:
+        // <button onClick={() => handleChangeStatus(ticket._id)}>ارجاع به استان</button>
+    };
+
+    // // بررسی نقش کاربر و وضعیت تیکت
+    const canEdit =
+        user?.role === "examCenterManager" &&
+        ticket?.status === "new";
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -143,7 +187,36 @@ export default function TicketDetails() {
 
     return (
         <div className="space-y-6">
+
             {/* اطلاعات تیکت */}
+            <div className="mb-6 flex justify-end items-center">
+
+                <Link
+                    href="/dashboard/tickets"
+                    className="text-blue-600 hover:underline"
+                >
+                    بازگشت به لیست تیکت‌ها
+                </Link>
+            </div>
+            {/* Add status info alert */}
+            <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded mb-6">
+                <h3 className="font-bold text-lg mb-2">راهنمای وضعیت تیکت:</h3>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>
+                        تیکت های با وضعیت
+                        <strong>&quot;جدید  &quot;</strong> توسط مسئول مرکز قابل ویرایش هستند
+                    </li>
+                    <li>
+                        با مشاهده تیکت توسط کارشناس، وضعیت به{" "}
+                        <strong>&quot;دیده شده&quot;</strong> تغییر می‌کند.
+                    </li>
+                    <li>
+                        با پاسخ کارشناس، وضعیت به <strong>&quot;پاسخ داده شده&quot;</strong>{" "}
+                        تغییر می‌کند.
+                    </li>
+
+                </ul>
+            </div>
             <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex items-start justify-between">
                     <div>
@@ -223,7 +296,7 @@ export default function TicketDetails() {
                         >
                             <div className="flex items-center justify-between mb-2">
                                 <span className="font-medium">
-                                    {reply.isAdmin ? "پشتیبانی" : "شما"}
+                                    {reply.isAdmin ? getRoleName(reply.createdRole) : "شما"}
                                 </span>
                                 <span className="text-sm text-gray-500">
                                     {format(new Date(reply.createdAt), "dd MMMM yyyy HH:mm", {
@@ -247,17 +320,42 @@ export default function TicketDetails() {
                         placeholder="متن پاسخ خود را وارد کنید..."
                         className="w-full h-32 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-2">
+
+                        {(ticket.status === "inProgress" && (user?.role === "districtEducationExpert" || user?.role === "districtTechExpert")) && (
+
+                            <button className="bg-orange-800 text-white px-4 py-2 rounded-md cursor-pointer" onClick={() => handleReferToProvince(ticket._id)}>ارجاع به استان</button>
+
+
+                        )}
+                        {canEdit && (
+
+
+                            <button
+
+                                className="bg-orange-500 text-white px-4 py-2 rounded-md cursor-pointer"
+                                onClick={() => setIsEditing(prev => !prev)}
+                            >
+                                ویرایش تیکت
+                            </button>
+                        )}
                         <button
                             onClick={handleReply}
                             disabled={submitting}
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
+                            cursor-pointer"
                         >
                             {submitting ? "در حال ارسال..." : "ارسال پاسخ"}
                         </button>
                     </div>
                 </div>
+
             </div>
+
+            {isEditing && <div className="bg-white rounded-lg shadow p-6">
+                <EditTicketForm user={user} ticket={ticket} setIsEditing={setIsEditing} />
+
+            </div>}
         </div>
     );
 } 

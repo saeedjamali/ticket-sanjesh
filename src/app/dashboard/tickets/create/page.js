@@ -14,8 +14,8 @@ export default async function CreateTicketPage(request) {
   const cookieStore = await cookies();
   const authToken = cookieStore?.get("refresh-token");
   const { user } = await authService.refreshToken(authToken?.value);
-  const userRole = await checkUserRole([ROLES.EXAM_CENTER_MANAGER], user);
-  console.log("user---->", user);
+  
+ 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">

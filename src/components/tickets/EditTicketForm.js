@@ -4,11 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
-export default function CreateTicketForm({ user, ticket, isEditing = false }) {
+export default function EditTicketForm({
+  user,
+  ticket,
+  setIsEditing,
+  isEditing,
+}) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(ticket?.image || "");
+  const [previewUrl, setPreviewUrl] = useState("");
   const router = useRouter();
 
   const {
@@ -58,97 +63,30 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
       formData.append("description", data.description);
       formData.append("receiver", data.receiver);
 
-      // اضافه کردن وضعیت پیش‌نویس
-      if (isDraft) {
-        formData.append("status", "draft");
-      } else {
-        formData.append("status", "new");
-      }
-
       if (selectedImage) {
         formData.append("image", selectedImage);
       }
 
-      // نمایش اطلاعات کاربر در کنسول
-      console.log("Current user data:", user);
-
-      // اضافه کردن اطلاعات کاربر به URL برای احراز هویت
-      let url = isEditing ? `/api/tickets/${ticket._id}` : "/api/tickets";
-
-      // اضافه کردن پارامترهای کاربر به URL
-      if (user) {
-        url += `?userRole=${user.role}`;
-
-        if (user.examCenter) {
-          url += `&examCenter=${user.examCenter}`;
-        }
-
-        if (user.district) {
-          url += `&district=${user.district}`;
-        }
-
-        if (user.province) {
-          url += `&province=${user.province}`;
-        }
-
-        if (user.id) {
-          url += `&userId=${user.id}`;
-        }
-      }
-
-      console.log("Submitting ticket to:", url);
-      const method = isEditing ? "PUT" : "POST";
-
-      // دریافت توکن احراز هویت از localStorage
-      const authToken = localStorage.getItem("authToken");
-      console.log("Auth token available:", !!authToken);
-
-      // تنظیم هدرهای درخواست - فقط هدرهای مربوط به احراز هویت
-      const headers = {};
-
-      if (authToken) {
-        headers["Authorization"] = `Bearer ${authToken}`;
-      }
-
-      console.log("Request headers:", headers);
-      console.log("Form data entries:", [...formData.entries()]);
-
-      const response = await fetch(url, {
-        method,
+      // console.log("formData---->", formData);
+      const res = await fetch(`/api/tickets/${ticket._id}`, {
+        method: "PUT",
+        header: { "Content-Type": "multipart/form-data" },
         body: formData,
-        headers,
       });
 
-      console.log("Response status:", response.status);
-      console.log(
-        "Response headers:",
-        Object.fromEntries([...response.headers.entries()])
-      );
-
-      if (!response.ok) {
-        const responseText = await response.text();
-        console.error("Error response text:", responseText);
-
-        let errorMessage = "خطا در عملیات";
-        let errorData = {};
-
-        try {
-          errorData = JSON.parse(responseText);
-          errorMessage =
-            errorData.message || errorData.error || "خطا در عملیات";
-          console.error("Parsed error data:", errorData);
-        } catch (e) {
-          console.error("Failed to parse error response as JSON:", e);
-        }
-
-        throw new Error(errorMessage);
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.message || "خطا در ویرایش تیکت");
+        // setLoading(false);
+        return;
       }
 
-      const responseData = await response.json();
-      console.log("Ticket successfully submitted:", responseData);
-
-      router.push("/dashboard/tickets");
-      router.refresh();
+      // موفقیت: ریدایرکت یا پیام موفقیت
+      // router.push(`/dashboard/tickets/${ticket._id}`);
+      setIsSubmitting(true);
+      setIsEditing(false);
+      // router.refresh();
+      location.reload();
     } catch (error) {
       console.error("Error submitting ticket:", error);
       setError(error.message || "خطا در عملیات. لطفا دوباره تلاش کنید.");
@@ -171,6 +109,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         <input
           id="title"
           type="text"
+          defaultValue={ticket.title}
           className={`form-control ${errors.title ? "border-red-500" : ""}`}
           placeholder="عنوان مشکل را وارد کنید"
           {...register("title", { required: "عنوان تیکت الزامی است" })}
@@ -186,6 +125,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         </label>
         <select
           id="priority"
+          defaultValue={ticket.priority}
           className={`form-control ${errors.priority ? "border-red-500" : ""}`}
           {...register("priority", { required: "انتخاب فوریت الزامی است" })}
         >
@@ -205,6 +145,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         </label>
         <textarea
           id="description"
+          defaultValue={ticket.description}
           rows="5"
           className={`form-control ${
             errors.description ? "border-red-500" : ""
@@ -231,6 +172,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         </label>
         <select
           id="receiver"
+          defaultValue={ticket.receiver}
           className={`form-control ${errors.receiver ? "border-red-500" : ""}`}
           {...register("receiver", {
             required: "انتخاب دریافت کننده الزامی است",
@@ -274,7 +216,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
       <div className="flex justify-end space-x-4 space-x-reverse pt-4 gap-2">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => setIsEditing(false)}
           className="rounded bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
           disabled={isSubmitting}
         >
@@ -294,7 +236,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
 
         <button
           type="submit"
-          className="btn btn-primary"
+          className="btn bg-orange-500"
           disabled={isSubmitting}
           onClick={handleSubmit((data) => onSubmit(data, false))}
         >
@@ -302,7 +244,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
             ? "در حال ثبت..."
             : isEditing
             ? "به‌روزرسانی تیکت"
-            : "ثبت تیکت"}
+            : "ویرایش تیکت"}
         </button>
       </div>
     </form>

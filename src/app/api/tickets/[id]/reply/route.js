@@ -65,7 +65,13 @@ export async function POST(request, { params }) {
         isAdmin = true;
         break;
 
-      case ROLES.PROVINCE_ADMIN:
+      case ROLES.PROVINCE_TECH_EXPERT:
+        // کارشناس استان می‌تواند به تیکت‌های مراکز و مناطق استان خود پاسخ دهد
+        canReply =
+          ticket.province?._id.toString() === user.province?.toString();
+        isAdmin = true;
+        break;
+      case ROLES.PROVINCE_EDUCATION_EXPERT:
         // کارشناس استان می‌تواند به تیکت‌های مراکز و مناطق استان خود پاسخ دهد
         canReply =
           ticket.province?._id.toString() === user.province?.toString();
@@ -95,6 +101,7 @@ export async function POST(request, { params }) {
     ticket.responses.push({
       text,
       createdBy: user.id,
+      createdRole: user.role,
       createdAt: new Date(),
       isAdmin,
     });
@@ -102,7 +109,11 @@ export async function POST(request, { params }) {
     // بروزرسانی وضعیت تیکت
     if (isAdmin) {
       // اگر پاسخ از طرف کارشناس باشد
-      if (ticket.status === "seen" || ticket.status === "inProgress") {
+      if (
+        ticket.status === "seen" ||
+        ticket.status === "inProgress" ||
+        ticket.status === "referred_province"
+      ) {
         ticket.status = "resolved";
       }
     } else {

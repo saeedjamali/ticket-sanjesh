@@ -22,7 +22,14 @@ const TicketSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["draft", "new", "seen", "inProgress", "resolved"], // پیش‌نویس، دیده نشده، دیده شده، در حال بررسی، پاسخ داده شده
+    enum: [
+      "draft",
+      "new",
+      "seen",
+      "inProgress",
+      "resolved",
+      "referred_province",
+    ], // پیش‌نویس، دیده نشده، دیده شده، در حال بررسی، پاسخ داده شده
     default: "new",
   },
   receiver: {
@@ -87,6 +94,10 @@ const TicketSchema = new mongoose.Schema({
       createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
+        required: true,
+      },
+      createdRole: {
+        type: String,        
         required: true,
       },
       createdAt: {

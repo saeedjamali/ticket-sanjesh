@@ -204,13 +204,15 @@ export const getStatusText = (status) => {
     case "draft":
       return "پیش‌نویس";
     case "new":
-      return "دیده نشده";
+      return "جدید";
     case "seen":
       return "دیده شده";
     case "inProgress":
       return "در حال بررسی";
     case "resolved":
       return "پاسخ داده شده";
+    case "referred_province":
+      return "ارجاع به استان";
     default:
       return status;
   }
