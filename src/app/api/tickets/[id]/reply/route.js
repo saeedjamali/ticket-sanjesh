@@ -118,7 +118,11 @@ export async function POST(request, { params }) {
       }
     } else {
       // اگر پاسخ از طرف مسئول مرکز باشد
-      if (ticket.status === "resolved") {
+      if (
+        ticket.status === "resolved" ||
+        ticket.status === "referred_province" ||
+        ticket.status === "inProgress"
+      ) {
         ticket.status = "inProgress";
       } else {
         ticket.status = "new";

@@ -296,7 +296,8 @@ export default function TicketDetails() {
                         >
                             <div className="flex items-center justify-between mb-2">
                                 <span className="font-medium">
-                                    {reply.isAdmin ? getRoleName(reply.createdRole) : "شما"}
+                                    {/* {reply.isAdmin ? getRoleName(reply.createdRole) : "کاربر"} */}
+                                    {getRoleName(reply.createdRole)}
                                 </span>
                                 <span className="text-sm text-gray-500">
                                     {format(new Date(reply.createdAt), "dd MMMM yyyy HH:mm", {
