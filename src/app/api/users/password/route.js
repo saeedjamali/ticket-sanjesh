@@ -34,6 +34,7 @@ export async function PATCH(request) {
 
     // Check if user has permission to change this user's password
     let hasPermission = false;
+    let requiresCurrentPassword = false;
 
     if (userAuth.role === ROLES.SYSTEM_ADMIN) {
       // System admin can change any user's password
@@ -73,16 +74,36 @@ export async function PATCH(request) {
       }
     } else if (userAuth.id === user._id.toString()) {
       // Users can change their own password
-      // For changing own password, current password should be verified in a real system
+      // For changing own password, current password should be verified
       hasPermission = true;
+      requiresCurrentPassword = true;
     }
 
     if (!hasPermission) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // If changing own password, verify the current password
+    if (requiresCurrentPassword && data.currentPassword) {
+      const isPasswordValid = await bcrypt.compare(
+        data.currentPassword,
+        user.password
+      );
+
+      if (!isPasswordValid) {
+        return NextResponse.json(
+          { error: "رمز عبور فعلی صحیح نیست" },
+          { status: 400 }
+        );
+      }
+    } else if (requiresCurrentPassword && !data.currentPassword) {
+      return NextResponse.json(
+        { error: "رمز عبور فعلی الزامی است" },
+        { status: 400 }
+      );
+    }
+
     // Hash new password
-    // const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     // Update password

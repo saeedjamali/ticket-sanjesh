@@ -139,6 +139,13 @@ export function getMenuItemsByRole(role) {
     icon: "tickets",
   });
 
+  // منوی پروفایل کاربری - برای همه کاربران
+  menuItems.push({
+    label: "پروفایل ",
+    path: "/dashboard/profile",
+    icon: "profile",
+  });
+
   // منوی کاربران - فقط برای مدیران ارشد
   if (
     role === ROLES.SYSTEM_ADMIN ||

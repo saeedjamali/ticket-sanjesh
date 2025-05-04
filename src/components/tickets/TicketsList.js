@@ -11,12 +11,19 @@ export default function TicketsList({ user }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [filter, setFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
   const [authError, setAuthError] = useState(false);
   const [debugInfo, setDebugInfo] = useState(null);
+  const [ticketNumber, setTicketNumber] = useState("");
 
   console.log("TicketsList user:", user);
 
-  const fetchTickets = async (page = 1, statusFilter = "all") => {
+  const fetchTickets = async (
+    page = 1,
+    statusFilter = "all",
+    ticketNumberSearch = "",
+    priorityFilter = "all"
+  ) => {
     setLoading(true);
     setError("");
     setAuthError(false);
@@ -37,6 +44,16 @@ export default function TicketsList({ user }) {
 
       if (statusFilter !== "all") {
         url += `&status=${statusFilter}`;
+      }
+
+      // اضافه کردن پارامتر جستجوی شماره تیکت
+      if (ticketNumberSearch) {
+        url += `&ticketNumber=${ticketNumberSearch}`;
+      }
+
+      // اضافه کردن پارامتر فیلتر فوریت
+      if (priorityFilter !== "all") {
+        url += `&priority=${priorityFilter}`;
       }
 
       // اضافه کردن پارامترهای کوئری برای روش احراز هویت جایگزین
@@ -152,12 +169,12 @@ export default function TicketsList({ user }) {
         "TicketsList useEffect triggered, fetching tickets with user:",
         user
       );
-      fetchTickets(currentPage, filter);
+      fetchTickets(currentPage, filter, ticketNumber, priorityFilter);
     } else {
       setAuthError(true);
       setLoading(false);
     }
-  }, [currentPage, filter, user]);
+  }, [currentPage, filter, user, ticketNumber, priorityFilter]);
 
   // ایجاد یک تیکت تست
   const createTestTicket = async () => {
@@ -170,7 +187,7 @@ export default function TicketsList({ user }) {
         alert(
           "تیکت تست با موفقیت ایجاد شد. لطفاً صفحه را دوباره بارگذاری کنید."
         );
-        fetchTickets(currentPage, filter);
+        fetchTickets(currentPage, filter, ticketNumber, priorityFilter);
       } else {
         alert("خطا در ایجاد تیکت تست: " + data.message);
       }
@@ -207,6 +224,27 @@ export default function TicketsList({ user }) {
     setCurrentPage(1);
   };
 
+  const handlePriorityFilterChange = (e) => {
+    setPriorityFilter(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleTicketNumberChange = (e) => {
+    setTicketNumber(e.target.value);
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setCurrentPage(1); // Reset to first page when searching
+    fetchTickets(1, filter, ticketNumber, priorityFilter);
+  };
+
+  const clearSearch = () => {
+    setTicketNumber("");
+    setCurrentPage(1);
+    fetchTickets(1, filter, "", priorityFilter);
+  };
+
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case "draft":
@@ -223,8 +261,6 @@ export default function TicketsList({ user }) {
         return "bg-gray-500 text-white";
     }
   };
-
-  
 
   const getPriorityText = (priority) => {
     switch (priority) {
@@ -314,7 +350,14 @@ export default function TicketsList({ user }) {
                   بررسی پایگاه داده
                 </button>
                 <button
-                  onClick={() => fetchTickets(currentPage, filter)}
+                  onClick={() =>
+                    fetchTickets(
+                      currentPage,
+                      filter,
+                      ticketNumber,
+                      priorityFilter
+                    )
+                  }
                   className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm"
                 >
                   تلاش مجدد
@@ -390,24 +433,80 @@ export default function TicketsList({ user }) {
       ) : (
         <div>
           <div className="mb-4 p-4">
-            <div className="flex flex-col justify-between sm:flex-row sm:items-center">
-              <div className="mb-4 sm:mb-0">
-                <label htmlFor="filter" className="ml-2 text-sm font-medium">
-                  فیلتر وضعیت:
-                </label>
-                <select
-                  id="filter"
-                  value={filter}
-                  onChange={handleFilterChange}
-                  className="rounded-md border border-gray-300 px-3 py-1 dark:border-gray-600 dark:bg-gray-700"
-                >
-                  <option value="all">همه</option>
-                  <option value="draft">پیش‌نویس</option>
-                  <option value="new">دیده نشده</option>
-                  <option value="seen">دیده شده</option>
-                  <option value="inProgress">در حال بررسی</option>
-                  <option value="resolved">پاسخ داده شده</option>
-                </select>
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div>
+                  <label htmlFor="filter" className="ml-2 text-sm font-medium">
+                    فیلتر وضعیت:
+                  </label>
+                  <select
+                    id="filter"
+                    value={filter}
+                    onChange={handleFilterChange}
+                    className="rounded-md border border-gray-300 px-3 py-1 dark:border-gray-600 dark:bg-gray-700"
+                  >
+                    <option value="all">همه</option>
+                    <option value="new">جدید</option>
+                    <option value="seen">دیده شده</option>
+                    <option value="inProgress">در حال بررسی</option>
+                    <option value="resolved">پاسخ داده شده</option>
+                    <option value="referred_province">ارجاع به استان</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="priorityFilter"
+                    className="ml-2 text-sm font-medium"
+                  >
+                    فیلتر فوریت:
+                  </label>
+                  <select
+                    id="priorityFilter"
+                    value={priorityFilter}
+                    onChange={handlePriorityFilterChange}
+                    className="rounded-md border border-gray-300 px-3 py-1 dark:border-gray-600 dark:bg-gray-700"
+                  >
+                    <option value="all">همه</option>
+                    <option value="high">آنی</option>
+                    <option value="medium">فوری</option>
+                    <option value="low">عادی</option>
+                  </select>
+                </div>
+
+                <div>
+                  <form onSubmit={handleSearch} className="flex items-center">
+                    <label
+                      htmlFor="ticketNumber"
+                      className="ml-2 text-sm font-medium"
+                    >
+                      شماره تیکت:
+                    </label>
+                    <input
+                      id="ticketNumber"
+                      type="text"
+                      value={ticketNumber}
+                      onChange={handleTicketNumberChange}
+                      placeholder="جستجو شماره تیکت..."
+                      className="rounded-md border border-gray-300 px-3 py-1 dark:border-gray-600 dark:bg-gray-700 ml-2"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 ml-2"
+                    >
+                      جستجو
+                    </button>
+                    {ticketNumber && (
+                      <button
+                        type="button"
+                        onClick={clearSearch}
+                        className="bg-gray-300 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-400 mr-2"
+                      >
+                        پاک کردن
+                      </button>
+                    )}
+                  </form>
+                </div>
               </div>
 
               <div className="text-sm text-gray-600 dark:text-gray-400">

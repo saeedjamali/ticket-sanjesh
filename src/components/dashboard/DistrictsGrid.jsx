@@ -66,21 +66,21 @@ export default function DistrictsGrid() {
     const getDistrictStatus = (district) => {
         if (district.totalTicketsCount === 0) {
             return {
-                color: "bg-blue-100 text-blue-800",
+                color: "bg-blue-200 text-blue-800",
                 text: "بدون تیکت",
             };
         }
 
         if (district.newTicketsCount > 0) {
             return {
-                color: "bg-red-100 text-red-800",
+                color: "bg-red-200 text-red-800",
                 text: "جدید",
             };
         }
 
         if ((district.inProgressTicketsCount > 0 || district.openTicketsCount > 0) && district.newTicketsCount === 0) {
             return {
-                color: "bg-orange-100 text-orange-800",
+                color: "bg-orange-200 text-orange-800",
                 text: "در حال بررسی",
             };
         }
@@ -215,7 +215,7 @@ export default function DistrictsGrid() {
                                     <span className="font-medium">{district.totalTicketsCount}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">تیکت‌های جدید:</span>
+                                    <span className="text-gray-500"> جدید:</span>
                                     <span className="font-medium text-red-600">
                                         {district.openTicketsCount}
                                     </span>
@@ -224,6 +224,12 @@ export default function DistrictsGrid() {
                                     <span className="text-gray-500">در حال بررسی:</span>
                                     <span className="font-medium text-yellow-600">
                                         {district.inProgressTicketsCount}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-500">ارجاع به استان:</span>
+                                    <span className="font-medium text-green-600">
+                                        {district.referredTicketsCount}
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-sm">

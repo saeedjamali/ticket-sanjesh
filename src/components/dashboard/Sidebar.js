@@ -13,6 +13,7 @@ import {
   FaChevronUp,
   FaBars,
   FaTimes,
+  FaUserCircle,
 } from "react-icons/fa";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -22,6 +23,7 @@ const icons = {
   users: <FaUsers className="h-5 w-5" />,
   reports: <FaChartLine className="h-5 w-5" />,
   settings: <FaCog className="h-5 w-5" />,
+  profile: <FaUserCircle className="h-5 w-5" />,
 };
 
 export default function Sidebar({ user, children }) {
