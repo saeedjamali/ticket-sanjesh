@@ -178,7 +178,7 @@ export default function DistrictsGrid() {
     const hiddenDistrictsCount = totalDistricts - gridSize;
 
     return (
-        <div className={`space-y-6 ${isFullScreen ? 'fixed inset-0 bg-white p-6 overflow-auto' : ''}`}>
+        <div className={`space-y-6 z-10 ${isFullScreen ? 'fixed inset-0 bg-white p-6 overflow-auto' : ''}`}>
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900">
                     {user && user.role === "generalManager" ? (
@@ -243,7 +243,7 @@ export default function DistrictsGrid() {
                         </svg>
                         <div>
                             <p className="font-medium text-blue-800">شما به عنوان مدیر کل استان {user.provinceName || ''} در سیستم وارد شده‌اید</p>
-                            <p className="text-sm text-blue-600 mt-1">فقط مناطق متعلق به استان شما در این صفحه نمایش داده می‌شوند</p>
+                            {/* <p className="text-sm text-blue-600 mt-1">فقط مناطق متعلق به استان شما در این صفحه نمایش داده می‌شوند</p> */}
                         </div>
                     </div>
                 </div>

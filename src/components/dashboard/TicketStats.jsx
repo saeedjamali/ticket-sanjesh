@@ -130,7 +130,7 @@ export default function TicketStats() {
                     <h3 className="text-lg font-medium text-gray-900 mb-2">در حال بررسی</h3>
                     <p className="text-3xl font-bold text-yellow-600">{stats.inProgressTickets}</p>
                 </div>
-                <div className="bg-white rounded-lg shadow p-6 relative">
+                <div className="bg-white rounded-lg shadow p-6 relative -z-0">
                     <div className="flex items-center gap-1">
                         <h3 className="text-lg font-medium text-gray-900 mb-2">حل شده</h3>
                         <button
