@@ -18,37 +18,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    // Check if user has permission to update status
-    const permissions = getRolePermissions(session.user.role);
-    let canUpdateStatus = false;
-
-    // مسئول مرکز آزمون می‌تواند وضعیت تیکت خودش را از پیش‌نویس به دیده‌نشده تغییر دهد
-    if (
-      session.user.role === ROLES.EXAM_CENTER_MANAGER &&
-      ticket.status === "draft" &&
-      session.user.id === ticket.createdBy.toString() &&
-      session.user.examCenter === ticket.examCenter.toString()
-    ) {
-      canUpdateStatus = true;
-    } else if (permissions.canRespondToTickets) {
-      if (
-        (session.user.role === ROLES.DISTRICT_EDUCATION_EXPERT &&
-          ticket.receiver === "education") ||
-        (session.user.role === ROLES.DISTRICT_TECH_EXPERT &&
-          ticket.receiver === "tech")
-      ) {
-        // District expert can only update status for their district's tickets
-        if (session.user.district === ticket.district.toString()) {
-          canUpdateStatus = true;
-        }
-      }
-    }
-
-    if (!canUpdateStatus) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    // Parse request body
+    // Parse request body to get the requested status change
     const { status } = await request.json();
 
     // بررسی معتبر بودن وضعیت
@@ -59,26 +29,51 @@ export async function PUT(request, { params }) {
       );
     }
 
+    // Check if user has permission to update status
+    const permissions = getRolePermissions(session.user.role);
+    let canUpdateStatus = false;
+
+    // مدیر سیستم می‌تواند هر تیکتی را به هر وضعیتی تغییر دهد
+    if (session.user.role === ROLES.SYSTEM_ADMIN) {
+      canUpdateStatus = true;
+    }
     // مسئول مرکز آزمون فقط می‌تواند وضعیت پیش‌نویس را به دیده‌نشده تغییر دهد
-    if (
+    else if (
       session.user.role === ROLES.EXAM_CENTER_MANAGER &&
       ticket.status === "draft" &&
-      status !== "new"
+      status === "new" &&
+      session.user.id === ticket.createdBy.toString() &&
+      session.user.examCenter === ticket.examCenter.toString()
     ) {
-      return NextResponse.json(
-        { error: "Invalid status transition" },
-        { status: 400 }
-      );
+      canUpdateStatus = true;
+    }
+    // کارشناس‌ها می‌توانند وضعیت را به دیده‌شده یا پاسخ داده شده تغییر دهند (اما نه به در حال بررسی)
+    else if (permissions.canRespondToTickets) {
+      if (
+        (session.user.role === ROLES.DISTRICT_EDUCATION_EXPERT &&
+          ticket.receiver === "education") ||
+        (session.user.role === ROLES.DISTRICT_TECH_EXPERT &&
+          ticket.receiver === "tech")
+      ) {
+        // District expert can only update status for their district's tickets
+        if (session.user.district === ticket.district.toString()) {
+          // بررسی وضعیت درخواستی - فقط دیده شده و پاسخ داده شده مجاز است
+          if (["seen", "resolved"].includes(status)) {
+            canUpdateStatus = true;
+          }
+        }
+      }
     }
 
-    // کارشناس‌ها می‌توانند وضعیت را به دیده‌شده، در حال بررسی، یا پاسخ داده شده تغییر دهند
-    if (
-      permissions.canRespondToTickets &&
-      !["seen", "inProgress", "resolved"].includes(status)
-    ) {
+    if (!canUpdateStatus) {
       return NextResponse.json(
-        { error: "Invalid status value" },
-        { status: 400 }
+        {
+          error:
+            status === "inProgress"
+              ? "فقط مدیر سیستم می‌تواند وضعیت را به در حال بررسی تغییر دهد"
+              : "شما مجاز به انجام این عملیات نیستید",
+        },
+        { status: 403 }
       );
     }
 

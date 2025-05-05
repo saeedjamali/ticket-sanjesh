@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import path from "path";
+import { mkdir, writeFile } from "fs/promises";
 
 import Ticket from "@/models/Ticket";
 import { ROLES } from "@/lib/permissions";
@@ -18,8 +20,11 @@ export async function POST(request, { params }) {
       );
     }
 
-    // دریافت متن پاسخ
-    const { text } = await request.json();
+    // دریافت داده‌های ارسالی با FormData
+    const formData = await request.formData();
+    const text = formData.get("text");
+    const image = formData.get("image");
+
     if (!text?.trim()) {
       return NextResponse.json(
         { success: false, message: "متن پاسخ الزامی است" },
@@ -97,6 +102,42 @@ export async function POST(request, { params }) {
       );
     }
 
+    // پردازش تصویر پیوست در صورت وجود
+    let imagePath = null;
+    if (image && image.size > 0) {
+      try {
+        // اطمینان از وجود دایرکتوری آپلود
+        const uploadDir = path.join(process.cwd(), "/uploads");
+
+        // ایجاد دایرکتوری اگر وجود ندارد
+        try {
+          await mkdir(uploadDir, { recursive: true });
+        } catch (mkdirError) {
+          console.log(
+            "دایرکتوری قبلاً وجود دارد یا خطا در ایجاد آن:",
+            mkdirError
+          );
+        }
+
+        // ایجاد نام فایل یکتا
+        const fileName = `${Date.now()}-${image.name.replace(/\s+/g, "_")}`;
+        const filePath = path.join(uploadDir, fileName);
+
+        // ذخیره فایل
+        const bytes = await image.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        await writeFile(filePath, buffer);
+
+        console.log(`تصویر در مسیر ${filePath} ذخیره شد`);
+
+        // ذخیره نام فایل برای استفاده در پاسخ
+        imagePath = fileName;
+      } catch (uploadError) {
+        console.error("خطا در ذخیره تصویر پیوست:", uploadError);
+        // ادامه دادن بدون تصویر در صورت خطا
+      }
+    }
+
     // اضافه کردن پاسخ
     ticket.responses.push({
       text,
@@ -104,6 +145,7 @@ export async function POST(request, { params }) {
       createdRole: user.role,
       createdAt: new Date(),
       isAdmin,
+      image: imagePath, // اضافه کردن آدرس تصویر به پاسخ
     });
 
     // بروزرسانی وضعیت تیکت

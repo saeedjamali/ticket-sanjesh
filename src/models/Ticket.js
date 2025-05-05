@@ -29,7 +29,8 @@ const TicketSchema = new mongoose.Schema({
       "inProgress",
       "resolved",
       "referred_province",
-    ], // پیش‌نویس، دیده نشده، دیده شده، در حال بررسی، پاسخ داده شده
+      "closed",
+    ], // پیش‌نویس، دیده نشده، دیده شده، در حال بررسی، پاسخ داده شده، ارجاع به استان، بسته شده
     default: "new",
   },
   receiver: {
@@ -81,6 +82,13 @@ const TicketSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  closedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  closedAt: {
+    type: Date,
+  },
   responses: [
     {
       text: {
@@ -97,12 +105,15 @@ const TicketSchema = new mongoose.Schema({
         required: true,
       },
       createdRole: {
-        type: String,        
+        type: String,
         required: true,
       },
       createdAt: {
         type: Date,
         default: Date.now,
+      },
+      image: {
+        type: String,
       },
     },
   ],

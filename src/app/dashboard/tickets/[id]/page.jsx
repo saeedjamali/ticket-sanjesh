@@ -7,7 +7,7 @@ import { format } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
 import Link from "next/link";
 import { IoMdAttach, IoMdDownload, IoMdClose } from "react-icons/io";
-import { getRoleName, getStatusText } from "@/lib/permissions";
+import { getRoleName, getStatusText, ROLES } from "@/lib/permissions";
 
 import { useUserContext } from "@/context/UserContext";
 import EditTicketForm from "@/components/tickets/EditTicketForm";
@@ -23,6 +23,9 @@ export default function TicketDetails() {
     const [imageUrl, setImageUrl] = useState(null);
     const [showImage, setShowImage] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [replyImage, setReplyImage] = useState(null);
+    const [replyImagePreview, setReplyImagePreview] = useState(null);
+    const [responseImages, setResponseImages] = useState({});
     const { user } = useUserContext();
 
     console.log("user in ticket details ---->", user);
@@ -108,12 +111,18 @@ export default function TicketDetails() {
 
         setSubmitting(true);
         try {
+            // ایجاد فرم‌دیتا برای ارسال متن پاسخ و تصویر
+            const formData = new FormData();
+            formData.append("text", replyText);
+
+            // اضافه کردن تصویر اگر انتخاب شده باشد
+            if (replyImage) {
+                formData.append("image", replyImage);
+            }
+
             const response = await fetch(`/api/tickets/${params.id}/reply`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ text: replyText }),
+                body: formData,
                 credentials: "include",
             });
 
@@ -122,6 +131,8 @@ export default function TicketDetails() {
             if (data.success) {
                 toast.success("پاسخ با موفقیت ارسال شد");
                 setReplyText("");
+                setReplyImage(null);
+                setReplyImagePreview(null);
                 fetchTicket(); // بروزرسانی اطلاعات تیکت
             } else {
                 toast.error(data.message);
@@ -132,6 +143,27 @@ export default function TicketDetails() {
         } finally {
             setSubmitting(false);
         }
+    };
+
+    // تابع انتخاب تصویر برای پاسخ
+    const handleReplyImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setReplyImage(file);
+
+            // ایجاد پیش‌نمایش تصویر
+            const reader = new FileReader();
+            reader.onload = () => {
+                setReplyImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // تابع حذف تصویر انتخاب شده
+    const removeReplyImage = () => {
+        setReplyImage(null);
+        setReplyImagePreview(null);
     };
 
     const handleReferToProvince = async (ticketId) => {
@@ -145,29 +177,153 @@ export default function TicketDetails() {
                 const errorData = await res.json();
                 console.error("Failed to change status:", errorData.message);
                 // نمایش خطا به کاربر
-                alert(`خطا: ${errorData.message}`);
+                toast.error(`خطا: ${errorData.message}`);
                 return;
             }
 
             const updatedTicket = await res.json();
             console.log("Status changed successfully:", updatedTicket);
-            // صفحه را رفرش کنید یا state را آپدیت کنید
-            alert("وضعیت تیکت با موفقیت به 'ارجاع به استان' تغییر یافت.");
-            location.reload();
-            // مثلاً: router.refresh();
+            toast.success("وضعیت تیکت با موفقیت به 'ارجاع به استان' تغییر یافت.");
+            fetchTicket(); // بروزرسانی اطلاعات تیکت
         } catch (error) {
             console.error("Error calling API:", error);
-            alert("خطا در ارتباط با سرور.");
+            toast.error("خطا در ارتباط با سرور.");
         }
-
-        // در JSX دکمه:
-        // <button onClick={() => handleChangeStatus(ticket._id)}>ارجاع به استان</button>
     };
 
-    // // بررسی نقش کاربر و وضعیت تیکت
+    const handleCloseTicket = async () => {
+        if (!confirm("آیا از بستن این تیکت اطمینان دارید؟ این عمل قابل بازگشت نیست.")) {
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const response = await fetch(`/api/tickets/${params.id}/close`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "خطا در بستن تیکت");
+            }
+
+            toast.success("تیکت با موفقیت بسته شد");
+            fetchTicket(); // بروزرسانی اطلاعات تیکت
+        } catch (error) {
+            console.error("Error closing ticket:", error);
+            toast.error(error.message || "خطا در بستن تیکت");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // تابع تغییر وضعیت تیکت به "در حال بررسی"
+    const handleSetInProgress = async () => {
+        if (!confirm("آیا از تغییر وضعیت تیکت به 'در حال بررسی' اطمینان دارید؟")) {
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const response = await fetch(`/api/tickets/${params.id}/to-inprogress`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            });
+
+            const data = await response.json();
+            console.log("data---->", data);
+            if (!response.ok) {
+                throw new Error(data.error || "خطا در تغییر وضعیت تیکت");
+            }
+
+            toast.success("وضعیت تیکت با موفقیت به 'در حال بررسی' تغییر یافت");
+            fetchTicket(); // بروزرسانی اطلاعات تیکت
+        } catch (error) {
+            console.error("Error changing ticket status:", error);
+            toast.error(error.message || "خطا در تغییر وضعیت تیکت");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // بررسی نقش کاربر و وضعیت تیکت
     const canEdit =
-        user?.role === "examCenterManager" &&
+        user?.role === ROLES.EXAM_CENTER_MANAGER &&
         ticket?.status === "new";
+
+    // بررسی امکان بستن تیکت توسط کارشناسان مجاز
+    const canCloseTicket =
+        ticket?.status !== "closed" &&
+        (
+            (user?.role === ROLES.DISTRICT_EDUCATION_EXPERT &&
+                ticket?.receiver === "education" &&
+                user?.district === ticket?.district?._id) ||
+            (user?.role === ROLES.DISTRICT_TECH_EXPERT &&
+                ticket?.receiver === "tech" &&
+                user?.district === ticket?.district?._id) ||
+            (user?.role === ROLES.PROVINCE_EDUCATION_EXPERT &&
+                ticket?.receiver === "education" &&
+                user?.province === ticket?.province?._id) ||
+            (user?.role === ROLES.PROVINCE_TECH_EXPERT &&
+                ticket?.receiver === "tech" &&
+                user?.province === ticket?.province?._id) ||
+            user?.role === ROLES.SYSTEM_ADMIN
+        );
+
+    // تابع نمایش تصویر پاسخ
+    const showResponseImage = async (imageFileName, responseId) => {
+        try {
+            const response = await fetch(`/api/auth/getimg/${imageFileName}`);
+            if (!response.ok) {
+                throw new Error('خطا در دریافت تصویر');
+            }
+
+            // دریافت تصویر به صورت blob
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            setResponseImages(prev => ({
+                ...prev,
+                [responseId]: url
+            }));
+        } catch (error) {
+            console.error("Error fetching response image:", error);
+            toast.error("خطا در دریافت تصویر پاسخ");
+        }
+    };
+
+    // تابع مخفی کردن تصویر پاسخ
+    const hideResponseImage = (responseId) => {
+        setResponseImages(prev => {
+            const newState = { ...prev };
+            delete newState[responseId];
+            return newState;
+        });
+    };
+
+    // تابع دانلود تصویر پاسخ
+    const downloadResponseImage = (imageUrl, responseId) => {
+        try {
+            // ایجاد لینک دانلود
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = `ticket-response-image-${responseId}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            console.error("Error downloading response image:", error);
+            toast.error("خطا در دانلود تصویر پاسخ");
+        }
+    };
 
     if (loading) {
         return (
@@ -210,11 +366,18 @@ export default function TicketDetails() {
                         با مشاهده تیکت توسط کارشناس، وضعیت به{" "}
                         <strong>&quot;دیده شده&quot;</strong> تغییر می‌کند.
                     </li>
+                    {/* <li>
+                        <strong className="text-red-600">جدید!</strong> فقط مدیر سیستم می‌تواند وضعیت تیکت را به{" "}
+                        <strong>&quot;در حال بررسی&quot;</strong> تغییر دهد.
+                    </li> */}
                     <li>
                         با پاسخ کارشناس، وضعیت به <strong>&quot;پاسخ داده شده&quot;</strong>{" "}
                         تغییر می‌کند.
                     </li>
-
+                    <li>
+                        کارشناسان می‌توانند بعد از رفع مشکل،,وضعیت تیکت را به <strong>&quot;بسته&quot;</strong> تغییر دهند.
+                        پس از بستن تیکت، امکان ارسال پاسخ دیگر وجود ندارد.
+                    </li>
                 </ul>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
@@ -306,56 +469,153 @@ export default function TicketDetails() {
                                 </span>
                             </div>
                             <p className="text-gray-700 whitespace-pre-wrap">{reply.text}</p>
+
+                            {/* نمایش تصویر پاسخ */}
+                            {reply.image && (
+                                <div className="mt-4">
+                                    {!responseImages[reply._id] ? (
+                                        <span
+                                            onClick={() => showResponseImage(reply.image, reply._id)}
+                                            className="text-blue-500 flex items-center gap-2 cursor-pointer hover:text-blue-600 mb-2"
+                                        >
+                                            <IoMdAttach />تصویر پیوست
+                                        </span>
+                                    ) : (
+                                        <div>
+                                            <div className="flex items-center gap-4 mb-2">
+                                                <span
+                                                    onClick={() => hideResponseImage(reply._id)}
+                                                    className="text-red-500 flex items-center gap-2 cursor-pointer hover:text-red-600"
+                                                >
+                                                    <IoMdClose />بستن تصویر
+                                                </span>
+                                                <span
+                                                    onClick={() => downloadResponseImage(responseImages[reply._id], reply._id)}
+                                                    className="text-green-500 flex items-center gap-2 cursor-pointer hover:text-green-600"
+                                                >
+                                                    <IoMdDownload />دانلود تصویر
+                                                </span>
+                                            </div>
+                                            <img
+                                                src={responseImages[reply._id]}
+                                                alt="تصویر پیوست پاسخ"
+                                                className="max-w-full h-auto rounded-lg shadow mt-2 max-h-96"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
             </div>
 
+            {/* نمایش پیام در صورت بسته بودن تیکت */}
+            {ticket.status === "closed" && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded mb-6">
+                    <p className="font-medium">این تیکت بسته شده است و امکان پاسخ دادن به آن وجود ندارد.</p>
+                </div>
+            )}
+
             {/* فرم پاسخ */}
-            <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-lg font-semibold mb-4">ارسال پاسخ</h2>
-                <div className="space-y-4">
-                    <textarea
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        placeholder="متن پاسخ خود را وارد کنید..."
-                        className="w-full h-32 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                    <div className="flex justify-end gap-2">
+            {ticket.status !== "closed" && (
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-lg font-semibold mb-4">ارسال پاسخ</h2>
+                    <div className="space-y-4">
+                        <textarea
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="متن پاسخ خود را وارد کنید..."
+                            className="w-full h-32 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
 
-                        {(ticket.status === "inProgress" && (user?.role === "districtEducationExpert" || user?.role === "districtTechExpert")) && (
+                        {/* بخش انتخاب تصویر برای پاسخ */}
+                        <div className="mt-4">
+                            <div className="flex items-center gap-4">
+                                <label className="relative cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-lg transition-colors">
+                                    <span>افزودن تصویر</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleReplyImageChange}
+                                    />
+                                </label>
+                                {replyImagePreview && (
+                                    <button
+                                        onClick={removeReplyImage}
+                                        className="text-red-500 flex items-center gap-1 hover:text-red-600"
+                                    >
+                                        <IoMdClose /> حذف تصویر
+                                    </button>
+                                )}
+                            </div>
 
-                            <button className="bg-orange-800 text-white px-4 py-2 rounded-md cursor-pointer" onClick={() => handleReferToProvince(ticket._id)}>ارجاع به استان</button>
+                            {/* نمایش پیش‌نمایش تصویر */}
+                            {replyImagePreview && (
+                                <div className="mt-3">
+                                    <img
+                                        src={replyImagePreview}
+                                        alt="پیش‌نمایش تصویر"
+                                        className="max-w-xs max-h-40 rounded-lg"
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex justify-end gap-2">
+                            {(ticket.status === "inProgress" && (user?.role === ROLES.DISTRICT_EDUCATION_EXPERT || user?.role === ROLES.DISTRICT_TECH_EXPERT)) && (
+                                <button className="bg-orange-800 text-white px-4 py-2 rounded-md cursor-pointer" onClick={() => handleReferToProvince(ticket._id)}>ارجاع به استان</button>
+                            )}
+
+                            {/* دکمه تغییر وضعیت به "در حال بررسی" فقط برای مدیر سیستم */}
 
 
-                        )}
-                        {canEdit && (
+                            {canCloseTicket && (
+                                <button
+                                    className="bg-red-600 text-white px-4 py-2 rounded-md cursor-pointer"
+                                    onClick={handleCloseTicket}
+                                    disabled={submitting}
+                                >
+                                    بستن تیکت
+                                </button>
+                            )}
 
+                            {canEdit && (
+                                <button
+                                    className="bg-orange-500 text-white px-4 py-2 rounded-md cursor-pointer"
+                                    onClick={() => setIsEditing(prev => !prev)}
+                                >
+                                    ویرایش تیکت
+                                </button>
+                            )}
 
                             <button
-
-                                className="bg-orange-500 text-white px-4 py-2 rounded-md cursor-pointer"
-                                onClick={() => setIsEditing(prev => !prev)}
+                                onClick={handleReply}
+                                disabled={submitting}
+                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
+                                cursor-pointer"
                             >
-                                ویرایش تیکت
+                                {submitting ? "در حال ارسال..." : "ارسال پاسخ"}
                             </button>
-                        )}
-                        <button
-                            onClick={handleReply}
-                            disabled={submitting}
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
-                            cursor-pointer"
-                        >
-                            {submitting ? "در حال ارسال..." : "ارسال پاسخ"}
-                        </button>
+                        </div>
+
                     </div>
                 </div>
-
+            )}
+            <div className="flex justify-end">
+                {user?.role === ROLES.SYSTEM_ADMIN && ticket?.status === "closed" && (
+                    <button
+                        className="bg-yellow-600 text-white px-4 py-2 rounded-md cursor-pointer"
+                        onClick={handleSetInProgress}
+                        disabled={submitting}
+                    >
+                        تغییر به در حال بررسی
+                    </button>
+                )}
             </div>
-
             {isEditing && <div className="bg-white rounded-lg shadow p-6">
                 <EditTicketForm user={user} ticket={ticket} setIsEditing={setIsEditing} />
-
             </div>}
         </div>
     );

@@ -220,6 +220,8 @@ export const getStatusText = (status) => {
       return "پاسخ داده شده";
     case "referred_province":
       return "ارجاع به استان";
+    case "closed":
+      return "بسته شده";
     default:
       return status;
   }

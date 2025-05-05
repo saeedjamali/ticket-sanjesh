@@ -10,20 +10,39 @@ export default function TicketDetails({ ticket, user }) {
   const [status, setStatus] = useState(ticket.status);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
 
   const permissions = getRolePermissions(user.role);
   const canRespond =
-    permissions.canRespondToTickets || user.id === ticket.createdBy._id;
+    permissions.canRespondToTickets &&
+    ticket.status !== "closed" &&
+    user.id === ticket.createdBy._id;
 
   // بررسی امکان ویرایش تیکت توسط مسئول مرکز آزمون قبل از پاسخگویی
   const canEdit =
     user.role === ROLES.EXAM_CENTER_MANAGER &&
     user.id === ticket.createdBy._id &&
     user.examCenter === ticket.examCenter._id &&
-    (!ticket.responses || ticket.responses.length === 0);
+    (!ticket.responses || ticket.responses.length === 0) &&
+    ticket.status !== "closed";
 
-
+  // بررسی امکان بستن تیکت توسط کارشناسان مجاز
+  const canCloseTicket =
+    ticket.status !== "closed" &&
+    ((user.role === ROLES.DISTRICT_EDUCATION_EXPERT &&
+      ticket.receiver === "education" &&
+      user.district === ticket.district._id) ||
+      (user.role === ROLES.DISTRICT_TECH_EXPERT &&
+        ticket.receiver === "tech" &&
+        user.district === ticket.district._id) ||
+      (user.role === ROLES.PROVINCE_EDUCATION_EXPERT &&
+        ticket.receiver === "education" &&
+        user.province === ticket.province._id) ||
+      (user.role === ROLES.PROVINCE_TECH_EXPERT &&
+        ticket.receiver === "tech" &&
+        user.province === ticket.province._id) ||
+      user.role === ROLES.SYSTEM_ADMIN);
 
   const getStatusBadgeClass = (status) => {
     switch (status) {
@@ -37,6 +56,8 @@ export default function TicketDetails({ ticket, user }) {
         return "status-inProgress";
       case "resolved":
         return "status-resolved";
+      case "closed":
+        return "status-closed";
       default:
         return "bg-gray-500 text-white";
     }
@@ -222,6 +243,42 @@ export default function TicketDetails({ ticket, user }) {
     }
   };
 
+  const handleCloseTicket = async () => {
+    if (
+      !confirm("آیا از بستن این تیکت اطمینان دارید؟ این عمل قابل بازگشت نیست.")
+    ) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const response = await fetch(`/api/tickets/${ticket._id}/close`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "خطا در بستن تیکت");
+      }
+
+      setSuccessMessage("تیکت با موفقیت بسته شد");
+      setStatus("closed");
+      ticket.status = "closed";
+      router.refresh();
+    } catch (error) {
+      setError(error.message || "خطا در بستن تیکت");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Call updateTicketStatus when the component mounts
   useState(() => {
     updateTicketStatus();
@@ -239,6 +296,18 @@ export default function TicketDetails({ ticket, user }) {
         </Link>
       </div>
 
+      {successMessage && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
+          {successMessage}
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+          {error}
+        </div>
+      )}
+
       {/* Add status info alert */}
       <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded mb-6">
         <h3 className="font-bold text-lg mb-2">راهنمای وضعیت تیکت:</h3>
@@ -255,6 +324,11 @@ export default function TicketDetails({ ticket, user }) {
             در صورت سوال مجدد مسئول مرکز، وضعیت به{" "}
             <strong>&quot;دیده نشده&quot;</strong> تغییر می‌کند تا کارشناس متوجه
             شود.
+          </li>
+          <li>
+            کارشناسان می‌توانند بعد از رفع مشکل، تیکت را{" "}
+            <strong>&quot;بسته&quot;</strong> کنند. پس از بستن تیکت، امکان ارسال
+            پاسخ دیگر وجود ندارد.
           </li>
         </ul>
       </div>
@@ -295,6 +369,16 @@ export default function TicketDetails({ ticket, user }) {
                       ارسال تیکت
                     </button>
                   )}
+
+                {canCloseTicket && (
+                  <button
+                    onClick={handleCloseTicket}
+                    disabled={isSubmitting}
+                    className="rounded bg-red-500 px-3 py-1 text-sm text-white hover:bg-red-600"
+                  >
+                    بستن تیکت
+                  </button>
+                )}
 
                 <span
                   className={`badge ${getPriorityBadgeClass(ticket.priority)}`}
@@ -434,7 +518,15 @@ export default function TicketDetails({ ticket, user }) {
             </div>
           )}
 
-          {canRespond && (
+          {ticket.status === "closed" && (
+            <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+              <div className="mb-4 p-3 bg-amber-100 text-amber-700 rounded-md">
+                این تیکت بسته شده است و امکان پاسخ دادن به آن وجود ندارد.
+              </div>
+            </div>
+          )}
+
+          {canRespond && ticket.status !== "closed" && (
             <div className="border-t border-gray-200 p-4 dark:border-gray-700">
               <h2 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">
                 ارسال پاسخ

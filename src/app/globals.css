@@ -116,6 +116,10 @@ body {
   @apply bg-[var(--success)] text-white;
 }
 
+.status-closed {
+  @apply bg-red-600 text-white;
+}
+
 table {
   @apply w-full text-sm text-left;
 }
