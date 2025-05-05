@@ -6,7 +6,7 @@ export default function Footer() {
             <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 md:flex md:items-center md:justify-between lg:px-8">
                 <div className="text-center md:text-right">
                     <p className="text-sm text-gray-500">
-                         {currentYear} &copy; اداره کل آموزش و پرورش خراسان رضوی، تمامی حقوق محفوظ است.
+                        {currentYear} &copy; اداره کل آموزش و پرورش خراسان رضوی، تمامی حقوق محفوظ است.
                     </p>
                 </div>
                 <div className="mt-4 flex justify-center space-x-6 md:mt-0 md:order-2">

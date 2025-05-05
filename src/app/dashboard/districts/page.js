@@ -8,19 +8,8 @@ import { toast } from "react-hot-toast";
 export default function DistrictsPage() {
   const [districts, setDistricts] = useState([]);
   const [provinces, setProvinces] = useState([]);
-  const [examCenters, setExamCenters] = useState([
-    { id: "1", name: "مرکز آزمون ۱", district: "1", manager: "علی محمدی" },
-    { id: "2", name: "مرکز آزمون ۲", district: "1", manager: "حسن رضایی" },
-    { id: "3", name: "مرکز آزمون ۳", district: "2", manager: "محمد حسینی" },
-    { id: "4", name: "مرکز آزمون ۴", district: "3", manager: "رضا کریمی" },
-    { id: "5", name: "مرکز آزمون ۵", district: "4", manager: "زهرا احمدی" },
-  ]);
-  const [activeUsers, setActiveUsers] = useState([
-    { id: "1", name: "علی محمدی", role: "مدیر", district: "1" },
-    { id: "2", name: "مریم حسینی", role: "کارشناس", district: "1" },
-    { id: "3", name: "حسن رضایی", role: "کارشناس", district: "2" },
-    { id: "4", name: "زهرا احمدی", role: "مدیر", district: "4" },
-  ]);
+  const [examCenters, setExamCenters] = useState([]);
+  const [activeUsers, setActiveUsers] = useState([]);
   const [newDistrict, setNewDistrict] = useState({
     name: "",
     code: "",
@@ -34,6 +23,8 @@ export default function DistrictsPage() {
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [viewingExamCenters, setViewingExamCenters] = useState(false);
   const [viewingUsers, setViewingUsers] = useState(false);
+  const [loadingCenters, setLoadingCenters] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -80,6 +71,102 @@ export default function DistrictsPage() {
     }
   };
 
+  // فانکشن جدید برای دریافت مراکز آزمون یک منطقه
+  const fetchExamCentersForDistrict = async (districtId) => {
+    try {
+      setLoadingCenters(true);
+      const accessToken = localStorage.getItem("accessToken");
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      console.log(`درخواست مراکز آزمون برای منطقه با شناسه: ${districtId}`);
+
+      const response = await fetch(`/api/exam-centers?district=${districtId}`, {
+        credentials: "include",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("خطا در دریافت اطلاعات مراکز آزمون");
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "خطا در دریافت اطلاعات مراکز آزمون");
+      }
+
+      // فیلتر کردن مراکز آزمون در سمت کلاینت برای اطمینان از نمایش مراکز آزمون فقط منطقه انتخاب شده
+      const filteredCenters = (data.examCenters || []).filter(
+        (center) =>
+          center.district === districtId ||
+          center.districtId === districtId ||
+          (center.district && center.district._id === districtId)
+      );
+
+      console.log(
+        `تعداد مراکز آزمون دریافت شده: ${data.examCenters?.length || 0}`
+      );
+      console.log(`تعداد مراکز آزمون پس از فیلتر: ${filteredCenters.length}`);
+
+      setExamCenters(filteredCenters);
+    } catch (error) {
+      console.error("Error fetching exam centers:", error);
+      toast.error(error.message || "خطا در دریافت اطلاعات مراکز آزمون");
+    } finally {
+      setLoadingCenters(false);
+    }
+  };
+
+  // فانکشن جدید برای دریافت کاربران یک منطقه
+  const fetchUsersForDistrict = async (districtId) => {
+    try {
+      setLoadingUsers(true);
+      const accessToken = localStorage.getItem("accessToken");
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      console.log(`درخواست کاربران برای منطقه با شناسه: ${districtId}`);
+
+      const response = await fetch(`/api/users?district=${districtId}`, {
+        credentials: "include",
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("خطا در دریافت اطلاعات کاربران");
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || "خطا در دریافت اطلاعات کاربران");
+      }
+
+      // فیلتر کردن کاربران در سمت کلاینت برای اطمینان از نمایش کاربران فقط منطقه انتخاب شده
+      const filteredUsers = (data.users || []).filter(
+        (user) =>
+          user.district === districtId ||
+          user.districtId === districtId ||
+          (user.district && user.district._id === districtId)
+      );
+
+      console.log(`تعداد کاربران دریافت شده: ${data.users?.length || 0}`);
+      console.log(`تعداد کاربران پس از فیلتر: ${filteredUsers.length}`);
+
+      setActiveUsers(filteredUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error(error.message || "خطا در دریافت اطلاعات کاربران");
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -119,6 +206,7 @@ export default function DistrictsPage() {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -138,11 +226,32 @@ export default function DistrictsPage() {
     }
   };
 
+  // تغییر در رفتار دکمه‌های نمایش مراکز آزمون و کاربران
+  const handleShowExamCenters = (district) => {
+    setSelectedDistrict(district);
+    fetchExamCentersForDistrict(district._id);
+    setViewingExamCenters(true);
+    setViewingUsers(false);
+  };
+
+  const handleShowUsers = (district) => {
+    setSelectedDistrict(district);
+    fetchUsersForDistrict(district._id);
+    setViewingUsers(true);
+    setViewingExamCenters(false);
+  };
+
+  const handleBackToProvinces = () => {
+    setViewingExamCenters(false);
+    setViewingUsers(false);
+    setSelectedDistrict(null);
+  };
+
   // Filter districts based on selected province
   const filteredDistricts = districts.filter(
     (district) => !selectedProvince || district.province === selectedProvince
   );
-
+  console.log("filteredDistricts", filteredDistricts);
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -164,11 +273,7 @@ export default function DistrictsPage() {
         <div>
           <div className="flex items-center mb-6">
             <button
-              onClick={() => {
-                setViewingExamCenters(false);
-                setViewingUsers(false);
-                setSelectedDistrict(null);
-              }}
+              onClick={handleBackToProvinces}
               className="flex items-center text-blue-600 hover:text-blue-800"
             >
               <svg
@@ -193,52 +298,63 @@ export default function DistrictsPage() {
                 مراکز آزمون منطقه {selectedDistrict?.name}
               </h2>
               <Link
-                href={`/dashboard/exam-centers?district=${selectedDistrict?.id}`}
+                href={`/dashboard/exam-centers?district=${selectedDistrict?._id}`}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
               >
                 افزودن مرکز آزمون جدید
               </Link>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead>
-                  <tr className="bg-gray-100 text-gray-700">
-                    <th className="py-3 px-4 text-right">نام مرکز آزمون</th>
-                    <th className="py-3 px-4 text-right">مدیر مرکز</th>
-                    <th className="py-3 px-4 text-right">عملیات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {examCenters
-                    .filter(
-                      (center) => center.district === selectedDistrict?.id
-                    )
-                    .map((center) => (
-                      <tr key={center.id} className="hover:bg-gray-50">
-                        <td className="py-3 px-4">{center.name}</td>
-                        <td className="py-3 px-4">{center.manager}</td>
-                        <td className="py-3 px-4">
-                          <div className="flex space-x-2 space-x-reverse">
-                            <Link
-                              href={`/dashboard/exam-centers/edit/${center.id}`}
-                              className="text-yellow-600 hover:text-yellow-800"
-                            >
-                              ویرایش
-                            </Link>
-                          </div>
+            {loadingCenters ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white">
+                  <thead>
+                    <tr className="bg-gray-100 text-gray-700">
+                      <th className="py-3 px-4 text-right">نام مرکز آزمون</th>
+                      <th className="py-3 px-4 text-right">کد مرکز</th>
+                      <th className="py-3 px-4 text-right">ظرفیت</th>
+                      <th className="py-3 px-4 text-right">تلفن</th>
+                      <th className="py-3 px-4 text-right">عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {examCenters.length > 0 ? (
+                      examCenters.map((center) => (
+                        <tr key={center._id} className="hover:bg-gray-50">
+                          <td className="py-3 px-4">{center.name}</td>
+                          <td className="py-3 px-4">{center.code}</td>
+                          <td className="py-3 px-4">
+                            {center.capacity || "-"}
+                          </td>
+                          <td className="py-3 px-4">{center.phone || "-"}</td>
+                          <td className="py-3 px-4">
+                            <div className="flex space-x-2 space-x-reverse">
+                              <Link
+                                href={`/dashboard/exam-centers/edit/${center._id}`}
+                                className="text-yellow-600 hover:text-yellow-800"
+                              >
+                                ویرایش
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="5"
+                          className="text-center py-4 text-gray-500"
+                        >
+                          هیچ مرکز آزمونی برای این منطقه یافت نشد
                         </td>
                       </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-
-            {examCenters.filter(
-              (center) => center.district === selectedDistrict?.id
-            ).length === 0 && (
-              <div className="text-center py-4 text-gray-500">
-                هیچ مرکز آزمونی برای این منطقه یافت نشد
+                    )}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -248,11 +364,7 @@ export default function DistrictsPage() {
         <div>
           <div className="flex items-center mb-6">
             <button
-              onClick={() => {
-                setViewingUsers(false);
-                setViewingExamCenters(false);
-                setSelectedDistrict(null);
-              }}
+              onClick={handleBackToProvinces}
               className="flex items-center text-blue-600 hover:text-blue-800"
             >
               <svg
@@ -277,50 +389,71 @@ export default function DistrictsPage() {
                 کاربران فعال منطقه {selectedDistrict?.name}
               </h2>
               <Link
-                href={`/dashboard/users?district=${selectedDistrict?.id}`}
+                href={`/dashboard/users?district=${selectedDistrict?._id}`}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
               >
                 افزودن کاربر جدید
               </Link>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
-                <thead>
-                  <tr className="bg-gray-100 text-gray-700">
-                    <th className="py-3 px-4 text-right">نام کاربر</th>
-                    <th className="py-3 px-4 text-right">نقش</th>
-                    <th className="py-3 px-4 text-right">عملیات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {activeUsers
-                    .filter((user) => user.district === selectedDistrict?.id)
-                    .map((user) => (
-                      <tr key={user.id} className="hover:bg-gray-50">
-                        <td className="py-3 px-4">{user.name}</td>
-                        <td className="py-3 px-4">{user.role}</td>
-                        <td className="py-3 px-4">
-                          <div className="flex space-x-2 space-x-reverse">
-                            <Link
-                              href={`/dashboard/users/edit/${user.id}`}
-                              className="text-yellow-600 hover:text-yellow-800"
-                            >
-                              ویرایش
-                            </Link>
-                          </div>
+            {loadingUsers ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white">
+                  <thead>
+                    <tr className="bg-gray-100 text-gray-700">
+                      <th className="py-3 px-4 text-right">نام کاربر</th>
+                      <th className="py-3 px-4 text-right">نقش</th>
+                      <th className="py-3 px-4 text-right">ایمیل</th>
+                      <th className="py-3 px-4 text-right">وضعیت</th>
+                      <th className="py-3 px-4 text-right">عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {activeUsers.length > 0 ? (
+                      activeUsers.map((user) => (
+                        <tr key={user._id} className="hover:bg-gray-50">
+                          <td className="py-3 px-4">
+                            {user.fullName || user.name}
+                          </td>
+                          <td className="py-3 px-4">
+                            {user.roleName || user.role}
+                          </td>
+                          <td className="py-3 px-4">{user.email || "-"}</td>
+                          <td className="py-3 px-4">
+                            {user.isActive ? (
+                              <span className="text-green-600">فعال</span>
+                            ) : (
+                              <span className="text-red-600">غیرفعال</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex space-x-2 space-x-reverse">
+                              <Link
+                                href={`/dashboard/users/edit/${user._id}`}
+                                className="text-yellow-600 hover:text-yellow-800"
+                              >
+                                ویرایش
+                              </Link>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="5"
+                          className="text-center py-4 text-gray-500"
+                        >
+                          هیچ کاربر فعالی برای این منطقه یافت نشد
                         </td>
                       </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-
-            {activeUsers.filter(
-              (user) => user.district === selectedDistrict?.id
-            ).length === 0 && (
-              <div className="text-center py-4 text-gray-500">
-                هیچ کاربر فعالی برای این منطقه یافت نشد
+                    )}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -329,7 +462,29 @@ export default function DistrictsPage() {
         // نمایش فرم افزودن/ویرایش منطقه و لیست مناطق
         <>
           <div className="bg-white shadow-sm rounded-lg p-6 border-t-4 border-blue-500">
-            <h2 className="text-xl font-semibold mb-4">افزودن منطقه جدید</h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">افزودن منطقه جدید</h2>
+              <Link
+                href="/dashboard/districts/import"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-1"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
+                </svg>
+                افزودن گروهی مناطق
+              </Link>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -423,29 +578,18 @@ export default function DistrictsPage() {
                     <tr key={district._id} className="hover:bg-gray-50">
                       <td className="py-3 px-4">{district.name}</td>
                       <td className="py-3 px-4">{district.code}</td>
+                      <td className="py-3 px-4">{district.province.name}</td>
                       <td className="py-3 px-4">
-                        {provinces.find((p) => p._id === district.province)
-                          ?.name || "نامشخص"}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex space-x-2 space-x-reverse">
+                        <div className="flex space-x-2 space-x-reverse gap-2">
                           <button
                             className="text-blue-600 hover:text-blue-800"
-                            onClick={() => {
-                              setViewingExamCenters(true);
-                              setViewingUsers(false);
-                              setSelectedDistrict(district);
-                            }}
+                            onClick={() => handleShowExamCenters(district)}
                           >
                             مراکز آزمون
                           </button>
                           <button
                             className="text-indigo-600 hover:text-indigo-800"
-                            onClick={() => {
-                              setViewingUsers(true);
-                              setViewingExamCenters(false);
-                              setSelectedDistrict(district);
-                            }}
+                            onClick={() => handleShowUsers(district)}
                           >
                             کاربران
                           </button>

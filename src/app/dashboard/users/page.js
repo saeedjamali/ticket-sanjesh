@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
@@ -230,8 +231,8 @@ export default function UsersPage() {
           ? center.district._id === district
           : center.district === district;
 
-      console.log("districtMatch--->",districtMatch);
-      return  districtMatch;
+      console.log("districtMatch--->", districtMatch);
+      return districtMatch;
     });
 
     console.log(`Filtered exam centers count: ${filtered.length}`);
@@ -847,12 +848,34 @@ export default function UsersPage() {
       <div className="bg-white shadow-sm rounded-lg p-6 border-t-4 border-blue-500">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">لیست کاربران</h2>
-          <button
-            onClick={handleShowAddForm}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-          >
-            افزودن کاربر جدید
-          </button>
+          <div className="flex gap-2">
+            <Link
+              href="/dashboard/users/import"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-1"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+              افزودن گروهی کاربران
+            </Link>
+            <button
+              onClick={handleShowAddForm}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+            >
+              افزودن کاربر جدید
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-4 mb-6">

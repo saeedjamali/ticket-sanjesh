@@ -269,8 +269,9 @@ export async function PUT(request) {
 }
 
 // DELETE /api/districts - Delete a district
-export async function DELETE(request) {
+export async function DELETE(request, { params }) {
   try {
+    const id = await params?.id;
     console.log("DELETE /api/districts - Request received");
 
     await dbConnect();
@@ -296,8 +297,6 @@ export async function DELETE(request) {
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
 
     if (!id) {
       return NextResponse.json(
