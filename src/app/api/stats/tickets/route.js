@@ -42,12 +42,14 @@ export async function GET(request) {
       newTickets,
       inProgressTickets,
       resolvedTickets,
+      closedTickets,
       highPriorityTickets,
     ] = await Promise.all([
       Ticket.countDocuments(query),
       Ticket.countDocuments({ ...query, status: "new" }),
       Ticket.countDocuments({ ...query, status: "inProgress" }),
       Ticket.countDocuments({ ...query, status: "resolved" }),
+      Ticket.countDocuments({ ...query, status: "closed" }),
       Ticket.countDocuments({ ...query, priority: "high" }),
     ]);
 
@@ -58,6 +60,7 @@ export async function GET(request) {
         newTickets,
         inProgressTickets,
         resolvedTickets,
+        closedTickets,
         highPriorityTickets,
       },
     });

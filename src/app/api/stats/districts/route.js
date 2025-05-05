@@ -67,6 +67,7 @@ export async function GET(request) {
           openTickets,
           resolvedTickets,
           inProgressTickets,
+          closedTickets,
           referredTickets,
         ] = await Promise.all([
           Ticket.countDocuments(ticketQuery),
@@ -74,7 +75,11 @@ export async function GET(request) {
           Ticket.countDocuments({ ...ticketQuery, status: "seen" }),
           Ticket.countDocuments({ ...ticketQuery, status: "resolved" }),
           Ticket.countDocuments({ ...ticketQuery, status: "inProgress" }),
-          Ticket.countDocuments({ ...ticketQuery, status: "referred_province" }),
+          Ticket.countDocuments({
+            ...ticketQuery,
+            status: "referred_province",
+          }),
+          Ticket.countDocuments({ ...ticketQuery, status: "closed" }),
         ]);
 
         return {
@@ -88,6 +93,7 @@ export async function GET(request) {
           resolvedTicketsCount: resolvedTickets,
           inProgressTicketsCount: inProgressTickets,
           referredTicketsCount: referredTickets,
+          closedTicketsCount: closedTickets,
           hasOpenTickets: openTickets > 0,
         };
       })

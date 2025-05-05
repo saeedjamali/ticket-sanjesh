@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 * {
-  font-family: iransans;
+  font-family: "iransans";
 }
 
 :root {
@@ -42,6 +42,53 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans, Arial, Helvetica, sans-serif);
+}
+
+/* کلاس برای نمایش اعداد فارسی */
+.farsi-digits {
+  font-feature-settings: "tnum" 1;
+  -moz-font-feature-settings: "ss02";
+  -webkit-font-feature-settings: "ss02";
+  font-feature-settings: "ss02";
+}
+
+/* تبدیل اعداد انگلیسی به فارسی با پی‌سودو المنت */
+.farsi-digits {
+  -moz-font-feature-settings: "ss01";
+  -webkit-font-feature-settings: "ss01";
+  font-feature-settings: "ss01";
+}
+
+/* روش دوم برای تبدیل عدد انگلیسی به فارسی */
+.farsi-digits {
+  --digit0: "۰";
+  --digit1: "۱";
+  --digit2: "۲";
+  --digit3: "۳";
+  --digit4: "۴";
+  --digit5: "۵";
+  --digit6: "۶";
+  --digit7: "۷";
+  --digit8: "۸";
+  --digit9: "۹";
+}
+
+.farsi-digits:not(:has(*))::before {
+  content: "";
+}
+
+.farsi-digits:not(:has(*)) {
+  direction: rtl;
+}
+
+@supports (selector(:has(*))) {
+  .farsi-digits:not(:has(*)) {
+    content: attr(data-content);
+  }
+
+  .farsi-digits {
+    unicode-bidi: plaintext;
+  }
 }
 
 .btn {

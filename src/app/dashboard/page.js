@@ -257,7 +257,7 @@ export default function DashboardPage() {
       )}
 
       {/* بخش وضعیت اتصال به دیتابیس */}
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">وضعیت اتصال به دیتابیس</h2>
           <button
@@ -328,7 +328,7 @@ export default function DashboardPage() {
             )}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* بخش راهنمای سریع */}
       <div className="bg-white shadow-sm rounded-lg p-6 mt-6">

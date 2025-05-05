@@ -1,9 +1,10 @@
 "use client";
 
+import { useUserContext } from "@/context/UserContext";
 import { useState, useEffect } from "react";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -11,11 +12,13 @@ export default function ProfilePage() {
   const [formError, setFormError] = useState("");
   const [formSuccess, setFormSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useUserContext();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    console.log("user----->", user);
+    // const storedUser = localStorage.getItem("user");
+    if (user) {
+      setUserInfo(user);
       setLoading(false);
     }
   }, []);
@@ -65,7 +68,7 @@ export default function ProfilePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: user._id,
+          id: userInfo.id,
           currentPassword: currentPassword,
           password: newPassword,
         }),

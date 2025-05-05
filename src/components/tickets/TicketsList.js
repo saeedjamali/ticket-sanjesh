@@ -38,7 +38,7 @@ export default function TicketsList({ user }) {
 
     try {
       // دریافت توکن احراز هویت از localStorage
-      const authToken = localStorage.getItem("authToken");
+      const accessToken = localStorage.getItem("accessToken");
 
       let url = `/api/tickets?page=${page}`;
 
@@ -56,7 +56,7 @@ export default function TicketsList({ user }) {
         url += `&priority=${priorityFilter}`;
       }
 
-      // اضافه کردن پارامترهای کوئری برای روش احراز هویت جایگزین
+      // اضافه کردن پارامترهای کوئری برای فیلتر کردن تیکت‌ها بر اساس نقش کاربر
       if (user && user.role) {
         url += `&userRole=${user.role}`;
 
@@ -72,6 +72,7 @@ export default function TicketsList({ user }) {
           url += `&district=${user.district}`;
         }
 
+        // اضافه کردن فیلتر استان برای مدیر کل استان
         if (user.province) {
           url += `&province=${user.province}`;
         }
@@ -83,18 +84,14 @@ export default function TicketsList({ user }) {
       // تنظیم هدرهای درخواست
       const headers = {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
       };
 
-      // اضافه کردن توکن احراز هویت به هدرها اگر موجود باشد
-      if (authToken) {
-        headers["Authorization"] = `Bearer ${authToken}`;
-        console.log("Authorization header added");
-      } else {
-        console.log("No auth token found in localStorage");
-      }
-
       // Now fetch the tickets
-      const response = await fetch(url, { headers });
+      const response = await fetch(url, {
+        headers,
+        credentials: "include",
+      });
       console.log("Fetch response status:", response.status);
 
       // تشخیص و مدیریت خطاهای احراز هویت
@@ -511,6 +508,11 @@ export default function TicketsList({ user }) {
 
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 نمایش {tickets.length} تیکت از {totalPages} صفحه
+                {user.role === "generalManager" && user.provinceName && (
+                  <span className="mr-2 text-blue-600 font-medium">
+                    (فقط تیکت‌های استان {user.provinceName})
+                  </span>
+                )}
               </div>
             </div>
           </div>
