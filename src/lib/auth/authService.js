@@ -26,7 +26,7 @@ class AuthService {
       }
 
       // Check if user is active
-      if (!user.isActive) {
+      if (!user.isActive && user.role !== "systemAdmin") {
         throw new Error("حساب کاربری شما غیرفعال است");
       }
 
@@ -100,7 +100,7 @@ class AuthService {
         throw new Error("User not found");
       }
       // Check if user is active
-      if (!user.isActive) {
+      if (!user.isActive && user.role !== "systemAdmin") {
         throw new Error("حساب کاربری شما غیرفعال است");
       }
 
@@ -143,7 +143,7 @@ class AuthService {
         throw new Error("User not found");
       }
       // Check if user is active
-      if (!user.isActive) {
+      if (!user.isActive && user.role !== "systemAdmin") {
         throw new Error("حساب کاربری شما غیرفعال است");
       }
       // Generate new tokens

@@ -24,7 +24,7 @@ export async function POST(request) {
         { status: 404 }
       );
     }
-    if ( user.isActive === false) {
+    if ( user.isActive === false && user.role !== "systemAdmin") {
       console.log("User not found");
       return NextResponse.json(
         { message: "کاربر غیرفعال است" },
