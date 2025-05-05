@@ -99,6 +99,10 @@ class AuthService {
       if (!user) {
         throw new Error("User not found");
       }
+      // Check if user is active
+      if (!user.isActive) {
+        throw new Error("حساب کاربری شما غیرفعال است");
+      }
 
       // Format user data
       return {
@@ -122,7 +126,7 @@ class AuthService {
     try {
       // Verify refresh token
       const decoded = await tokenService.verifyRefreshToken(refreshToken);
-     
+
       if (!decoded || !decoded.userId) {
         throw new Error("Invalid refresh token");
       }
@@ -138,7 +142,10 @@ class AuthService {
       if (!user) {
         throw new Error("User not found");
       }
-
+      // Check if user is active
+      if (!user.isActive) {
+        throw new Error("حساب کاربری شما غیرفعال است");
+      }
       // Generate new tokens
       const payload = {
         userId: user._id.toString(),

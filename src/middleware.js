@@ -28,9 +28,8 @@ export async function middleware(request) {
     refreshToken
   );
   const accessTokenPayload = await tokenService.verifyAccessToken(accessToken);
-  console.log("accessTokenPayload---->", accessTokenPayload);
+  // console.log("accessTokenPayload---->", accessTokenPayload);
   if (accessTokenPayload) {
-    console.log("NextResponse ----------------->", request.nextUrl.pathname);
     return NextResponse.next();
     // return NextResponse.redirect(new URL("/login", request.url));
   }

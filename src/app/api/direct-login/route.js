@@ -17,10 +17,17 @@ export async function POST(request) {
 
     let user = await User.findOne({ nationalId });
 
-    if (!user) {
+    if (!user ) {
       console.log("User not found");
       return NextResponse.json(
         { message: "چنین کاربری یافت نشد" },
+        { status: 404 }
+      );
+    }
+    if ( user.isActive === false) {
+      console.log("User not found");
+      return NextResponse.json(
+        { message: "کاربر غیرفعال است" },
         { status: 404 }
       );
     }
