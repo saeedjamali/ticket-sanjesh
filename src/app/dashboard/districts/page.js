@@ -567,20 +567,22 @@ export default function DistrictsPage() {
               <table className="min-w-full bg-white">
                 <thead>
                   <tr className="bg-gray-100 text-gray-700">
-                    <th className="py-3 px-4 text-right">نام منطقه</th>
-                    <th className="py-3 px-4 text-right">کد منطقه</th>
-                    <th className="py-3 px-4 text-right">استان</th>
-                    <th className="py-3 px-4 text-right">عملیات</th>
+                    <th className="py-3 px-4 text-center">نام منطقه</th>
+                    <th className="py-3 px-4 text-center">کد منطقه</th>
+                    <th className="py-3 px-4 text-center">استان</th>
+                    <th className="py-3 px-4 text-center">عملیات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {filteredDistricts.map((district) => (
                     <tr key={district._id} className="hover:bg-gray-50">
-                      <td className="py-3 px-4">{district.name}</td>
-                      <td className="py-3 px-4">{district.code}</td>
-                      <td className="py-3 px-4">{district.province.name}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex space-x-2 space-x-reverse gap-2">
+                      <td className="py-3 px-4 text-center">{district.name}</td>
+                      <td className="py-3 px-4 text-center">{district.code}</td>
+                      <td className="py-3 px-4 text-center">
+                        {district.province.name}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <div className="flex space-x-2 space-x-reverse gap-4 justify-center">
                           <button
                             className="text-blue-600 hover:text-blue-800"
                             onClick={() => handleShowExamCenters(district)}

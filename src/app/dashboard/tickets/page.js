@@ -70,7 +70,9 @@ export default function TicketsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">مدیریت تیکت‌ها</h1>
-        {user.role === ROLES.EXAM_CENTER_MANAGER && (
+        {(user.role === ROLES.EXAM_CENTER_MANAGER ||
+          user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+          user.role === ROLES.DISTRICT_TECH_EXPERT) && (
           <Link
             href="/dashboard/tickets/create"
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"

@@ -197,13 +197,13 @@ export default function AcademicYearsPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   سال تحصیلی
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   وضعیت
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   عملیات
                 </th>
               </tr>
@@ -221,8 +221,8 @@ export default function AcademicYearsPage() {
               ) : (
                 academicYears.map((year) => (
                   <tr key={year._id}>
-                    <td className="px-6 py-4 whitespace-nowrap">{year.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">{year.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       {year.isActive ? (
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                           فعال
@@ -236,7 +236,7 @@ export default function AcademicYearsPage() {
                         </button>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       {!year.isActive && (
                         <button
                           onClick={() => handleDelete(year._id)}

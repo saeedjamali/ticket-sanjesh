@@ -392,37 +392,37 @@ export default function ProvincesPage() {
                     <tr>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         نام استان
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         کد استان
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         تعداد مناطق
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         سال تحصیلی
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         تاریخ ایجاد
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                       >
                         عملیات
                       </th>
@@ -431,26 +431,26 @@ export default function ProvincesPage() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {provinces.map((province) => (
                       <tr key={province._id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-900">
                           {province.name}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500">
                           {province.code}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500">
                           {province.districtsCount || 0}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500">
                           {province.academicYear || "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 text-center whitespace-nowrap text-sm text-gray-500">
                           {province.createdAt
                             ? new Date(province.createdAt).toLocaleDateString(
                                 "fa-IR"
                               )
                             : "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 space-x-reverse">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 space-x-reverse gap-2 flex justify-center items-center ">
                           <button
                             onClick={() => handleShowDistricts(province)}
                             className="text-indigo-600 hover:text-indigo-900 ml-2"

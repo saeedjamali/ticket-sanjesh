@@ -276,7 +276,7 @@ export default function UsersPage() {
     if (searchFilters.searchText) {
       const searchLower = searchFilters.searchText.toLowerCase();
       if (
-        !user.fullName.toLowerCase().includes(searchLower) &&
+        !user.fullName?.toLowerCase().includes(searchLower) &&
         !user.nationalId.includes(searchFilters.searchText)
       ) {
         return false;
@@ -931,27 +931,69 @@ export default function UsersPage() {
           <table className="min-w-full bg-white border border-gray-200">
             <thead className="bg-gray-100">
               <tr>
-                <th className="py-3 px-6 border-b text-right">
+                <th
+                  className="py-3 px-6 border-b text-center
+                "
+                >
                   نام و نام خانوادگی
                 </th>
-                <th className="py-3 px-6 border-b text-right">کد ملی</th>
-                <th className="py-3 px-6 border-b text-right">نقش</th>
-                <th className="py-3 px-6 border-b text-right">استان</th>
-                <th className="py-3 px-6 border-b text-right">منطقه</th>
-                <th className="py-3 px-6 border-b text-right">مرکز آزمون</th>
-                <th className="py-3 px-6 border-b text-right">وضعیت</th>
-                <th className="py-3 px-6 border-b text-right">عملیات</th>
+                <th
+                  className="py-3 px-6 border-b text-center
+                "
+                >
+                  کد ملی
+                </th>
+                <th
+                  className="py-3 px-6 border-b text-center
+                "
+                >
+                  نقش
+                </th>
+                <th
+                  className="py-3 px-6 border-b text-center
+                "
+                >
+                  استان
+                </th>
+                <th
+                  className="py-3 px-6 border-b text-center
+                "
+                >
+                  منطقه
+                </th>
+                <th
+                  className="py-3 px-6 border-b text-center
+                "
+                >
+                  مرکز آزمون
+                </th>
+                <th
+                  className="py-3 px-6 border-b text-center
+                "
+                >
+                  وضعیت
+                </th>
+                <th
+                  className="py-3 px-6 border-b text-center
+                "
+                >
+                  عملیات
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((user) => (
                 <tr key={user._id} className="hover:bg-gray-50">
-                  <td className="py-4 px-6 border-b">{user.fullName}</td>
-                  <td className="py-4 px-6 border-b">{user.nationalId}</td>
-                  <td className="py-4 px-6 border-b">
+                  <td className="py-4 px-6 border-b text-center">
+                    {user.fullName}
+                  </td>
+                  <td className="py-4 px-6 border-b text-center">
+                    {user.nationalId}
+                  </td>
+                  <td className="py-4 px-6 border-b text-center">
                     {getRoleName(user.role)}
                   </td>
-                  <td className="py-4 px-6 border-b">
+                  <td className="py-4 px-6 border-b text-center">
                     {user.province && typeof user.province === "object"
                       ? user.province.name
                       : Array.isArray(provinces)
@@ -959,7 +1001,7 @@ export default function UsersPage() {
                         "-"
                       : "-"}
                   </td>
-                  <td className="py-4 px-6 border-b">
+                  <td className="py-4 px-6 border-b text-center">
                     {user.district && typeof user.district === "object"
                       ? user.district.name
                       : Array.isArray(districts)
@@ -967,7 +1009,7 @@ export default function UsersPage() {
                         "-"
                       : "-"}
                   </td>
-                  <td className="py-4 px-6 border-b">
+                  <td className="py-4 px-6 border-b text-center">
                     {user.examCenter && typeof user.examCenter === "object"
                       ? user.examCenter.name
                       : Array.isArray(examCenters)
@@ -975,7 +1017,7 @@ export default function UsersPage() {
                           ?.name || "-"
                       : "-"}
                   </td>
-                  <td className="py-4 px-6 border-b">
+                  <td className="py-4 px-6 border-b text-center">
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
                         user.isActive
@@ -986,7 +1028,7 @@ export default function UsersPage() {
                       {user.isActive ? "فعال" : "غیرفعال"}
                     </span>
                   </td>
-                  <td className="py-4 px-6 border-b">
+                  <td className="py-4 px-6 border-b text-center">
                     <div className="flex space-x-2 space-x-reverse">
                       <button
                         onClick={() => handleShowEditForm(user)}

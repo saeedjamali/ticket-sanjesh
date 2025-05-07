@@ -17,7 +17,8 @@ export async function GET(request) {
     await connectDB();
 
     const user = await authService.validateToken(request);
-    console.log("user--->", user);
+    console.log("GET /api/exam-centers - user:", user);
+
     if (!user) {
       return NextResponse.json(
         { success: false, error: "عدم احراز هویت" },
@@ -25,53 +26,128 @@ export async function GET(request) {
       );
     }
 
+    // بررسی پارامتر district در URL
+    const { searchParams } = new URL(request.url);
+    const districtParam = searchParams.get("district");
+
+    console.log(
+      "GET /api/exam-centers - searchParams:",
+      Object.fromEntries(searchParams)
+    );
+    console.log("GET /api/exam-centers - district param:", districtParam);
+    console.log("GET /api/exam-centers - user role:", user.role);
+
     let query = {};
+
     // Define access levels based on user role
     switch (user.role) {
-      case "systemAdmin":
+      case ROLES.SYSTEM_ADMIN:
+      case "systemAdmin": // پشتیبانی از فرمت قدیمی
       case "generalManager":
         // Full access to all exam centers
+        console.log("System admin or manager - full access granted");
         break;
+
+      case ROLES.PROVINCE_EDUCATION_EXPERT:
+      case ROLES.PROVINCE_TECH_EXPERT:
       case "provinceManager": // مدیر کل استان
       case "provinceAssessmentExpert": // کارشناس سنجش استان
       case "provinceTechnologyExpert": // کارشناس فناوری استان
-        if (!user.province?._id) {
+        console.log("Province level access being processed");
+
+        // اگر پارامتر district در URL وجود داشته باشد، فقط مراکز آن منطقه را برگردان
+        if (districtParam && mongoose.Types.ObjectId.isValid(districtParam)) {
+          console.log(
+            `District filter applied from query param: ${districtParam}`
+          );
+          query.district = districtParam;
+        }
+        // در غیر این صورت، تمام مراکز آزمون استان را برگردان
+        else if (user.province) {
+          console.log(
+            `Province filter applied for user's province: ${user.province}`
+          );
+          const provinceId =
+            typeof user.province === "object"
+              ? user.province._id
+              : user.province;
+
+          // Get all exam centers in districts of this province
+          const provinceDistricts = await District.find({
+            province: provinceId,
+          }).select("_id");
+
+          console.log(
+            `Found ${provinceDistricts.length} districts in province`
+          );
+          query.district = { $in: provinceDistricts.map((d) => d._id) };
+        } else {
+          console.warn("User has province role but no province ID");
           return NextResponse.json(
             { success: false, error: "دسترسی به استان تعریف نشده است" },
             { status: 403 }
           );
         }
-        // Get all exam centers in districts of this province
-        const provinceDistricts = await District.find({
-          province: user.province._id,
-        }).select("_id");
-        query.district = { $in: provinceDistricts.map((d) => d._id) };
         break;
+
+      case ROLES.DISTRICT_EDUCATION_EXPERT:
+      case ROLES.DISTRICT_TECH_EXPERT:
       case "districtAssessmentExpert": // کارشناس سنجش منطقه
       case "districtTechnologyExpert": // کارشناس فناوری منطقه
-        if (!user.district?._id) {
+        console.log("District level access being processed");
+
+        // اگر پارامتر district در URL وجود داشته باشد، از آن استفاده کن
+        if (districtParam && mongoose.Types.ObjectId.isValid(districtParam)) {
+          console.log(`Using district ID from query param: ${districtParam}`);
+          query.district = districtParam;
+        }
+        // در غیر این صورت، از منطقه کاربر استفاده کن
+        else if (user.district) {
+          console.log("Using district ID from user profile");
+          const districtId =
+            typeof user.district === "object"
+              ? user.district._id
+              : user.district;
+          console.log(`District ID: ${districtId}`);
+          query.district = districtId;
+        } else {
+          console.error("No district ID found in user profile or query params");
           return NextResponse.json(
             { success: false, error: "دسترسی به منطقه تعریف نشده است" },
             { status: 403 }
           );
         }
-        query.district = user.district._id;
         break;
+
+      case ROLES.EXAM_CENTER_MANAGER:
       case "examCenterManager": // مسئول مرکز آزمون
-        if (!user.examCenter?._id) {
+        console.log("Exam center manager access being processed");
+
+        if (user.examCenter) {
+          const examCenterId =
+            typeof user.examCenter === "object"
+              ? user.examCenter._id
+              : user.examCenter;
+          console.log(`Using exam center ID: ${examCenterId}`);
+          query._id = examCenterId;
+        } else {
+          console.error("No exam center ID found in user profile");
           return NextResponse.json(
             { success: false, error: "دسترسی به مرکز آزمون تعریف نشده است" },
             { status: 403 }
           );
         }
-        query._id = user.examCenter._id;
         break;
+
       default:
+        console.error(`Unrecognized role: ${user.role}`);
         return NextResponse.json(
           { success: false, error: "نقش کاربری نامعتبر است" },
           { status: 403 }
         );
     }
+
+    console.log("Final query for exam centers:", JSON.stringify(query));
 
     const examCenters = await ExamCenter.find(query)
       .populate({
@@ -85,6 +161,8 @@ export async function GET(request) {
       .populate("manager", "fullName")
       .sort({ name: 1 })
       .select("name code district manager capacity createdAt");
+
+    console.log(`Found ${examCenters.length} exam centers`);
 
     return NextResponse.json({
       success: true,

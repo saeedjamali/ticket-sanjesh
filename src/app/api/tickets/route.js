@@ -213,7 +213,12 @@ export async function GET(req) {
 
           query.district = districtId;
           // جستجو بر اساس نوع آموزشی یا گیرنده آموزشی
-          query.$or = [{ type: "EDUCATION" }, { receiver: "education" }];
+          query.$or = [
+            { type: "EDUCATION" },
+            { receiver: "education" },
+            { receiver: "districtEducationExpert" },
+            { receiver: "provinceEducationExpert" },
+          ];
         } else {
           // اگر منطقه مشخص نشده، هیچ تیکتی نشان نده
           query._id = new mongoose.Types.ObjectId();
@@ -239,7 +244,12 @@ export async function GET(req) {
 
           query.district = districtId;
           // جستجو بر اساس نوع فنی یا گیرنده فنی
-          query.$or = [{ type: "TECH" }, { receiver: "tech" }];
+          query.$or = [
+            { type: "TECH" },
+            { receiver: "tech" },
+            { receiver: "districtTechExpert" },
+            { receiver: "provinceTechExpert" },
+          ];
         } else {
           query._id = new mongoose.Types.ObjectId();
         }
@@ -258,11 +268,16 @@ export async function GET(req) {
 
           query.province = provinceId;
           // جستجو بر اساس نوع آموزشی یا گیرنده آموزشی
-          query.$or = [{ type: "EDUCATION" }, { receiver: "education" }];
+          query.$or = [
+            { type: "EDUCATION" },
+            { receiver: "education" },
+            { receiver: "districtEducationExpert" },
+            { receiver: "provinceEducationExpert" },
+          ];
 
           console.log("Province Education Expert filter applied:", {
             province: provinceId,
-            type: "EDUCATION OR receiver: education",
+            type: "EDUCATION OR receiver: education/districtEducationExpert/provinceEducationExpert",
           });
         } else {
           // اگر استان مشخص نشده، هیچ تیکتی نشان نده
@@ -292,11 +307,16 @@ export async function GET(req) {
 
           query.province = provinceId;
           // جستجو بر اساس نوع فنی یا گیرنده فنی
-          query.$or = [{ type: "TECH" }, { receiver: "tech" }];
+          query.$or = [
+            { type: "TECH" },
+            { receiver: "tech" },
+            { receiver: "districtTechExpert" },
+            { receiver: "provinceTechExpert" },
+          ];
 
           console.log("Province Tech Expert filter applied:", {
             province: provinceId,
-            type: "TECH OR receiver: tech",
+            type: "TECH OR receiver: tech/districtTechExpert/provinceTechExpert",
           });
         } else {
           // اگر استان مشخص نشده، هیچ تیکتی نشان نده
@@ -446,9 +466,18 @@ export async function POST(request) {
     }
 
     // فقط مسئولین مرکز آزمون می‌توانند تیکت ایجاد کنند
-    if (user.role !== ROLES.EXAM_CENTER_MANAGER) {
-      console.log("POST /api/tickets - User role is not EXAM_CENTER_MANAGER");
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (
+      user.role !== ROLES.EXAM_CENTER_MANAGER &&
+      user.role !== ROLES.DISTRICT_EDUCATION_EXPERT &&
+      user.role !== ROLES.DISTRICT_TECH_EXPERT
+    ) {
+      console.log(
+        `POST /api/tickets - User role ${user.role} is not allowed to create tickets`
+      );
+      return NextResponse.json(
+        { error: "Forbidden. Your role cannot create tickets." },
+        { status: 403 }
+      );
     }
 
     await connectDB();
@@ -483,6 +512,8 @@ export async function POST(request) {
 
     // تبدیل سایر شناسه‌ها به ObjectId
     let examCenterObjId = null;
+
+    // برای مسئولین مرکز آزمون، از مرکز آزمون خودشان استفاده می‌کنیم
     if (user.examCenter) {
       try {
         examCenterObjId = mongoose.Types.ObjectId.isValid(user.examCenter)
@@ -494,6 +525,24 @@ export async function POST(request) {
           `Error processing examCenter ID: ${user.examCenter}`,
           error
         );
+      }
+    } else {
+      // برای کارشناسان منطقه، examCenter را از formData می‌گیریم
+      const examCenterId = formData.get("examCenter");
+      if (examCenterId) {
+        try {
+          examCenterObjId = mongoose.Types.ObjectId.isValid(examCenterId)
+            ? new mongoose.Types.ObjectId(examCenterId)
+            : examCenterId;
+          console.log(
+            `Using provided examCenter ID from form: ${examCenterObjId}`
+          );
+        } catch (error) {
+          console.error(
+            `Error processing provided examCenter ID: ${examCenterId}`,
+            error
+          );
+        }
       }
     }
 
@@ -530,9 +579,17 @@ export async function POST(request) {
 
     // تعیین نوع تیکت بر اساس receiver
     let type = "UNKNOWN";
-    if (receiver === "education") {
+    if (
+      receiver === "education" ||
+      receiver === "districtEducationExpert" ||
+      receiver === "provinceEducationExpert"
+    ) {
       type = "EDUCATION";
-    } else if (receiver === "tech") {
+    } else if (
+      receiver === "tech" ||
+      receiver === "districtTechExpert" ||
+      receiver === "provinceTechExpert"
+    ) {
       type = "TECH";
     }
 
@@ -557,12 +614,49 @@ export async function POST(request) {
       receiver,
       type, // اضافه کردن فیلد type بر اساس receiver
       createdBy: userId,
-      examCenter: examCenterObjId,
       district: districtObjId,
       province: provinceObjId,
       academicYear: academicYear,
       status,
     };
+
+    // اضافه کردن مرکز آزمون به تیکت در صورت وجود
+    if (examCenterObjId) {
+      ticket.examCenter = examCenterObjId;
+    } else {
+      // اگر هیچ مرکز آزمونی مشخص نشده است، برای کارشناسان منطقه یک مقدار پیش‌فرض تنظیم می‌کنیم
+      if (
+        user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+        user.role === ROLES.DISTRICT_TECH_EXPERT
+      ) {
+        // بررسی وجود اولین مرکز آزمون در منطقه
+        try {
+          const ExamCenter = mongoose.models.ExamCenter;
+          const defaultExamCenter = await ExamCenter.findOne({
+            district: districtObjId,
+          });
+          if (defaultExamCenter) {
+            ticket.examCenter = defaultExamCenter._id;
+            console.log(
+              `Using default examCenter from district: ${defaultExamCenter._id}`
+            );
+          } else {
+            // اگر هیچ مرکز آزمونی یافت نشد، از یک ObjectId جدید استفاده می‌کنیم
+            ticket.examCenter = new mongoose.Types.ObjectId();
+            console.log(
+              `No examCenter found. Using dummy ObjectId: ${ticket.examCenter}`
+            );
+          }
+        } catch (error) {
+          console.error(`Error finding default examCenter:`, error);
+          // در صورت خطا، از یک ObjectId جدید استفاده می‌کنیم
+          ticket.examCenter = new mongoose.Types.ObjectId();
+          console.log(
+            `Error finding examCenter. Using dummy ObjectId: ${ticket.examCenter}`
+          );
+        }
+      }
+    }
 
     console.log("POST /api/tickets - Creating ticket with data:", ticket);
 
