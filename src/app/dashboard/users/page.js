@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useUserContext } from "@/context/UserContext";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
@@ -12,6 +13,8 @@ export default function UsersPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
+  const { ROLES } = require("@/lib/permissions");
+  const { user: currentUser } = useUserContext();
 
   // Load data from API
   const fetchData = async () => {
@@ -525,6 +528,13 @@ export default function UsersPage() {
 
   // نمایش فرم ویرایش کاربر
   const handleShowEditForm = (user) => {
+    // if (
+    //   currentUser.role === ROLES.DISTRICT_TECH_EXPERT ||
+    //   currentUser.role === ROLES.DISTRICT_EDUCATION_EXPERT
+    // ) {
+    //   alert("شما دسترسی ویرایش کاربر را ندارید");
+    //   return;
+    // }
     setShowEditUserForm(true);
     setShowAddUserForm(false);
     setShowChangePasswordForm(false);
@@ -848,34 +858,38 @@ export default function UsersPage() {
       <div className="bg-white shadow-sm rounded-lg p-6 border-t-4 border-blue-500">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">لیست کاربران</h2>
-          <div className="flex gap-2">
-            <Link
-              href="/dashboard/users/import"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-1"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          {(currentUser.role === ROLES.SYSTEM_ADMIN ||
+            currentUser.role === ROLES.GENERAL_MANAGER ||
+            currentUser.role === ROLES.PROVINCE_TECH_EXPERT) && (
+            <div className="flex gap-2">
+              <Link
+                href="/dashboard/users/import"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-1"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                />
-              </svg>
-              افزودن گروهی کاربران
-            </Link>
-            <button
-              onClick={handleShowAddForm}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-            >
-              افزودن کاربر جدید
-            </button>
-          </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  />
+                </svg>
+                افزودن گروهی کاربران
+              </Link>
+              <button
+                onClick={handleShowAddForm}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+              >
+                افزودن کاربر جدید
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-4 mb-6">
@@ -1506,7 +1520,7 @@ export default function UsersPage() {
                   </div>
                 )}
 
-              <div className="flex justify-end space-x-2 space-x-reverse pt-4">
+              <div className="flex justify-end space-x-2 space-x-reverse pt-4 gap-2">
                 <button
                   type="button"
                   onClick={handleCloseAllForms}
