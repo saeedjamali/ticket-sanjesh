@@ -395,7 +395,7 @@ export async function GET(req) {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate("createdBy", "fullName")
+        .populate("createdBy", "fullName role")
         .populate("examCenter", "name")
         .populate("district", "name")
         .populate("province", "name")

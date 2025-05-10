@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getStatusText, ROLES } from "@/lib/permissions";
+import { getRoleName, getStatusText, ROLES } from "@/lib/permissions";
 
 export default function TicketsList({ user }) {
   const [tickets, setTickets] = useState([]);
@@ -291,6 +291,14 @@ export default function TicketsList({ user }) {
         return "کارشناس سنجش منطقه";
       case "tech":
         return "کارشناس فناوری منطقه";
+      case "provinceEducationExpert":
+        return "کارشناس سنجش استان";
+      case "provinceTechExpert":
+        return "کارشناس فناوری استان";
+      case "districtEducationExpert":
+        return "کارشناس سنجش منطقه";
+      case "districtTechExpert":
+        return "کارشناس فناوری منطقه";
       default:
         return receiver;
     }
@@ -577,11 +585,15 @@ export default function TicketsList({ user }) {
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
                       {ticket.examCenter && ticket.examCenter.name
-                        ? ticket.examCenter.name
+                        ? getRoleName(ticket.createdBy.role) +
+                          "  |  " +
+                          ticket.examCenter.name
                         : "---"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
-                      {getReceiverText(ticket.receiver)}
+                      {getReceiverText(ticket.receiver) +
+                        " | " +
+                        ticket?.district?.name}
                     </td>
                     {(user.role === ROLES.GENERAL_MANAGER ||
                       user.role === ROLES.PROVINCE_EDUCATION_EXPERT ||

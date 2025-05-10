@@ -27,7 +27,7 @@ export async function PUT(request, { params }) {
     // کارشناس سنجش منطقه می‌تواند تیکت‌های آموزشی منطقه خود را ببندد
     if (userAuth.role === ROLES.DISTRICT_EDUCATION_EXPERT) {
       if (
-        ticket.receiver === "education" &&
+        ticket.receiver === ROLES.DISTRICT_EDUCATION_EXPERT &&
         userAuth.district === ticket.district.toString()
       ) {
         hasPermission = true;
@@ -36,7 +36,7 @@ export async function PUT(request, { params }) {
     // کارشناس فناوری منطقه می‌تواند تیکت‌های فنی منطقه خود را ببندد
     else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT) {
       if (
-        ticket.receiver === "tech" &&
+        ticket.receiver === ROLES.DISTRICT_TECH_EXPERT &&
         userAuth.district === ticket.district.toString()
       ) {
         hasPermission = true;
@@ -45,7 +45,7 @@ export async function PUT(request, { params }) {
     // کارشناس سنجش استان می‌تواند تیکت‌های آموزشی استان خود را ببندد
     else if (userAuth.role === ROLES.PROVINCE_EDUCATION_EXPERT) {
       if (
-        ticket.receiver === "education" &&
+        ticket.receiver === ROLES.PROVINCE_EDUCATION_EXPERT &&
         userAuth.province === ticket.province.toString()
       ) {
         hasPermission = true;
@@ -54,7 +54,7 @@ export async function PUT(request, { params }) {
     // کارشناس فناوری استان می‌تواند تیکت‌های فنی استان خود را ببندد
     else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
       if (
-        ticket.receiver === "tech" &&
+        ticket.receiver === ROLES.PROVINCE_TECH_EXPERT &&
         userAuth.province === ticket.province.toString()
       ) {
         hasPermission = true;

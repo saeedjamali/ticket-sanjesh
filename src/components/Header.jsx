@@ -4,6 +4,7 @@ import UserInfo from "./UserInfo---";
 import LogoutButton from "./LogoutButton";
 import { useEffect, useState } from "react";
 import { useUserContext } from "@/context/UserContext";
+import { getRoleName } from "@/lib/permissions";
 
 const getJalaliDate = () => {
     const date = new Date();
@@ -51,7 +52,7 @@ export default function Header() {
                 <div className="flex items-center gap-6">
 
                     <span className="text-gray-600">
-                        {user?.fullName}
+                        {getRoleName(user?.role)}
                     </span>
                     <div className="h-8 w-px bg-gray-200"></div>
                     <LogoutButton />

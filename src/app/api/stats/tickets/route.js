@@ -24,16 +24,16 @@ export async function GET(request) {
       query.createdBy = user.id;
     } else if (user.role === ROLES.DISTRICT_EDUCATION_EXPERT) {
       query.district = user.district;
-      query.receiver = "education";
+      query.receiver =  ROLES.DISTRICT_EDUCATION_EXPERT;
     } else if (user.role === ROLES.DISTRICT_TECH_EXPERT) {
       query.district = user.district;
-      query.receiver = "tech";
+      query.receiver = ROLES.DISTRICT_TECH_EXPERT;
     } else if (user.role === ROLES.PROVINCE_EDUCATION_EXPERT) {
       query.province = user.province;
-      query.receiver = "education";
+      query.receiver = ROLES.PROVINCE_EDUCATION_EXPERT;
     } else if (user.role === ROLES.PROVINCE_TECH_EXPERT) {
       query.province = user.province;
-      query.receiver = "tech";
+      query.receiver = ROLES.PROVINCE_TECH_EXPERT;
     }
 
     // دریافت آمار تیکت‌ها

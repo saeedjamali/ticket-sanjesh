@@ -85,7 +85,7 @@ export default function TicketStats() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">آمار تیکت‌ها</h2>
+                <h2 className="text-2xl font-bold text-gray-900 ">آمار تیکت‌ها</h2>
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2 bg-gray-100 p-2 rounded-lg">
                         <label className="text-sm text-gray-700">بروزرسانی خودکار:</label>

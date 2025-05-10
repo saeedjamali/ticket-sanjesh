@@ -104,7 +104,7 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="text-gray-500 mb-2">نام کامل</h3>
-            <p className="text-lg font-medium">{user?.name}</p>
+            <p className="text-lg font-medium">{user?.fullName}</p>
           </div>
 
           <div>

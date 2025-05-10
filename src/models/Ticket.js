@@ -35,7 +35,14 @@ const TicketSchema = new mongoose.Schema({
   },
   receiver: {
     type: String,
-    enum: ["education", "tech"], // سنجش منطقه یا فناوری منطقه
+    enum: [
+      "education",
+      "tech",
+      "provinceEducationExpert",
+      "provinceTechExpert",
+      "districtEducationExpert",
+      "districtTechExpert",
+    ], // سنجش منطقه، فناوری منطقه، کارشناس سنجش استان، کارشناس فناوری استان، کارشناس سنجش منطقه، کارشناس فناوری منطقه
     required: true,
   },
   type: {
@@ -154,9 +161,17 @@ TicketSchema.pre("save", async function (next) {
 
   // تنظیم خودکار فیلد type بر اساس receiver اگر تنظیم نشده باشد
   if (!this.type) {
-    if (this.receiver === "education") {
+    if (
+      this.receiver === "education" ||
+      this.receiver === "districtEducationExpert" ||
+      this.receiver === "provinceEducationExpert"
+    ) {
       this.type = "EDUCATION";
-    } else if (this.receiver === "tech") {
+    } else if (
+      this.receiver === "tech" ||
+      this.receiver === "districtTechExpert" ||
+      this.receiver === "provinceTechExpert"
+    ) {
       this.type = "TECH";
     } else {
       this.type = "UNKNOWN";

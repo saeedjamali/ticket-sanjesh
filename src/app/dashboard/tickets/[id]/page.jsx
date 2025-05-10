@@ -264,16 +264,16 @@ export default function TicketDetails() {
         ticket?.status !== "closed" &&
         (
             (user?.role === ROLES.DISTRICT_EDUCATION_EXPERT &&
-                ticket?.receiver === "education" &&
+                ticket?.receiver === ROLES.DISTRICT_EDUCATION_EXPERT &&
                 user?.district === ticket?.district?._id) ||
             (user?.role === ROLES.DISTRICT_TECH_EXPERT &&
-                ticket?.receiver === "tech" &&
+                ticket?.receiver === ROLES.DISTRICT_TECH_EXPERT  &&
                 user?.district === ticket?.district?._id) ||
             (user?.role === ROLES.PROVINCE_EDUCATION_EXPERT &&
-                ticket?.receiver === "education" &&
+                ticket?.receiver === ROLES.PROVINCE_EDUCATION_EXPERT  &&
                 user?.province === ticket?.province?._id) ||
             (user?.role === ROLES.PROVINCE_TECH_EXPERT &&
-                ticket?.receiver === "tech" &&
+                ticket?.receiver === ROLES.PROVINCE_TECH_EXPERT  &&
                 user?.province === ticket?.province?._id) ||
             user?.role === ROLES.SYSTEM_ADMIN
         );

@@ -126,21 +126,23 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
   const getReceiverOptions = () => {
     if (user.role === ROLES.DISTRICT_TECH_EXPERT) {
       // کارشناس فناوری منطقه فقط می‌تواند به کارشناس فناوری استان تیکت ارسال کند
-      return [{ value: "tech", label: "کارشناس فناوری استان" }];
+      return [{ value: "provinceTechExpert", label: "کارشناس فناوری استان" }];
     } else if (user.role === ROLES.DISTRICT_EDUCATION_EXPERT) {
       // کارشناس سنجش منطقه فقط می‌تواند به کارشناس سنجش استان تیکت ارسال کند
-      return [{ value: "education", label: "کارشناس سنجش استان" }];
+      return [
+        { value: "provinceEducationExpert", label: "کارشناس سنجش استان" },
+      ];
     } else if (user.role === ROLES.EXAM_CENTER_MANAGER) {
       // مدیر مرکز آزمون می‌تواند به کارشناسان منطقه تیکت ارسال کند
       return [
-        { value: "education", label: "کارشناس سنجش منطقه" },
-        { value: "tech", label: "کارشناس فناوری منطقه" },
+        { value: "districtEducationExpert", label: "کارشناس سنجش منطقه" },
+        { value: "districtTechExpert", label: "کارشناس فناوری منطقه" },
       ];
     } else {
       // سایر نقش‌ها (پیش‌فرض)
       return [
-        { value: "education", label: "کارشناس سنجش منطقه" },
-        { value: "tech", label: "کارشناس فناوری منطقه" },
+        { value: "districtEducationExpert", label: "کارشناس سنجش منطقه" },
+        { value: "districtTechExpert", label: "کارشناس فناوری منطقه" },
       ];
     }
   };
