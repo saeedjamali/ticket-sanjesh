@@ -32,14 +32,14 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
 
   // برای کارشناسان منطقه، لیست مراکز آزمون مربوط به منطقه را بارگذاری می‌کنیم
   useEffect(() => {
-    console.log("CreateTicketForm - useEffect running with user:", user);
-    console.log("User role:", user.role);
-    console.log("District ID:", user.district);
-    console.log(
-      "Is district expert:",
-      user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-        user.role === ROLES.DISTRICT_TECH_EXPERT
-    );
+    // console.log("CreateTicketForm - useEffect running with user:", user);
+    // console.log("User role:", user.role);
+    // console.log("District ID:", user.district);
+    // console.log(
+    //   "Is district expert:",
+    //   user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+    //     user.role === ROLES.DISTRICT_TECH_EXPERT
+    // );
 
     if (
       user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
@@ -54,15 +54,15 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
           return;
         }
 
-        console.log("Loading exam centers for district:", user.district);
+        // console.log("Loading exam centers for district:", user.district);
         setIsLoadingExamCenters(true);
 
         try {
           const accessToken = localStorage.getItem("accessToken");
-          console.log("Access token available:", !!accessToken);
+          // console.log("Access token available:", !!accessToken);
 
           const apiUrl = `/api/exam-centers?district=${user.district}`;
-          console.log("Fetching exam centers from:", apiUrl);
+          // console.log("Fetching exam centers from:", apiUrl);
 
           const response = await fetch(apiUrl, {
             headers: {
@@ -70,14 +70,14 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
             },
           });
 
-          console.log("API response status:", response.status);
+          // console.log("API response status:", response.status);
 
           if (response.ok) {
             const data = await response.json();
-            console.log("Exam centers data received:", data);
+            // console.log("Exam centers data received:", data);
 
             if (data.examCenters && data.examCenters.length > 0) {
-              console.log(`Found ${data.examCenters.length} exam centers`);
+              // console.log(`Found ${data.examCenters.length} exam centers`);
               setExamCenters(data.examCenters);
             } else {
               console.warn("No exam centers found for this district");
@@ -175,7 +175,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         data.examCenter
       ) {
         formData.append("examCenter", data.examCenter);
-        console.log("Adding examCenter to form data:", data.examCenter);
+        // console.log("Adding examCenter to form data:", data.examCenter);
       }
 
       if (selectedImage) {
@@ -183,7 +183,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
       }
 
       // نمایش اطلاعات کاربر در کنسول
-      console.log("Current user data:", user);
+      // console.log("Current user data:", user);
 
       // اضافه کردن اطلاعات کاربر به URL برای احراز هویت
       let url = isEditing ? `/api/tickets/${ticket._id}` : "/api/tickets";
@@ -209,20 +209,20 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         }
       }
 
-      console.log("Submitting ticket to:", url);
+      // console.log("Submitting ticket to:", url);
       const method = isEditing ? "PUT" : "POST";
 
       // دریافت توکن احراز هویت از localStorage
       const accessToken = localStorage.getItem("accessToken");
-      console.log("Auth token available:", !!accessToken);
+      // console.log("Auth token available:", !!accessToken);
 
       // تنظیم هدرهای درخواست - فقط هدرهای مربوط به احراز هویت
       const headers = {
         Authorization: `Bearer ${accessToken}`,
       };
 
-      console.log("Request headers:", headers);
-      console.log("Form data entries:", [...formData.entries()]);
+      // console.log("Request headers:", headers);
+      // console.log("Form data entries:", [...formData.entries()]);
 
       const response = await fetch(url, {
         method,
@@ -231,11 +231,11 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         credentials: "include",
       });
 
-      console.log("Response status:", response.status);
-      console.log(
-        "Response headers:",
-        Object.fromEntries([...response.headers.entries()])
-      );
+      // console.log("Response status:", response.status);
+      // console.log(
+      //   "Response headers:",
+      //   Object.fromEntries([...response.headers.entries()])
+      // );
 
       if (!response.ok) {
         const responseText = await response.text();
@@ -257,7 +257,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
       }
 
       const responseData = await response.json();
-      console.log("Ticket successfully submitted:", responseData);
+      // console.log("Ticket successfully submitted:", responseData);
 
       router.push("/dashboard/tickets");
       router.refresh();
@@ -425,34 +425,73 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          className="btn-responsive bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
           disabled={isSubmitting}
         >
-          انصراف
-        </button>
-        {/* 
-        {!isEditing && (
-          <button
-            type="button"
-            onClick={handleSubmit((data) => onSubmit(data, true))}
-            className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
-            disabled={isSubmitting}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            className="w-4 h-4 btn-icon"
           >
-            ذخیره پیش‌نویس
-          </button>
-        )} */}
+            <path
+              fillRule="evenodd"
+              d="M7.793 2.232a.75.75 0 01-.025 1.06L3.622 7.25h10.003a5.375 5.375 0 010 10.75H10.75a.75.75 0 010-1.5h2.875a3.875 3.875 0 000-7.75H3.622l4.146 3.957a.75.75 0 01-1.036 1.085l-5.5-5.25a.75.75 0 010-1.085l5.5-5.25a.75.75 0 011.06.025z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <span className="btn-text">انصراف</span>
+        </button>
 
         <button
           type="submit"
-          className="btn btn-primary"
+          className="btn-responsive bg-blue-600 text-white hover:bg-blue-700"
           disabled={isSubmitting}
           onClick={handleSubmit((data) => onSubmit(data, false))}
         >
-          {isSubmitting
-            ? "در حال ثبت..."
-            : isEditing
-            ? "به‌روزرسانی تیکت"
-            : "ثبت تیکت"}
+          {isSubmitting ? (
+            <>
+              <svg
+                className="animate-spin h-4 w-4 btn-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <span className="btn-text">در حال ثبت...</span>
+            </>
+          ) : (
+            <>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="w-4 h-4 btn-icon"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="btn-text">
+                {isEditing ? "به‌روزرسانی تیکت" : "ثبت تیکت"}
+              </span>
+            </>
+          )}
         </button>
       </div>
     </form>

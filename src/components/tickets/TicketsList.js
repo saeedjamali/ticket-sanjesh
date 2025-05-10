@@ -344,15 +344,36 @@ export default function TicketsList({ user }) {
               <div className="mt-4 flex gap-3">
                 <button
                   onClick={createTestTicket}
-                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                  className="btn-responsive bg-green-600 text-white hover:bg-green-700"
                 >
-                  ایجاد تیکت تست
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="w-4 h-4 btn-icon"
+                  >
+                    <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                  </svg>
+                  <span className="btn-text">ایجاد تیکت تست</span>
                 </button>
                 <button
                   onClick={checkDatabase}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                  className="btn-responsive bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  بررسی پایگاه داده
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="w-4 h-4 btn-icon"
+                  >
+                    <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                    <path
+                      fillRule="evenodd"
+                      d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="btn-text">بررسی پایگاه داده</span>
                 </button>
                 <button
                   onClick={() =>
@@ -363,9 +384,21 @@ export default function TicketsList({ user }) {
                       priorityFilter
                     )
                   }
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm"
+                  className="btn-responsive bg-yellow-600 text-white hover:bg-yellow-700"
                 >
-                  تلاش مجدد
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="w-4 h-4 btn-icon"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="btn-text">تلاش مجدد</span>
                 </button>
               </div>
             </details>
@@ -388,15 +421,36 @@ export default function TicketsList({ user }) {
           <div className="mt-4">
             <button
               onClick={createTestTicket}
-              className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 ml-2"
+              className="btn-responsive bg-green-600 text-white hover:bg-green-700 ml-2"
             >
-              ایجاد تیکت تست
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="w-4 h-4 btn-icon"
+              >
+                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+              </svg>
+              <span className="btn-text">ایجاد تیکت تست</span>
             </button>
             <button
               onClick={checkDatabase}
-              className="rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700"
+              className="btn-responsive bg-purple-600 text-white hover:bg-purple-700"
             >
-              بررسی پایگاه داده
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                className="w-4 h-4 btn-icon"
+              >
+                <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
+                <path
+                  fillRule="evenodd"
+                  d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="btn-text">بررسی پایگاه داده</span>
             </button>
           </div>
         )}
@@ -439,8 +493,8 @@ export default function TicketsList({ user }) {
         <div>
           <div className="mb-4 p-4">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full flex-grow">
+                <div className="flex flex-1">
                   <label htmlFor="filter" className="ml-2 text-sm font-medium">
                     فیلتر وضعیت:
                   </label>
@@ -448,7 +502,7 @@ export default function TicketsList({ user }) {
                     id="filter"
                     value={filter}
                     onChange={handleFilterChange}
-                    className="rounded-md border border-gray-300 px-3 py-1 dark:border-gray-600 dark:bg-gray-700"
+                    className="w-full rounded-md border border-gray-300 px-3 py-1 dark:border-gray-600 dark:bg-gray-700 "
                   >
                     <option value="all">همه</option>
                     <option value="new">جدید</option>
@@ -456,10 +510,11 @@ export default function TicketsList({ user }) {
                     <option value="inProgress">در حال بررسی</option>
                     <option value="resolved">پاسخ داده شده</option>
                     <option value="referred_province">ارجاع به استان</option>
+                    <option value="closed">بسته شده</option>
                   </select>
                 </div>
 
-                <div>
+                <div className="flex flex-1">
                   <label
                     htmlFor="priorityFilter"
                     className="ml-2 text-sm font-medium"
@@ -470,7 +525,7 @@ export default function TicketsList({ user }) {
                     id="priorityFilter"
                     value={priorityFilter}
                     onChange={handlePriorityFilterChange}
-                    className="rounded-md border border-gray-300 px-3 py-1 dark:border-gray-600 dark:bg-gray-700"
+                    className="w-full rounded-md border border-gray-300 px-3 py-1 dark:border-gray-600 dark:bg-gray-700"
                   >
                     <option value="all">همه</option>
                     <option value="high">آنی</option>
@@ -479,8 +534,11 @@ export default function TicketsList({ user }) {
                   </select>
                 </div>
 
-                <div>
-                  <form onSubmit={handleSearch} className="flex items-center">
+                <div className="flex flex-2">
+                  <form
+                    onSubmit={handleSearch}
+                    className="w-full flex items-center"
+                  >
                     <label
                       htmlFor="ticketNumber"
                       className="ml-2 text-sm font-medium"
@@ -497,17 +555,37 @@ export default function TicketsList({ user }) {
                     />
                     <button
                       type="submit"
-                      className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 ml-2"
+                      className="btn-responsive bg-blue-600 text-white hover:bg-blue-700"
                     >
-                      جستجو
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="w-4 h-4 btn-icon"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="btn-text">جستجو</span>
                     </button>
                     {ticketNumber && (
                       <button
                         type="button"
                         onClick={clearSearch}
-                        className="bg-gray-300 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-400 mr-2"
+                        className="btn-responsive bg-gray-300 text-gray-700 hover:bg-gray-400 mr-2"
                       >
-                        پاک کردن
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          className="w-4 h-4 btn-icon"
+                        >
+                          <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                        </svg>
+                        <span className="btn-text">پاک کردن</span>
                       </button>
                     )}
                   </form>
@@ -643,9 +721,21 @@ export default function TicketsList({ user }) {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="rounded-md border border-gray-300 px-3 py-1 text-sm disabled:opacity-50 dark:border-gray-600"
+                className="btn-responsive border border-gray-300 disabled:opacity-50 dark:border-gray-600"
               >
-                قبلی
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="w-4 h-4 btn-icon"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="btn-text">قبلی</span>
               </button>
 
               {[...Array(totalPages)].map((_, index) => (
@@ -665,9 +755,21 @@ export default function TicketsList({ user }) {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="rounded-md border border-gray-300 px-3 py-1 text-sm disabled:opacity-50 dark:border-gray-600"
+                className="btn-responsive border border-gray-300 disabled:opacity-50 dark:border-gray-600"
               >
-                بعدی
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  className="w-4 h-4 btn-icon"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="btn-text">بعدی</span>
               </button>
             </div>
           )}

@@ -18,7 +18,7 @@ export function UserProvider({ children }) {
     if (initialCheckDone.current) return;
 
     try {
-      console.log("Validating token..."); // برای دیباگ
+      // console.log("Validating token..."); // برای دیباگ
       const response = await fetch("/api/auth/validate-token", {
         headers: {
           "Content-Type": "application/json",
@@ -27,7 +27,7 @@ export function UserProvider({ children }) {
       });
 
       const data = await response.json();
-      console.log("data in user context--->", data);
+      // console.log("data in user context--->", data);
       if (response.ok && data.success && data.user) {
         setUser(data.user);
       } else {
@@ -40,7 +40,7 @@ export function UserProvider({ children }) {
         }
       }
     } catch (error) {
-      console.error("Auth check error:", error);
+      // console.error("Auth check error:", error);
       setUser(null);
     } finally {
       setLoading(false);
@@ -68,7 +68,7 @@ export function UserProvider({ children }) {
       }
       return false;
     } catch (error) {
-      console.error("Token refresh error:", error);
+      // console.error("Token refresh error:", error);
       return false;
     }
   };
@@ -95,7 +95,7 @@ export function UserProvider({ children }) {
       initialCheckDone.current = true; // بعد از لاگین موفق، علامت‌گذاری می‌کنیم
       return true;
     } catch (error) {
-      console.error("Login error:", error);
+      // console.error("Login error:", error);
       throw error;
     }
   };
@@ -112,10 +112,10 @@ export function UserProvider({ children }) {
       });
 
       if (!response.ok) {
-        console.error("Logout failed:", response.status);
+        // console.error("Logout failed:", response.status);
       }
     } catch (error) {
-      console.error("Logout error:", error);
+      // console.error("Logout error:", error);
     } finally {
       setUser(null);
       initialCheckDone.current = false; // ریست کردن وضعیت چک در زمان خروج

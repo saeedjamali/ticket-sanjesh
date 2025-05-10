@@ -267,13 +267,13 @@ export default function TicketDetails() {
                 ticket?.receiver === ROLES.DISTRICT_EDUCATION_EXPERT &&
                 user?.district === ticket?.district?._id) ||
             (user?.role === ROLES.DISTRICT_TECH_EXPERT &&
-                ticket?.receiver === ROLES.DISTRICT_TECH_EXPERT  &&
+                ticket?.receiver === ROLES.DISTRICT_TECH_EXPERT &&
                 user?.district === ticket?.district?._id) ||
             (user?.role === ROLES.PROVINCE_EDUCATION_EXPERT &&
-                ticket?.receiver === ROLES.PROVINCE_EDUCATION_EXPERT  &&
+                ticket?.receiver === ROLES.PROVINCE_EDUCATION_EXPERT &&
                 user?.province === ticket?.province?._id) ||
             (user?.role === ROLES.PROVINCE_TECH_EXPERT &&
-                ticket?.receiver === ROLES.PROVINCE_TECH_EXPERT  &&
+                ticket?.receiver === ROLES.PROVINCE_TECH_EXPERT &&
                 user?.province === ticket?.province?._id) ||
             user?.role === ROLES.SYSTEM_ADMIN
         );
@@ -345,13 +345,24 @@ export default function TicketDetails() {
         <div className="space-y-6">
 
             {/* اطلاعات تیکت */}
-            <div className="mb-6 flex justify-end items-center">
-
+            <div className="mb-6 flex justify-start sm:justify-end items-center">
                 <Link
                     href="/dashboard/tickets"
-                    className="text-blue-600 hover:underline"
+                    className="btn-responsive bg-gray-100 text-gray-700 hover:bg-gray-200"
                 >
-                    بازگشت به لیست تیکت‌ها
+                    <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        className="h-5 w-5 btn-icon" 
+                        viewBox="0 0 20 20" 
+                        fill="currentColor"
+                    >
+                        <path 
+                            fillRule="evenodd" 
+                            d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" 
+                            clipRule="evenodd" 
+                        />
+                    </svg>
+                    <span className="btn-text">بازگشت به لیست تیکت‌ها</span>
                 </Link>
             </div>
             {/* Add status info alert */}
@@ -381,10 +392,10 @@ export default function TicketDetails() {
                 </ul>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between flex-col sm:flex-row gap-2 sm:gap-0">
                     <div>
-                        <h1 className="text-2xl font-bold mb-2">{ticket.title}</h1>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <h1 className="text-xl sm:text-2xl font-bold mb-2">{ticket.title}</h1>
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-gray-500">
                             <span>شماره تیکت: {ticket.ticketNumber}</span>
                             <span>وضعیت: {getStatusText(ticket.status)}</span>
                             <span>
@@ -395,7 +406,7 @@ export default function TicketDetails() {
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mt-2 sm:mt-0">
                         <span
                             className={`px-3 py-1 rounded-full text-sm ${ticket.priority === "high"
                                 ? "bg-red-100 text-red-600"
@@ -418,18 +429,30 @@ export default function TicketDetails() {
                     <p className="text-gray-700 whitespace-pre-wrap p-2 mb-8">{ticket.description}</p>
                     {ticket?.image && (
                         <div className="mb-8">
-                            <div className="flex items-center gap-4 mb-4">
-                                <span onClick={getImage} className="text-blue-500 flex items-center gap-2 cursor-pointer hover:text-blue-600">
-                                    <IoMdAttach />تصویر پیوست
-                                </span>
+                            <div className="flex flex-wrap items-center gap-4 mb-4">
+                                <button
+                                    onClick={getImage}
+                                    className="btn-icon-responsive bg-blue-50 hover:bg-blue-100 text-blue-600"
+                                >
+                                    <IoMdAttach className="h-5 w-5" />
+                                    <span className="btn-text">تصویر پیوست</span>
+                                </button>
                                 {showImage && (
                                     <>
-                                        <span onClick={downloadImage} className="text-green-500 flex items-center gap-2 cursor-pointer hover:text-green-600">
-                                            <IoMdDownload />دانلود تصویر
-                                        </span>
-                                        <span onClick={hideImage} className="text-red-500 flex items-center gap-2 cursor-pointer hover:text-red-600">
-                                            <IoMdClose />بستن تصویر
-                                        </span>
+                                        <button
+                                            onClick={downloadImage}
+                                            className="btn-icon-responsive bg-green-50 hover:bg-green-100 text-green-600"
+                                        >
+                                            <IoMdDownload className="h-5 w-5" />
+                                            <span className="btn-text">دانلود تصویر</span>
+                                        </button>
+                                        <button
+                                            onClick={hideImage}
+                                            className="btn-icon-responsive bg-red-50 hover:bg-red-100 text-red-600"
+                                        >
+                                            <IoMdClose className="h-5 w-5" />
+                                            <span className="btn-text">بستن تصویر</span>
+                                        </button>
                                     </>
                                 )}
                             </div>
@@ -474,27 +497,30 @@ export default function TicketDetails() {
                             {reply.image && (
                                 <div className="mt-4">
                                     {!responseImages[reply._id] ? (
-                                        <span
+                                        <button
                                             onClick={() => showResponseImage(reply.image, reply._id)}
-                                            className="text-blue-500 flex items-center gap-2 cursor-pointer hover:text-blue-600 mb-2"
+                                            className="btn-icon-responsive bg-blue-50 hover:bg-blue-100 text-blue-600 mb-2"
                                         >
-                                            <IoMdAttach />تصویر پیوست
-                                        </span>
+                                            <IoMdAttach className="h-5 w-5" />
+                                            <span className="btn-text">تصویر پیوست</span>
+                                        </button>
                                     ) : (
                                         <div>
-                                            <div className="flex items-center gap-4 mb-2">
-                                                <span
+                                            <div className="flex flex-wrap items-center gap-4 mb-2">
+                                                <button
                                                     onClick={() => hideResponseImage(reply._id)}
-                                                    className="text-red-500 flex items-center gap-2 cursor-pointer hover:text-red-600"
+                                                    className="btn-icon-responsive bg-red-50 hover:bg-red-100 text-red-600"
                                                 >
-                                                    <IoMdClose />بستن تصویر
-                                                </span>
-                                                <span
+                                                    <IoMdClose className="h-5 w-5" />
+                                                    <span className="btn-text">بستن تصویر</span>
+                                                </button>
+                                                <button
                                                     onClick={() => downloadResponseImage(responseImages[reply._id], reply._id)}
-                                                    className="text-green-500 flex items-center gap-2 cursor-pointer hover:text-green-600"
+                                                    className="btn-icon-responsive bg-green-50 hover:bg-green-100 text-green-600"
                                                 >
-                                                    <IoMdDownload />دانلود تصویر
-                                                </span>
+                                                    <IoMdDownload className="h-5 w-5" />
+                                                    <span className="btn-text">دانلود تصویر</span>
+                                                </button>
                                             </div>
                                             <img
                                                 src={responseImages[reply._id]}
@@ -531,9 +557,21 @@ export default function TicketDetails() {
 
                         {/* بخش انتخاب تصویر برای پاسخ */}
                         <div className="mt-4">
-                            <div className="flex items-center gap-4">
-                                <label className="relative cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-lg transition-colors">
-                                    <span>افزودن تصویر</span>
+                            <div className="flex flex-wrap items-center gap-4">
+                                <label className="btn-icon-responsive bg-blue-50 hover:bg-blue-100 text-blue-600 cursor-pointer">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-5 w-5"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                    <span className="btn-text">افزودن تصویر</span>
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -544,9 +582,10 @@ export default function TicketDetails() {
                                 {replyImagePreview && (
                                     <button
                                         onClick={removeReplyImage}
-                                        className="text-red-500 flex items-center gap-1 hover:text-red-600"
+                                        className="btn-icon-responsive bg-red-50 hover:bg-red-100 text-red-600"
                                     >
-                                        <IoMdClose /> حذف تصویر
+                                        <IoMdClose className="h-5 w-5" />
+                                        <span className="btn-text">حذف تصویر</span>
                                     </button>
                                 )}
                             </div>
@@ -563,40 +602,112 @@ export default function TicketDetails() {
                             )}
                         </div>
 
-                        <div className="flex justify-end gap-2">
+                        <div className="flex flex-wrap justify-end gap-2">
                             {(ticket.status === "inProgress" && (user?.role === ROLES.DISTRICT_EDUCATION_EXPERT || user?.role === ROLES.DISTRICT_TECH_EXPERT)) && (
-                                <button className="bg-orange-800 text-white px-4 py-2 rounded-md cursor-pointer" onClick={() => handleReferToProvince(ticket._id)}>ارجاع به استان</button>
+                                <button className="btn-responsive bg-orange-800 text-white hover:bg-orange-900">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-5 w-5 btn-icon"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                    <span className="btn-text" onClick={() => handleReferToProvince(ticket._id)}>ارجاع به استان</span>
+                                </button>
                             )}
-
-                            {/* دکمه تغییر وضعیت به "در حال بررسی" فقط برای مدیر سیستم */}
-
 
                             {canCloseTicket && (
                                 <button
-                                    className="bg-red-600 text-white px-4 py-2 rounded-md cursor-pointer"
+                                    className="btn-responsive bg-red-600 text-white hover:bg-red-700"
                                     onClick={handleCloseTicket}
                                     disabled={submitting}
                                 >
-                                    بستن تیکت
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-5 w-5 btn-icon"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                    <span className="btn-text">بستن تیکت</span>
                                 </button>
                             )}
 
                             {canEdit && (
                                 <button
-                                    className="bg-orange-500 text-white px-4 py-2 rounded-md cursor-pointer"
+                                    className="btn-responsive bg-orange-500 text-white hover:bg-orange-600"
                                     onClick={() => setIsEditing(prev => !prev)}
                                 >
-                                    ویرایش تیکت
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-5 w-5 btn-icon"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path
+                                            d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                                        />
+                                    </svg>
+                                    <span className="btn-text">ویرایش تیکت</span>
                                 </button>
                             )}
 
                             <button
                                 onClick={handleReply}
                                 disabled={submitting}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed
-                                cursor-pointer"
+                                className="btn-responsive bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {submitting ? "در حال ارسال..." : "ارسال پاسخ"}
+                                {submitting ? (
+                                    <>
+                                        <svg
+                                            className="animate-spin h-5 w-5 btn-icon"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                        <span className="btn-text">در حال ارسال...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-5 w-5 btn-icon"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z"
+                                                clipRule="evenodd"
+                                            />
+                                        </svg>
+                                        <span className="btn-text">ارسال پاسخ</span>
+                                    </>
+                                )}
                             </button>
                         </div>
 
@@ -606,11 +717,23 @@ export default function TicketDetails() {
             <div className="flex justify-end">
                 {user?.role === ROLES.SYSTEM_ADMIN && ticket?.status === "closed" && (
                     <button
-                        className="bg-yellow-600 text-white px-4 py-2 rounded-md cursor-pointer"
+                        className="btn-responsive bg-yellow-600 text-white hover:bg-yellow-700"
                         onClick={handleSetInProgress}
                         disabled={submitting}
                     >
-                        تغییر به در حال بررسی
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 btn-icon"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                        <span className="btn-text">تغییر به در حال بررسی</span>
                     </button>
                 )}
             </div>

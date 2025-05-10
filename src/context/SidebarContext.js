@@ -1,14 +1,49 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const SidebarContext = createContext();
 
 export function SidebarProvider({ children }) {
-  const [isOpen, setIsOpen] = useState(true);
+  // Start with sidebar closed, we'll update based on screen width in useEffect
+  const [isOpen, setIsOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState(null);
+  const [isMobile, setIsMobile] = useState(true);
+  // Track if sidebar was manually toggled
+  const [manuallyToggled, setManuallyToggled] = useState(false);
+
+  useEffect(() => {
+    // Check if we're in a browser environment
+    if (typeof window !== "undefined") {
+      // Function to handle resize events
+      const handleResize = () => {
+        const mobile = window.innerWidth < 1024;
+        setIsMobile(mobile);
+
+        // Only auto-open sidebar on desktop if it wasn't explicitly closed by user
+        if (!mobile && !manuallyToggled) {
+          setIsOpen(true);
+        }
+
+        // On mobile, ensure sidebar is closed initially unless explicitly opened
+        if (mobile && !manuallyToggled) {
+          setIsOpen(false);
+        }
+      };
+
+      // Set initial state
+      handleResize();
+
+      // Add event listener
+      window.addEventListener("resize", handleResize);
+
+      // Clean up
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, [manuallyToggled]);
 
   const toggleSidebar = () => {
+    setManuallyToggled(true);
     setIsOpen(!isOpen);
   };
 
@@ -16,9 +51,25 @@ export function SidebarProvider({ children }) {
     setOpenSubmenu(openSubmenu === path ? null : path);
   };
 
+  // Reset manually toggled state when route changes
+  const resetToggleState = () => {
+    setManuallyToggled(false);
+    // This will allow the sidebar to automatically adjust based on screen size
+    const mobile =
+      typeof window !== "undefined" ? window.innerWidth < 1024 : true;
+    setIsOpen(!mobile);
+  };
+
   return (
     <SidebarContext.Provider
-      value={{ isOpen, toggleSidebar, openSubmenu, toggleSubmenu }}
+      value={{
+        isOpen,
+        toggleSidebar,
+        openSubmenu,
+        toggleSubmenu,
+        isMobile,
+        resetToggleState,
+      }}
     >
       {children}
     </SidebarContext.Provider>

@@ -164,9 +164,23 @@ export default function DistrictsGrid() {
                 <p>{error}</p>
                 <button
                     onClick={fetchDistricts}
-                    className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
+                    className="btn-responsive bg-blue-500 text-white hover:bg-blue-600"
                 >
-                    تلاش مجدد
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 btn-icon"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                    </svg>
+                    <span className="btn-text">تلاش مجدد</span>
                 </button>
             </div>
         );
@@ -179,27 +193,29 @@ export default function DistrictsGrid() {
 
     return (
         <div className={`space-y-6 z-10 ${isFullScreen ? 'fixed inset-0 bg-white p-6 overflow-auto' : ''}`}>
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                     {user && user.role === "generalManager" ? (
                         <>
                             گزارش مناطق استان <span className="text-blue-600">{user?.provinceName}</span>
                         </>
                     ) : 'گزارش مناطق'}
                 </h2>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                     <select
                         value={gridSize}
                         onChange={(e) => setGridSize(Number(e.target.value))}
                         className="text-sm border rounded px-2 py-1"
                     >
+                        <option value="2">2</option>
                         <option value="4">4</option>
                         <option value="8">8</option>
                         <option value="12">12</option>
                         <option value="16">16</option>
                     </select>
-                    <div className="flex items-center gap-2 bg-gray-100 p-2 rounded-lg">
-                        <label className="text-sm text-gray-700">بروزرسانی خودکار:</label>
+                    <div className="flex items-center gap-2 bg-gray-100 p-2 rounded-lg flex-wrap">
+                        <label className="text-sm text-gray-700 hidden sm:inline">بروزرسانی خودکار:</label>
+                        <label className="text-sm text-gray-700 sm:hidden">خودکار:</label>
                         <input
                             type="checkbox"
                             checked={autoRefresh}
@@ -213,25 +229,77 @@ export default function DistrictsGrid() {
                                 onChange={(e) => setRefreshInterval(Number(e.target.value))}
                                 className="text-sm border rounded px-2 py-1"
                             >
-                                <option value="15">15 ثانیه</option>
-                                <option value="30">30 ثانیه</option>
-                                <option value="60">1 دقیقه</option>
-                                <option value="300">5 دقیقه</option>
+                                <option value="15">15ث</option>
+                                <option value="30">30ث</option>
+                                <option value="60">1د</option>
+                                <option value="300">5د</option>
                             </select>
                         )}
                     </div>
-                    <button
-                        onClick={toggleFullScreen}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm"
-                    >
-                        {isFullScreen ? 'خروج از حالت تمام صفحه' : 'نمایش تمام صفحه'}
-                    </button>
-                    <button
-                        onClick={fetchDistricts}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
-                    >
-                        بروزرسانی اطلاعات
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={toggleFullScreen}
+                            className="btn-responsive bg-gray-500 text-white hover:bg-gray-600"
+                        >
+                            {isFullScreen ? (
+                                <>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-5 w-5 btn-icon"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M6 18L18 6M6 6l12 12"
+                                        />
+                                    </svg>
+                                    <span className="btn-text">خروج از حالت تمام صفحه</span>
+                                </>
+                            ) : (
+                                <>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-5 w-5 btn-icon"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"
+                                        />
+                                    </svg>
+                                    <span className="btn-text">نمایش تمام صفحه</span>
+                                </>
+                            )}
+                        </button>
+                        <button
+                            onClick={fetchDistricts}
+                            className="btn-responsive bg-blue-500 text-white hover:bg-blue-600"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5 btn-icon"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                />
+                            </svg>
+                            <span className="btn-text">بروزرسانی اطلاعات</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -354,7 +422,7 @@ export default function DistrictsGrid() {
                                                 <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
                                                 <span className="text-xs text-gray-600">حل شده:</span>
                                             </div>
-                                            <span className="text-xs font-semibold text-green-600">{toFarsiNumber(district.resolvedTicketsCount)}</span>
+                                            <span className="text-xs font-semibold text-green-600">{toFarsiNumber(district.resolvedTicketsCount + district.closedTicketsCount)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -371,12 +439,21 @@ export default function DistrictsGrid() {
                 <div className="flex justify-center mt-4">
                     <button
                         onClick={() => setShowAllDistricts(true)}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-lg shadow-md transition-all duration-300 flex items-center gap-2"
+                        className="btn-responsive bg-indigo-600 text-white hover:bg-indigo-700 shadow-md"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 btn-icon"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                            />
                         </svg>
-                        <span>نمایش همه {toFarsiNumber(totalDistricts)} منطقه ({toFarsiNumber(hiddenDistrictsCount)} منطقه بیشتر)</span>
+                        <span className="btn-text">نمایش همه {toFarsiNumber(totalDistricts)} منطقه ({toFarsiNumber(hiddenDistrictsCount)} منطقه بیشتر)</span>
                     </button>
                 </div>
             )}
@@ -386,12 +463,21 @@ export default function DistrictsGrid() {
                 <div className="flex justify-center mt-4">
                     <button
                         onClick={() => setShowAllDistricts(false)}
-                        className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-6 rounded-lg shadow-md transition-all duration-300 flex items-center gap-2"
+                        className="btn-responsive bg-gray-600 text-white hover:bg-gray-700 shadow-md"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clipRule="evenodd" />
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 btn-icon"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
+                                clipRule="evenodd"
+                            />
                         </svg>
-                        <span>نمایش فقط ردیف اول</span>
+                        <span className="btn-text">نمایش فقط ردیف اول</span>
                     </button>
                 </div>
             )}

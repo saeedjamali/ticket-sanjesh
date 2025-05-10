@@ -12,6 +12,7 @@ export default function TicketStats() {
         inProgressTickets: 0,
         resolvedTickets: 0,
         closedTickets: 0,
+        referenceTickets: 0,
         highPriorityTickets: 0
     });
     const [loading, setLoading] = useState(true);
@@ -31,7 +32,7 @@ export default function TicketStats() {
 
             const response = await fetch("/api/stats/tickets", { headers });
             const data = await response.json();
-
+            console.log("Reg State : ====>", data);
             if (!data.success) {
                 throw new Error(data.message || "خطا در دریافت آمار تیکت‌ها");
             }
@@ -74,9 +75,23 @@ export default function TicketStats() {
                 <p>{error}</p>
                 <button
                     onClick={fetchStats}
-                    className="mt-4 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
+                    className="btn-responsive bg-blue-500 text-white hover:bg-blue-600 mt-4"
                 >
-                    تلاش مجدد
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 btn-icon"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                    </svg>
+                    <span className="btn-text">تلاش مجدد</span>
                 </button>
             </div>
         );
@@ -84,11 +99,12 @@ export default function TicketStats() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900 ">آمار تیکت‌ها</h2>
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 bg-gray-100 p-2 rounded-lg">
-                        <label className="text-sm text-gray-700">بروزرسانی خودکار:</label>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">آمار تیکت‌ها</h2>
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    <div className="flex items-center gap-2 bg-gray-100 p-2 rounded-lg flex-wrap">
+                        <label className="text-sm text-gray-700 hidden sm:inline">بروزرسانی خودکار:</label>
+                        <label className="text-sm text-gray-700 sm:hidden">خودکار:</label>
                         <input
                             type="checkbox"
                             checked={autoRefresh}
@@ -101,18 +117,32 @@ export default function TicketStats() {
                                 onChange={(e) => setRefreshInterval(Number(e.target.value))}
                                 className="text-sm border rounded px-2 py-1"
                             >
-                                <option value="15">15 ثانیه</option>
-                                <option value="30">30 ثانیه</option>
-                                <option value="60">1 دقیقه</option>
-                                <option value="300">5 دقیقه</option>
+                                <option value="15">15ث</option>
+                                <option value="30">30ث</option>
+                                <option value="60">1د</option>
+                                <option value="300">5د</option>
                             </select>
                         )}
                     </div>
                     <button
                         onClick={fetchStats}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm"
+                        className="btn-responsive bg-blue-500 text-white hover:bg-blue-600"
                     >
-                        بروزرسانی اطلاعات
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 btn-icon"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                        </svg>
+                        <span className="btn-text">بروزرسانی اطلاعات</span>
                     </button>
                 </div>
             </div>
@@ -129,6 +159,10 @@ export default function TicketStats() {
                 <div className="bg-white rounded-lg shadow p-6">
                     <h3 className="text-lg font-medium text-gray-900 mb-2">در حال بررسی</h3>
                     <p className="text-3xl font-bold text-yellow-600">{stats.inProgressTickets}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">ارجاع به استان</h3>
+                    <p className="text-3xl font-bold text-yellow-600">{stats.referenceTickets}</p>
                 </div>
                 <div className="bg-white rounded-lg shadow p-6 relative -z-0">
                     <div className="flex items-center gap-1">

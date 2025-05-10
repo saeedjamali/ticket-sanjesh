@@ -35,7 +35,6 @@ export async function middleware(request) {
   }
 
   if (!refreshTokenPayload) {
-    
     return NextResponse.next();
   }
   const newAccessToken = await tokenService.generateAccessToken({
@@ -51,10 +50,10 @@ export async function middleware(request) {
   });
   return response;
   // }
-  console.log(
-    "<---- MiddleWare is ok---->",
-    tokenService.verifyAccessToken(accessToken)
-  );
+  // console.log(
+  //   "<---- MiddleWare is ok---->",
+  //   tokenService.verifyAccessToken(accessToken)
+  // );
   return NextResponse.next();
   // const { pathname } = req.nextUrl;
   // if (pathname === "/login") {

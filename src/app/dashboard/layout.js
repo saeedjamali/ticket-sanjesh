@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useUserContext } from "@/context/UserContext";
 import Loading from "@/components/ui/Loading";
 import LogoutButton from "@/components/LogoutButton";
-
 import Header from "@/components/Header";
 
 export default function DashboardLayout({ children }) {
@@ -24,7 +23,7 @@ export default function DashboardLayout({ children }) {
         await checkAuth();
         setVerified(true);
       } catch (error) {
-        console.error("Authentication verification failed:", error);
+        // console.error("Authentication verification failed:", error);
         router.push("/login");
       } finally {
         setAuthChecking(false);
@@ -53,7 +52,7 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div dir="rtl" className="flex min-h-screen">
+    <div dir="rtl" className="flex min-h-screen flex-col lg:flex-row">
       {/* <Header /> */}
       <Sidebar user={user} />
       <div className="flex-1 flex flex-col">

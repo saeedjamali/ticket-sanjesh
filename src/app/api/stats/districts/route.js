@@ -75,11 +75,12 @@ export async function GET(request) {
           Ticket.countDocuments({ ...ticketQuery, status: "seen" }),
           Ticket.countDocuments({ ...ticketQuery, status: "resolved" }),
           Ticket.countDocuments({ ...ticketQuery, status: "inProgress" }),
+
+          Ticket.countDocuments({ ...ticketQuery, status: "closed" }),
           Ticket.countDocuments({
             ...ticketQuery,
             status: "referred_province",
           }),
-          Ticket.countDocuments({ ...ticketQuery, status: "closed" }),
         ]);
 
         return {

@@ -24,17 +24,33 @@ export async function GET(request) {
       query.createdBy = user.id;
     } else if (user.role === ROLES.DISTRICT_EDUCATION_EXPERT) {
       query.district = user.district;
-      query.receiver =  ROLES.DISTRICT_EDUCATION_EXPERT;
+      query.$or = [
+        { receiver: ROLES.PROVINCE_EDUCATION_EXPERT },
+        { receiver: ROLES.DISTRICT_EDUCATION_EXPERT },
+      ];
+      // query.receiver = ROLES.DISTRICT_EDUCATION_EXPERT;
     } else if (user.role === ROLES.DISTRICT_TECH_EXPERT) {
       query.district = user.district;
-      query.receiver = ROLES.DISTRICT_TECH_EXPERT;
+      query.$or = [
+        { receiver: ROLES.PROVINCE_TECH_EXPERT },
+        { receiver: ROLES.DISTRICT_TECH_EXPERT },
+      ];
     } else if (user.role === ROLES.PROVINCE_EDUCATION_EXPERT) {
       query.province = user.province;
-      query.receiver = ROLES.PROVINCE_EDUCATION_EXPERT;
+      query.$or = [
+        { receiver: ROLES.PROVINCE_EDUCATION_EXPERT },
+        { receiver: ROLES.DISTRICT_EDUCATION_EXPERT },
+      ];
     } else if (user.role === ROLES.PROVINCE_TECH_EXPERT) {
       query.province = user.province;
-      query.receiver = ROLES.PROVINCE_TECH_EXPERT;
+      query.$or = [
+        { receiver: ROLES.PROVINCE_TECH_EXPERT },
+        { receiver: ROLES.DISTRICT_TECH_EXPERT },
+      ];
     }
+
+    console.log("Reg State Query: ====>", query);
+    console.log("Reg State User : ====>", user);
 
     // دریافت آمار تیکت‌ها
     const [
@@ -43,6 +59,7 @@ export async function GET(request) {
       inProgressTickets,
       resolvedTickets,
       closedTickets,
+      referenceTickets,
       highPriorityTickets,
     ] = await Promise.all([
       Ticket.countDocuments(query),
@@ -50,6 +67,7 @@ export async function GET(request) {
       Ticket.countDocuments({ ...query, status: "inProgress" }),
       Ticket.countDocuments({ ...query, status: "resolved" }),
       Ticket.countDocuments({ ...query, status: "closed" }),
+      Ticket.countDocuments({ ...query, status: "reference-ticket" }),
       Ticket.countDocuments({ ...query, priority: "high" }),
     ]);
 
@@ -61,6 +79,7 @@ export async function GET(request) {
         inProgressTickets,
         resolvedTickets,
         closedTickets,
+        referenceTickets,
         highPriorityTickets,
       },
     });
