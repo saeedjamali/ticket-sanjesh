@@ -3,6 +3,7 @@ import { authService } from "@/lib/auth/authService";
 import connectDB from "@/lib/db";
 import District from "@/models/District";
 import Ticket from "@/models/Ticket";
+import ExamCenter from "@/models/ExamCenter";
 import { ROLES } from "@/lib/permissions";
 
 export async function GET(request) {
@@ -69,19 +70,33 @@ export async function GET(request) {
           inProgressTickets,
           closedTickets,
           referredTickets,
+          highPriorityTickets,
+          examCentersCount,
+          expertsCount,
         ] = await Promise.all([
           Ticket.countDocuments(ticketQuery),
           Ticket.countDocuments({ ...ticketQuery, status: "new" }),
           Ticket.countDocuments({ ...ticketQuery, status: "seen" }),
           Ticket.countDocuments({ ...ticketQuery, status: "resolved" }),
           Ticket.countDocuments({ ...ticketQuery, status: "inProgress" }),
-
           Ticket.countDocuments({ ...ticketQuery, status: "closed" }),
           Ticket.countDocuments({
             ...ticketQuery,
             status: "referred_province",
           }),
+          Ticket.countDocuments({ ...ticketQuery, priority: "high" }),
+          ExamCenter.countDocuments({ district: district._id, isActive: true }),
+          2,
         ]);
+
+        // آخرین فعالیت روی تیکت‌های این منطقه
+        const lastTicket = await Ticket.findOne(ticketQuery)
+          .sort({ updatedAt: -1 })
+          .select("updatedAt")
+          .lean();
+
+        // تاریخ آخرین فعالیت
+        const lastActivityTime = lastTicket ? lastTicket.updatedAt : null;
 
         return {
           ...district,
@@ -96,6 +111,10 @@ export async function GET(request) {
           referredTicketsCount: referredTickets,
           closedTicketsCount: closedTickets,
           hasOpenTickets: openTickets > 0,
+          highPriorityTicketsCount: highPriorityTickets,
+          examCentersCount: examCentersCount,
+          expertsCount: expertsCount,
+          lastActivityTime: lastActivityTime,
         };
       })
     );

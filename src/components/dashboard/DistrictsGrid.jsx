@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useUserContext } from "@/context/UserContext";
 import { toast } from "react-hot-toast";
+import { format, formatDistance } from "date-fns-jalali";
+import { faIR } from "date-fns-jalali/locale";
 
 export default function DistrictsGrid() {
     const { user } = useUserContext();
@@ -14,6 +16,7 @@ export default function DistrictsGrid() {
     const [refreshInterval, setRefreshInterval] = useState(30); // Default 30 seconds
     const [gridSize, setGridSize] = useState(4);
     const [showAllDistricts, setShowAllDistricts] = useState(false);
+    const [openDetails, setOpenDetails] = useState({});  // برای نگهداری وضعیت باز یا بسته بودن جزئیات هر کارت
 
     // تابع تبدیل اعداد انگلیسی به فارسی
     const toFarsiNumber = (n) => {
@@ -21,6 +24,51 @@ export default function DistrictsGrid() {
         return n
             .toString()
             .replace(/\d/g, x => farsiDigits[x]);
+    };
+
+    // تابع برای فرمت‌بندی تاریخ نسبی (مثلا "10 دقیقه قبل")
+    const formatRelativeTime = (date) => {
+        if (!date) return 'نامشخص';
+
+        try {
+            // تبدیل رشته تاریخ به آبجکت تاریخ اگر به صورت رشته باشد
+            const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+            // محاسبه فاصله زمانی به صورت نسبی
+            return formatDistance(dateObj, new Date(), {
+                addSuffix: true,
+                locale: faIR
+            });
+        } catch (error) {
+            console.error("Error formatting date:", error);
+            return 'نامشخص';
+        }
+    };
+
+    // تابع برای فرمت‌بندی تاریخ به صورت "امروز ساعت 14:30" یا "1402/02/25"
+    const formatLastUpdate = (date) => {
+        if (!date) return 'نامشخص';
+
+        try {
+            const dateObj = typeof date === 'string' ? new Date(date) : date;
+            const today = new Date();
+
+            // بررسی می‌کنیم آیا تاریخ مربوط به امروز است
+            if (
+                dateObj.getDate() === today.getDate() &&
+                dateObj.getMonth() === today.getMonth() &&
+                dateObj.getFullYear() === today.getFullYear()
+            ) {
+                return `امروز ${format(dateObj, 'HH:mm')}`;
+            }
+
+            // در غیر این صورت تاریخ کامل را نمایش می‌دهیم
+            return format(dateObj, 'yyyy/MM/dd', { locale: faIR });
+
+        } catch (error) {
+            console.error("Error formatting date:", error);
+            return 'نامشخص';
+        }
     };
 
     useEffect(() => {
@@ -73,7 +121,7 @@ export default function DistrictsGrid() {
                 credentials: "include"
             });
             const data = await response.json();
-
+            console.log("Districts data:", data);
             if (!data.success) {
                 throw new Error(data.message || "خطا در دریافت اطلاعات مناطق");
             }
@@ -148,6 +196,13 @@ export default function DistrictsGrid() {
             ),
             text: "کامل",
         };
+    };
+
+    const toggleDetails = (districtId) => {
+        setOpenDetails(prev => ({
+            ...prev,
+            [districtId]: !prev[districtId]
+        }));
     };
 
     if (loading) {
@@ -367,62 +422,137 @@ export default function DistrictsGrid() {
                         return (
                             <div
                                 key={district._id}
-                                className={`${status.bgGradient} border ${status.color.replace('bg-', 'border-')} rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden `}
+                                className={`${status.bgGradient} border ${status.color.replace('bg-', 'border-')} rounded-lg shadow-sm hover:shadow transition-all duration-300 overflow-hidden cursor-pointer h-auto`}
                             >
-                                <div className="p-4">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <h3 className="text-lg font-bold text-gray-800 truncate">
+                                <div className="p-3">
+                                    <div className="flex justify-between items-center mb-2" onClick={() => toggleDetails(district._id)}>
+                                        <h3 className="text-base font-bold text-gray-800 truncate">
                                             {toFarsiNumber(district.name)}
                                         </h3>
-                                        <div className={`p-1.5 rounded-full flex items-center justify-center ${status.color}`}>
+                                        <div className={`p-1 rounded-full flex items-center justify-center ${status.color}`}>
                                             {status.icon}
                                         </div>
                                     </div>
 
-                                    <div className="mb-3">
+                                    <div className="mb-2">
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="text-xs text-gray-500">کل تیکت‌ها</span>
                                             <span className="text-sm font-semibold">{toFarsiNumber(district.totalTicketsCount)}</span>
                                         </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                            <div
-                                                className={`${status.color} h-1.5 rounded-full`}
-                                                style={{ width: '100%' }}
-                                            ></div>
+                                        {/* نمایش دایره‌های رنگی با عدد */}
+                                        <div className="flex items-center justify-around mt-2 mb-1">
+                                            {/* تیکت‌های جدید */}
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-6 h-6 rounded-full bg-red-100 border border-red-300 flex items-center justify-center text-xs font-semibold text-red-700">
+                                                    {toFarsiNumber(district.openTicketsCount)}
+                                                </div>
+                                                <span className="text-[8px] text-gray-500 mt-0.5">جدید</span>
+                                            </div>
+
+                                            {/* تیکت‌های در حال بررسی */}
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-6 h-6 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center text-xs font-semibold text-amber-700">
+                                                    {toFarsiNumber(district.inProgressTicketsCount)}
+                                                </div>
+                                                <span className="text-[8px] text-gray-500 mt-0.5">بررسی</span>
+                                            </div>
+
+                                            {/* تیکت‌های ارجاع به استان */}
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-6 h-6 rounded-full bg-purple-100 border border-purple-300 flex items-center justify-center text-xs font-semibold text-purple-700">
+                                                    {toFarsiNumber(district.referredTicketsCount)}
+                                                </div>
+                                                <span className="text-[8px] text-gray-500 mt-0.5">ارجاع</span>
+                                            </div>
+
+                                            {/* تیکت‌های حل شده */}
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-6 h-6 rounded-full bg-green-100 border border-green-300 flex items-center justify-center text-xs font-semibold text-green-700">
+                                                    {toFarsiNumber(district.resolvedTicketsCount + district.closedTicketsCount)}
+                                                </div>
+                                                <span className="text-[8px] text-gray-500 mt-0.5">حل شده</span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between px-1">
-                                            <div className="flex items-center">
-                                                <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
-                                                <span className="text-xs text-gray-600">جدید:</span>
-                                            </div>
-                                            <span className="text-xs font-semibold text-red-600">{toFarsiNumber(district.openTicketsCount)}</span>
-                                        </div>
+                                    {/* دکمه نمایش/مخفی جزئیات */}
+                                    <div className="border-t border-gray-200 mt-1 pt-1 text-center">
+                                        <button
+                                            onClick={() => toggleDetails(district._id)}
+                                            className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200 focus:outline-none"
+                                            aria-expanded={openDetails[district._id] ? "true" : "false"}
+                                            aria-controls={`details-${district._id}`}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                className={`h-3 w-3 transition-transform duration-300 ${openDetails[district._id] ? 'transform rotate-180' : ''}`}
+                                                viewBox="0 0 20 20"
+                                                fill="currentColor"
+                                            >
+                                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                            </svg>
+                                            <span className="sr-only">
+                                                {openDetails[district._id] ? 'مخفی کردن جزئیات' : 'نمایش جزئیات'}
+                                            </span>
+                                        </button>
+                                    </div>
 
-                                        <div className="flex items-center justify-between px-1">
-                                            <div className="flex items-center">
-                                                <div className="w-2 h-2 rounded-full bg-amber-500 mr-2"></div>
-                                                <span className="text-xs text-gray-600">در حال بررسی:</span>
-                                            </div>
-                                            <span className="text-xs font-semibold text-amber-600">{toFarsiNumber(district.inProgressTicketsCount)}</span>
-                                        </div>
+                                    {/* محتوای قابل باز/بسته شدن */}
+                                    <div
+                                        id={`details-${district._id}`}
+                                        className={`overflow-hidden transition-all duration-300 ${openDetails[district._id] ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`}
+                                    >
+                                        <div className="pt-2 border-t border-gray-200 text-xs">
+                                            <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
+                                                {/* آمار ایستگاه‌ها و کارشناسان - ردیف اول */}
+                                                <div className="flex items-center space-x-1 space-x-reverse">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 text-blue-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                                                    </svg>
+                                                    <span className="truncate">مراکز: <b>{toFarsiNumber(district.examCentersCount || 0)}</b></span>
+                                                </div>
+                                                <div className="flex items-center space-x-1 space-x-reverse">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 text-purple-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                                                    </svg>
+                                                    <span className="truncate">کارشناسان: <b>{toFarsiNumber(district.expertsCount || 0)}</b></span>
+                                                </div>
 
-                                        <div className="flex items-center justify-between px-1">
-                                            <div className="flex items-center">
-                                                <div className="w-2 h-2 rounded-full bg-purple-500 mr-2"></div>
-                                                <span className="text-xs text-gray-600">ارجاع به استان:</span>
-                                            </div>
-                                            <span className="text-xs font-semibold text-purple-600">{toFarsiNumber(district.referredTicketsCount)}</span>
-                                        </div>
+                                                {/* آمار فوریت‌ها - ردیف دوم */}
+                                                <div className="flex items-center space-x-1 space-x-reverse">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 text-red-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+                                                    </svg>
+                                                    <span className="truncate">فوریت بالا: <b>{toFarsiNumber(district.highPriorityTicketsCount || '۰')}</b></span>
+                                                </div>
+                                                <div className="flex items-center space-x-1 space-x-reverse">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 text-amber-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                                    </svg>
+                                                    <span className="truncate">معمولی: <b>{toFarsiNumber(district.normalPriorityTicketsCount || district.totalTicketsCount - (district.highPriorityTicketsCount || 0))}</b></span>
+                                                </div>
 
-                                        <div className="flex items-center justify-between px-1">
-                                            <div className="flex items-center">
-                                                <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                                                <span className="text-xs text-gray-600">حل شده:</span>
+                                                {/* ردیف اطلاعات اضافی */}
+                                                <div className="col-span-2 mt-1 border-t border-gray-100 pt-1">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                                                        <div className="flex justify-between text-[8px]">
+                                                            <span className="text-gray-500">کد:</span>
+                                                            <span className="font-medium truncate max-w-[60px] sm:max-w-[80px]">{district.code}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-[8px]">
+                                                            <span className="text-gray-500">استان:</span>
+                                                            <span className="font-medium truncate max-w-[60px] sm:max-w-[80px]">{district.province_name}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-[8px]">
+                                                            <span className="text-gray-500">آخرین فعالیت:</span>
+                                                            <span className="font-medium truncate max-w-[60px] sm:max-w-[80px]">{formatRelativeTime(district.lastActivityTime)}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-[8px]">
+                                                            <span className="text-gray-500">به‌روزرسانی:</span>
+                                                            <span className="font-medium truncate max-w-[60px] sm:max-w-[80px]">{formatLastUpdate(district.lastActivityTime)}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <span className="text-xs font-semibold text-green-600">{toFarsiNumber(district.resolvedTicketsCount + district.closedTicketsCount)}</span>
                                         </div>
                                     </div>
                                 </div>
