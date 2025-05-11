@@ -17,6 +17,18 @@ const robotoMono = Roboto_Mono({
 export const metadata = {
   title: "سامانه تیکتینگ",
   description: "سامانه تیکتینگ مرکز آزمون",
+  manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16", type: "image/x-icon" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+  },
+  themeColor: "#3B82F6",
 };
 
 export default function RootLayout({ children }) {
