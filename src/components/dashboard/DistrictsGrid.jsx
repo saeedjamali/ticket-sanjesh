@@ -17,6 +17,7 @@ export default function DistrictsGrid() {
     const [gridSize, setGridSize] = useState(4);
     const [showAllDistricts, setShowAllDistricts] = useState(false);
     const [openDetails, setOpenDetails] = useState({});  // برای نگهداری وضعیت باز یا بسته بودن جزئیات هر کارت
+    const [sortMethod, setSortMethod] = useState('newTickets'); // نحوه مرتب‌سازی: 'newTickets', 'totalTickets', 'name'
 
     // تابع تبدیل اعداد انگلیسی به فارسی
     const toFarsiNumber = (n) => {
@@ -205,6 +206,20 @@ export default function DistrictsGrid() {
         }));
     };
 
+    // تابع برای تغییر روش مرتب‌سازی
+    const toggleSortMethod = () => {
+        if (sortMethod === 'newTickets') {
+            setSortMethod('totalTickets');
+            toast.success('مرتب‌سازی بر اساس تعداد کل تیکت‌ها');
+        } else if (sortMethod === 'totalTickets') {
+            setSortMethod('name');
+            toast.success('مرتب‌سازی بر اساس نام منطقه');
+        } else {
+            setSortMethod('newTickets');
+            toast.success('مرتب‌سازی بر اساس تیکت‌های جدید');
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center h-64">
@@ -242,9 +257,35 @@ export default function DistrictsGrid() {
     }
 
     // فقط ردیف اول مناطق را نمایش می‌دهیم اگر showAllDistricts فعال نباشد
-    const displayedDistricts = showAllDistricts ? districts : districts.slice(0, gridSize);
+    let displayedDistricts = showAllDistricts ? districts : districts.slice(0, gridSize);
     const totalDistricts = districts.length;
     const hiddenDistrictsCount = totalDistricts - gridSize;
+
+    // مرتب‌سازی مناطق بر اساس روش انتخاب شده
+    displayedDistricts = [...displayedDistricts].sort((a, b) => {
+        if (sortMethod === 'newTickets') {
+            // مرتب‌سازی بر اساس تیکت‌های جدید
+            if (b.newTicketsCount !== a.newTicketsCount) {
+                return b.newTicketsCount - a.newTicketsCount;
+            }
+
+            // اگر تعداد تیکت‌های جدید برابر بود، بر اساس تیکت‌های در حال بررسی مرتب می‌کنیم
+            if (b.inProgressTicketsCount !== a.inProgressTicketsCount) {
+                return b.inProgressTicketsCount - a.inProgressTicketsCount;
+            }
+
+            // در نهایت بر اساس تعداد کل تیکت‌ها مرتب می‌کنیم
+            return b.totalTicketsCount - a.totalTicketsCount;
+        }
+        else if (sortMethod === 'totalTickets') {
+            // مرتب‌سازی بر اساس تعداد کل تیکت‌ها
+            return b.totalTicketsCount - a.totalTicketsCount;
+        }
+        else {
+            // مرتب‌سازی بر اساس نام منطقه (الفبایی)
+            return a.name.localeCompare(b.name, 'fa');
+        }
+    });
 
     return (
         <div className={`space-y-6 z-10 ${isFullScreen ? 'fixed inset-0 bg-white p-6 overflow-auto' : ''}`}>
@@ -335,6 +376,30 @@ export default function DistrictsGrid() {
                             )}
                         </button>
                         <button
+                            onClick={toggleSortMethod}
+                            className="btn-responsive bg-purple-500 text-white hover:bg-purple-600"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5 btn-icon"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+                                />
+                            </svg>
+                            <span className="btn-text">
+                                {sortMethod === 'newTickets' ? 'مرتب‌سازی: تیکت‌های جدید' :
+                                    sortMethod === 'totalTickets' ? 'مرتب‌سازی: کل تیکت‌ها' :
+                                        'مرتب‌سازی: نام منطقه'}
+                            </span>
+                        </button>
+                        <button
                             onClick={fetchDistricts}
                             className="btn-responsive bg-blue-500 text-white hover:bg-blue-600"
                         >
@@ -422,8 +487,11 @@ export default function DistrictsGrid() {
                         return (
                             <div
                                 key={district._id}
-                                className={`${status.bgGradient} border ${status.color.replace('bg-', 'border-')} rounded-lg shadow-sm hover:shadow transition-all duration-300 overflow-hidden cursor-pointer h-auto`}
+                                className={`${status.bgGradient} border ${status.color.replace('bg-', 'border-')} rounded-lg shadow-sm hover:shadow transition-all duration-300 overflow-hidden cursor-pointer h-auto relative ${district.newTicketsCount > 0 ? 'ring-2 ring-red-400 ring-opacity-50' : ''}`}
                             >
+                                {district.newTicketsCount > 0 && (
+                                    <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full transform translate-x-1 -translate-y-1 animate-pulse"></div>
+                                )}
                                 <div className="p-3">
                                     <div className="flex justify-between items-center mb-2" onClick={() => toggleDetails(district._id)}>
                                         <h3 className="text-base font-bold text-gray-800 truncate">
@@ -444,7 +512,7 @@ export default function DistrictsGrid() {
                                             {/* تیکت‌های جدید */}
                                             <div className="flex flex-col items-center">
                                                 <div className="w-6 h-6 rounded-full bg-red-100 border border-red-300 flex items-center justify-center text-xs font-semibold text-red-700">
-                                                    {toFarsiNumber(district.openTicketsCount)}
+                                                    {toFarsiNumber(district.newTicketsCount)}
                                                 </div>
                                                 <span className="text-[8px] text-gray-500 mt-0.5">جدید</span>
                                             </div>
@@ -452,7 +520,7 @@ export default function DistrictsGrid() {
                                             {/* تیکت‌های در حال بررسی */}
                                             <div className="flex flex-col items-center">
                                                 <div className="w-6 h-6 rounded-full bg-amber-100 border border-amber-300 flex items-center justify-center text-xs font-semibold text-amber-700">
-                                                    {toFarsiNumber(district.inProgressTicketsCount)}
+                                                    {toFarsiNumber(district.inProgressTicketsCount + district.openTicketsCount)}
                                                 </div>
                                                 <span className="text-[8px] text-gray-500 mt-0.5">بررسی</span>
                                             </div>
