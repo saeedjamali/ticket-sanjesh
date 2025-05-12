@@ -73,6 +73,14 @@ export async function GET(request) {
           highPriorityTickets,
           examCentersCount,
           expertsCount,
+          // تیکت‌های کارشناس سنجش - جدید
+          educationNewTickets,
+          // تیکت‌های کارشناس سنجش - در حال بررسی
+          educationInProgressTickets,
+          // تیکت‌های کارشناس فناوری - جدید
+          techNewTickets,
+          // تیکت‌های کارشناس فناوری - در حال بررسی
+          techInProgressTickets,
         ] = await Promise.all([
           Ticket.countDocuments(ticketQuery),
           Ticket.countDocuments({ ...ticketQuery, status: "new" }),
@@ -87,6 +95,30 @@ export async function GET(request) {
           Ticket.countDocuments({ ...ticketQuery, priority: "high" }),
           ExamCenter.countDocuments({ district: district._id, isActive: true }),
           2,
+          // تیکت‌های جدید کارشناس سنجش
+          Ticket.countDocuments({
+            ...ticketQuery,
+            status: "new",
+            receiver: { $in: ["education", "districtEducationExpert"] },
+          }),
+          // تیکت‌های در حال بررسی کارشناس سنجش
+          Ticket.countDocuments({
+            ...ticketQuery,
+            status: { $in: ["inProgress", "seen"] },
+            receiver: { $in: ["education", "districtEducationExpert"] },
+          }),
+          // تیکت‌های جدید کارشناس فناوری
+          Ticket.countDocuments({
+            ...ticketQuery,
+            status: "new",
+            receiver: { $in: ["tech", "districtTechExpert"] },
+          }),
+          // تیکت‌های در حال بررسی کارشناس فناوری
+          Ticket.countDocuments({
+            ...ticketQuery,
+            status: { $in: ["inProgress", "seen"] },
+            receiver: { $in: ["tech", "districtTechExpert"] },
+          }),
         ]);
 
         // آخرین فعالیت روی تیکت‌های این منطقه
@@ -114,6 +146,11 @@ export async function GET(request) {
           highPriorityTicketsCount: highPriorityTickets,
           examCentersCount: examCentersCount,
           expertsCount: expertsCount,
+          // آمار تیکت‌ها به تفکیک نوع کارشناس
+          educationNewTicketsCount: educationNewTickets,
+          educationInProgressTicketsCount: educationInProgressTickets,
+          techNewTicketsCount: techNewTickets,
+          techInProgressTicketsCount: techInProgressTickets,
           lastActivityTime: lastActivityTime,
         };
       })

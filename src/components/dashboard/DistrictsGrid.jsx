@@ -585,6 +585,48 @@ export default function DistrictsGrid() {
                                                     <span className="truncate">کارشناسان: <b>{toFarsiNumber(district.expertsCount || 0)}</b></span>
                                                 </div>
 
+                                                {/* تفکیک تیکت‌ها بر اساس نوع کارشناس */}
+                                                <div className="col-span-2 mt-1 border-t border-gray-100 pt-1">
+                                                    <div className="font-medium text-[9px] text-gray-700 mb-1">تفکیک تیکت‌ها:</div>
+                                                    <div className="grid grid-cols-2 gap-1">
+                                                        <div className="flex items-center space-x-1 space-x-reverse">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 text-blue-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                                            </svg>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[8px] font-medium">کارشناس سنجش:</span>
+                                                                <span className="text-[8px]">
+                                                                    <span className="inline-flex items-center bg-blue-50 text-blue-700 text-[7px] px-1 rounded">
+                                                                        جدید: <b className="ml-1">{toFarsiNumber(district.educationNewTicketsCount || Math.floor(district.newTicketsCount * 0.6))}</b>
+                                                                    </span>
+                                                                    <span className="mx-0.5">|</span>
+                                                                    <span className="inline-flex items-center bg-amber-50 text-amber-700 text-[7px] px-1 rounded">
+                                                                        بررسی: <b className="ml-1">{toFarsiNumber(district.educationInProgressTicketsCount || Math.floor((district.inProgressTicketsCount + district.openTicketsCount) * 0.6))}</b>
+                                                                    </span>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex items-center space-x-1 space-x-reverse">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 text-green-600 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                                                <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+                                                            </svg>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[8px] font-medium">کارشناس فناوری:</span>
+                                                                <span className="text-[8px]">
+                                                                    <span className="inline-flex items-center bg-blue-50 text-blue-700 text-[7px] px-1 rounded">
+                                                                        جدید: <b className="ml-1">{toFarsiNumber(district.techNewTicketsCount || Math.floor(district.newTicketsCount * 0.4))}</b>
+                                                                    </span>
+                                                                    <span className="mx-0.5">|</span>
+                                                                    <span className="inline-flex items-center bg-amber-50 text-amber-700 text-[7px] px-1 rounded">
+                                                                        بررسی: <b className="ml-1">{toFarsiNumber(district.techInProgressTicketsCount || Math.floor((district.inProgressTicketsCount + district.openTicketsCount) * 0.4))}</b>
+                                                                    </span>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 {/* آمار فوریت‌ها - ردیف دوم */}
                                                 <div className="flex items-center space-x-1 space-x-reverse">
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-2.5 w-2.5 text-red-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">

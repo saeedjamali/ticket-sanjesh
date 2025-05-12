@@ -73,6 +73,7 @@ export default function ProfilePage() {
 
     setIsSubmitting(true);
 
+    console.log("userInfo----->", userInfo);
     try {
       // ارسال درخواست به API برای تغییر رمز عبور
       const response = await fetch("/api/users/password", {
@@ -81,7 +82,7 @@ export default function ProfilePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: userInfo.id,
+          id: userInfo._id,
           currentPassword: currentPassword,
           password: newPassword,
         }),

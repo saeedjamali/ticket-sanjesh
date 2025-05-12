@@ -18,7 +18,7 @@ export async function PATCH(request) {
     await connectDB();
 
     const data = await request.json();
-
+    console.log("data----->", data);
     // Validate required fields
     if (!data.id || !data.password) {
       return NextResponse.json(
@@ -31,22 +31,19 @@ export async function PATCH(request) {
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-   
+
     // Check if user has permission to change this user's password
     let hasPermission = false;
     let requiresCurrentPassword = false;
     if (userAuth.id === user._id.toString()) {
-     
       // Users can change their own password
       // For changing own password, current password should be verified
       hasPermission = true;
       requiresCurrentPassword = true;
     } else if (userAuth.role === ROLES.SYSTEM_ADMIN) {
-      
       // System admin can change any user's password
       hasPermission = true;
     } else if (userAuth.role === ROLES.GENERAL_MANAGER) {
-     
       // General manager can change province experts' passwords
       if (
         [ROLES.PROVINCE_EDUCATION_EXPERT, ROLES.PROVINCE_TECH_EXPERT].includes(
@@ -56,7 +53,6 @@ export async function PATCH(request) {
         hasPermission = true;
       }
     } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
-      
       // Province tech expert can change district experts' passwords
       if (
         [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT].includes(
@@ -71,7 +67,6 @@ export async function PATCH(request) {
         }
       }
     } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT) {
-     
       // District tech expert can change exam center managers' passwords
       if (user.role === ROLES.EXAM_CENTER_MANAGER) {
         hasPermission = true;
