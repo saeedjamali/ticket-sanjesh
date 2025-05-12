@@ -5,7 +5,7 @@ import { AUTH_CONFIG } from "./config";
 const JWT_SECRET = process.env.JWT_SECRET || "your-jwt-secret-key-here";
 const JWT_REFRESH_SECRET =
   process.env.JWT_REFRESH_SECRET || "your-jwt-refresh-secret-key-here";
-const JWT_ACCESS_EXPIRATION = process.env.JWT_ACCESS_EXPIRATION || "15m";
+const JWT_ACCESS_EXPIRATION = process.env.JWT_ACCESS_EXPIRATION || "1d";
 const JWT_REFRESH_EXPIRATION = process.env.JWT_REFRESH_EXPIRATION || "7d";
 
 // تبدیل زمان‌های انقضا به ثانیه

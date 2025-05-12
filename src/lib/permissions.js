@@ -44,6 +44,8 @@ export function getRolePermissions(role) {
     canViewProvinceDistricts: false,
     canViewProvinceExamCenters: false,
     canViewExamCenterTickets: false,
+    canCreateAnnouncements: false,
+    canManageAnnouncements: false,
   };
 
   switch (role) {
@@ -59,6 +61,8 @@ export function getRolePermissions(role) {
       permissions.canViewProvinceDistricts = true;
       permissions.canViewProvinceExamCenters = true;
       permissions.canViewExamCenterTickets = true;
+      permissions.canCreateAnnouncements = true;
+      permissions.canManageAnnouncements = true;
       break;
 
     case ROLES.GENERAL_MANAGER:
@@ -67,6 +71,8 @@ export function getRolePermissions(role) {
       permissions.canViewProvinceDistricts = true;
       permissions.canViewProvinceExamCenters = true;
       permissions.canViewExamCenterTickets = true;
+      permissions.canCreateAnnouncements = true;
+      permissions.canManageAnnouncements = true;
       break;
 
     case ROLES.PROVINCE_EDUCATION_EXPERT:
@@ -74,6 +80,8 @@ export function getRolePermissions(role) {
       permissions.canViewProvinceDistricts = true;
       permissions.canViewProvinceExamCenters = true;
       permissions.canViewExamCenterTickets = true;
+      permissions.canCreateAnnouncements = true;
+      permissions.canManageAnnouncements = true;
       break;
 
     case ROLES.PROVINCE_TECH_EXPERT:
@@ -84,6 +92,8 @@ export function getRolePermissions(role) {
       permissions.canViewProvinceDistricts = true;
       permissions.canViewProvinceExamCenters = true;
       permissions.canViewExamCenterTickets = true;
+      permissions.canCreateAnnouncements = true;
+      permissions.canManageAnnouncements = true;
       break;
 
     case ROLES.DISTRICT_TECH_EXPERT:
@@ -137,6 +147,13 @@ export function getMenuItemsByRole(role) {
     label: "تیکت‌ها",
     path: "/dashboard/tickets",
     icon: "tickets",
+  });
+
+  // منوی اطلاعیه‌ها - برای همه کاربران
+  menuItems.push({
+    label: "اطلاعیه‌ها",
+    path: "/dashboard/announcements",
+    icon: "announcements",
   });
 
   // منوی پروفایل کاربری - برای همه کاربران

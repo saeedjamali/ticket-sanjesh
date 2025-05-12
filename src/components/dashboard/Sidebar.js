@@ -16,12 +16,14 @@ import {
   FaUserCircle,
   FaAngleRight,
   FaAngleLeft,
+  FaBullhorn,
 } from "react-icons/fa";
 import { useSidebar } from "@/context/SidebarContext";
 
 const icons = {
   dashboard: <FaHome className="h-5 w-5" />,
   tickets: <FaTicketAlt className="h-5 w-5" />,
+  announcements: <FaBullhorn className="h-5 w-5" />,
   users: <FaUsers className="h-5 w-5" />,
   reports: <FaChartLine className="h-5 w-5" />,
   settings: <FaCog className="h-5 w-5" />,
