@@ -662,9 +662,10 @@ export default function TicketsList({ user }) {
                         : "---"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
-                      {getReceiverText(ticket.receiver) +
-                        " | " +
-                        ticket?.district?.name}
+                      {getReceiverText(ticket.receiver) 
+                        // " | " +
+                        // ticket?.district?.name
+                        }
                     </td>
                     {(user.role === ROLES.GENERAL_MANAGER ||
                       user.role === ROLES.PROVINCE_EDUCATION_EXPERT ||

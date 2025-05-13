@@ -613,11 +613,11 @@ export default function DistrictsGrid() {
                                                                 <span className="text-[8px] font-medium">کارشناس فناوری:</span>
                                                                 <span className="text-[8px]">
                                                                     <span className="inline-flex items-center bg-blue-50 text-blue-700 text-[7px] px-1 rounded">
-                                                                        جدید: <b className="ml-1">{toFarsiNumber(district.techNewTicketsCount || Math.floor(district.newTicketsCount * 0.4))}</b>
+                                                                        جدید: <b className="ml-1">{toFarsiNumber(district.techNewTicketsCount)}</b>
                                                                     </span>
                                                                     <span className="mx-0.5">|</span>
                                                                     <span className="inline-flex items-center bg-amber-50 text-amber-700 text-[7px] px-1 rounded">
-                                                                        بررسی: <b className="ml-1">{toFarsiNumber(district.techInProgressTicketsCount || Math.floor((district.inProgressTicketsCount + district.openTicketsCount) * 0.4))}</b>
+                                                                        بررسی: <b className="ml-1">{toFarsiNumber(district.techInProgressTicketsCount)}</b>
                                                                     </span>
                                                                 </span>
                                                             </div>
