@@ -32,7 +32,6 @@ export default function TicketStats() {
 
             const response = await fetch("/api/stats/tickets", { headers });
             const data = await response.json();
-            console.log("Reg State : ====>", data);
             if (!data.success) {
                 throw new Error(data.message || "خطا در دریافت آمار تیکت‌ها");
             }

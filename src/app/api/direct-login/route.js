@@ -56,10 +56,10 @@ export async function POST(request) {
     const addRefreshTokenToUser = await User.findByIdAndUpdate(user._id, {
       refreshToken,
     });
-    console.log(
-      "addRefreshTokenToUser token added to user",
-      addRefreshTokenToUser
-    );
+    // console.log(
+    //   "addRefreshTokenToUser token added to user",
+    //   addRefreshTokenToUser
+    // );
     // Set cookies
     const cookieStore = cookies();
     cookieStore.set("access-token", accessToken, {

@@ -114,8 +114,6 @@ export default function DistrictsGrid() {
                 console.log(`Filtering districts for province admin. Province ID: ${user.province}, Province Name: ${user.provinceName || 'Unknown'}`);
             }
 
-            console.log("Fetching districts from:", apiUrl);
-            console.log("User information:", user);
 
             const response = await fetch(apiUrl, {
                 headers,

@@ -60,6 +60,8 @@ class AuthService {
         examCenter: user.examCenter,
         academicYear: user.academicYear,
         refreshToken: refreshToken,
+        phoneVerified: user.phoneVerified,
+        phone: user.phone,
       };
 
       console.log("userData---->", userData);
@@ -115,6 +117,8 @@ class AuthService {
         district: user.district ? user.district._id.toString() : null,
         examCenter: user.examCenter ? user.examCenter._id.toString() : null,
         academicYear: user.academicYear || "1402-1403",
+        phoneVerified: user.phoneVerified,
+        phone: user.phone,
       };
     } catch (error) {
       console.error("Token validation error:", error);

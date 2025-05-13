@@ -27,6 +27,7 @@ export function UserProvider({ children }) {
       });
 
       const data = await response.json();
+      // console.log("User phone data context--->", data);
       // console.log("data in user context--->", data);
       if (response.ok && data.success && data.user) {
         setUser(data.user);

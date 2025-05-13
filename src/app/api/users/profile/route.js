@@ -18,7 +18,6 @@ export async function GET(request) {
       );
     }
 
-    console.log("userId----->", userId);
     await connectDB();
     const user = await UserModel.findOne(
       { _id: userId.id },
@@ -29,7 +28,6 @@ export async function GET(request) {
         },
       }
     ).populate("province district examCenter");
-    console.log("user|||||----->", user);
     if (!user) {
       return NextResponse.json(
         { success: false, message: "User not found" },

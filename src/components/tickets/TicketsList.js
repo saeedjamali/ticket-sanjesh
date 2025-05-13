@@ -16,7 +16,6 @@ export default function TicketsList({ user }) {
   const [debugInfo, setDebugInfo] = useState(null);
   const [ticketNumber, setTicketNumber] = useState("");
 
-  console.log("TicketsList user:", user);
 
   const fetchTickets = async (
     page = 1,
@@ -78,8 +77,6 @@ export default function TicketsList({ user }) {
         }
       }
 
-      console.log("Fetching tickets from:", url);
-      console.log("User information:", user);
 
       // تنظیم هدرهای درخواست
       const headers = {
@@ -139,7 +136,6 @@ export default function TicketsList({ user }) {
       }
 
       const data = await response.json();
-      console.log("Tickets fetched:", data);
 
       if (data.tickets && Array.isArray(data.tickets)) {
         setTickets(data.tickets);
@@ -162,10 +158,7 @@ export default function TicketsList({ user }) {
 
   useEffect(() => {
     if (user) {
-      console.log(
-        "TicketsList useEffect triggered, fetching tickets with user:",
-        user
-      );
+      
       fetchTickets(currentPage, filter, ticketNumber, priorityFilter);
     } else {
       setAuthError(true);

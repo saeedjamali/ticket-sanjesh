@@ -25,6 +25,15 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  phone: {
+    type: String,
+    trim: true,
+    sparse: true,
+  },
+  phoneVerified: {
+    type: Boolean,
+    default: false,
+  },
   role: {
     type: String,
     enum: [
@@ -66,8 +75,6 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-
-
 // Method to compare passwords
 UserSchema.methods.comparePassword = async function (candidatePassword) {
   try {
@@ -80,6 +87,5 @@ UserSchema.methods.comparePassword = async function (candidatePassword) {
 // Check if model exists already to prevent overwrite during hot reload
 const UserModel = mongoose.models?.User || mongoose.model("User", UserSchema);
 
-console.log("User model initialized:", !!UserModel);
 
 export default UserModel;

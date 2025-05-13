@@ -49,8 +49,7 @@ export async function GET(request) {
       ];
     }
 
-    console.log("Reg State Query: ====>", query);
-    console.log("Reg State User : ====>", user);
+   
 
     // دریافت آمار تیکت‌ها
     const [

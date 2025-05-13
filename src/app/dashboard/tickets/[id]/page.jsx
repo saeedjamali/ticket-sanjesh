@@ -28,10 +28,8 @@ export default function TicketDetails() {
     const [responseImages, setResponseImages] = useState({});
     const { user } = useUserContext();
 
-    console.log("user in ticket details ---->", user);
     useEffect(() => {
         fetchTicket();
-        console.log("ticket in ticket details ---->", ticket);
     }, [params.id]);
 
     const fetchTicket = async () => {
@@ -40,7 +38,6 @@ export default function TicketDetails() {
                 credentials: "include",
             });
             const data = await response.json();
-            console.log("data---->", data);
             if (data.success) {
                 setTicket(data.ticket);
             } else {
@@ -127,7 +124,6 @@ export default function TicketDetails() {
             });
 
             const data = await response.json();
-            console.log("data---->", data);
             if (data.success) {
                 toast.success("پاسخ با موفقیت ارسال شد");
                 setReplyText("");
@@ -239,7 +235,6 @@ export default function TicketDetails() {
             });
 
             const data = await response.json();
-            console.log("data---->", data);
             if (!response.ok) {
                 throw new Error(data.error || "خطا در تغییر وضعیت تیکت");
             }

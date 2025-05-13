@@ -9,6 +9,7 @@ import ProvinceExamCenters from "@/components/dashboard/ProvinceExamCenters";
 import { useUserContext } from "@/context/UserContext";
 import { ROLES } from "@/lib/permissions";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import PasswordGuideModal from "@/components/auth/PasswordGuideModal";
 
 export default function DashboardPage() {
   const { user, loading, checkAuth } = useUserContext();
@@ -72,6 +73,74 @@ export default function DashboardPage() {
     <div className="space-y-4 sm:space-y-6 pb-16">
       <h1 className="heading-2 mb-4 sm:mb-6 text-gray-800">داشبورد</h1>
 
+      {/* هشدار تأیید شماره موبایل - فقط اگر فیلدهای مربوطه وجود داشته باشند و شماره تأیید نشده باشد */}
+      {user &&
+        (user.phone === undefined ||
+          user.phone === null ||
+          user.phone === "" ||
+          user.phoneVerified === false) && (
+          <div className="bg-amber-50 border-r-4 border-amber-500 p-4 sm:p-5 mb-6 rounded-lg shadow-sm animate-pulse">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-6 w-6 text-amber-600"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <div className="mr-3">
+                <h3 className="text-lg font-medium text-amber-800">
+                  {!user.phone
+                    ? "شماره موبایل ثبت نشده است"
+                    : "شماره موبایل شما تأیید نشده است"}
+                </h3>
+                <div className="mt-2 text-amber-700">
+                  <p>
+                    برای استفاده از امکان <strong>بازیابی رمز عبور</strong> در
+                    صورت فراموشی، لطفاً شماره موبایل خود را در{" "}
+                    <a
+                      href="/dashboard/profile"
+                      className="underline font-medium hover:text-amber-900"
+                    >
+                      صفحه پروفایل
+                    </a>{" "}
+                    ثبت و تأیید کنید.
+                  </p>
+                </div>
+              </div>
+              <div className="mr-auto">
+                <a
+                  href="/dashboard/profile"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+                >
+                  {!user.phone ? "ثبت شماره موبایل" : "تأیید شماره موبایل"}
+                  <svg
+                    className="mr-2 -ml-1 h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
       {/* بخش خوش‌آمدگویی - در ابتدای صفحه */}
       <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6">
         <h2 className="heading-3 mb-3 sm:mb-4">به سامانه تیکتینگ خوش آمدید!</h2>
@@ -84,7 +153,10 @@ export default function DashboardPage() {
           تیکت‌های مرتبط با حوزه خود را مشاهده و مدیریت کنید.
         </p>
       </div>
-
+      {/* بنر راهنمای امنیت حساب کاربری */}
+      <div className="mt-4 sm:mt-6">
+        <PasswordGuideModal />
+      </div>
       {/* بخش کاشی‌های مناطق استان - فقط برای مدیران کل و کارشناسان استان */}
       {isProvinceUser && (
         <div className="mt-4 sm:mt-8">

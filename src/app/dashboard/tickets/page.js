@@ -12,7 +12,6 @@ export default function TicketsPage() {
   useEffect(() => {
     if (user) {
       try {
-        console.log("Updating localStorage with user data:", user);
         localStorage.setItem("user", JSON.stringify(user));
       } catch (error) {
         console.error("Error updating localStorage:", error);

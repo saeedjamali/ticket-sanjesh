@@ -321,7 +321,7 @@ export default function AnnouncementsPage() {
             {canManageAnnouncements && (
               <Link
                 href="/dashboard/announcements/create"
-                className="btn-primary"
+                className="btn-primary p-2 rounded-md"
               >
                 ایجاد اطلاعیه جدید
               </Link>
