@@ -29,7 +29,7 @@ export async function POST(req) {
         password: "Sanje@#$sh1600",
         line: "983000610320",
         mobile: phone,
-        message: `کد اعتبارسنجی سامانه سنجش : ${code}  `,
+        message: `کد اعتبارسنجی سامانه تیکت : ${code}  `,
         type: 0,
         template: 0,
       });
@@ -37,7 +37,7 @@ export async function POST(req) {
       await dbConnect();
 
       const otp = await OtpModel.findOneAndUpdate({ phone }, { code, expTime });
-      
+
       console.log("otp----->", otp);
       if (otp) {
         return Response.json({

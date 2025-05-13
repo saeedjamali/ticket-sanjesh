@@ -319,9 +319,9 @@ export default function ProfilePage() {
             )}
 
             {/* بخش شماره موبایل */}
-            <div className="flex items-center justify-between py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between py-4 space-y-2 sm:space-y-0">
               <span className="font-medium text-gray-600">شماره موبایل</span>
-              <div className="flex items-center">
+              <div className="flex items-center w-full sm:w-auto">
                 {!isEditingPhone ? (
                   <>
                     <span className="text-gray-900">
@@ -389,7 +389,7 @@ export default function ProfilePage() {
                         type="button"
                         onClick={handlePhoneUpdate}
                         disabled={isSendingCode}
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70 text-sm transition-all duration-200 ease-in-out"
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-70 text-sm transition-all duration-200 ease-in-out whitespace-nowrap"
                       >
                         {isSendingCode ? (
                           <svg
@@ -414,7 +414,8 @@ export default function ProfilePage() {
                           </svg>
                         ) : (
                           <>
-                            <span>ارسال کد</span>
+                            <span className="hidden sm:inline">ارسال کد</span>
+                            <span className="inline sm:hidden">ارسال</span>
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               className="h-4 w-4 mr-1 inline"
@@ -435,9 +436,13 @@ export default function ProfilePage() {
                     </div>
 
                     {showVerification && (
-                      <div className="w-full bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
+                      <div className="w-full bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200 shadow-sm">
                         <div className="text-center mb-2 text-sm text-gray-600">
-                          کد تایید به شماره {phone} ارسال شد
+                          کد تایید به{" "}
+                          <span className="text-blue-600 font-medium">
+                            {phone}
+                          </span>{" "}
+                          ارسال شد
                         </div>
                         <div className="flex w-full rounded-lg overflow-hidden border border-gray-300">
                           <input
@@ -454,7 +459,7 @@ export default function ProfilePage() {
                             type="button"
                             onClick={handleVerifyPhone}
                             disabled={isVerifying}
-                            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-70 text-sm transition-all duration-200 ease-in-out"
+                            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-70 text-sm transition-all duration-200 ease-in-out whitespace-nowrap"
                           >
                             {isVerifying ? (
                               <svg
@@ -479,7 +484,10 @@ export default function ProfilePage() {
                               </svg>
                             ) : (
                               <>
-                                <span>تایید کد</span>
+                                <span className="hidden sm:inline">
+                                  تایید کد
+                                </span>
+                                <span className="inline sm:hidden">تایید</span>
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
                                   className="h-4 w-4 mr-1 inline"
@@ -497,6 +505,33 @@ export default function ProfilePage() {
                               </>
                             )}
                           </button>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-2 text-xs">
+                          <button
+                            type="button"
+                            onClick={sendVerificationCode}
+                            className="flex items-center text-blue-600 hover:text-blue-800 transition-colors duration-200"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3 w-3 ml-1"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                              />
+                            </svg>
+                            ارسال مجدد
+                          </button>
+                          <div className="text-gray-500 text-xs">
+                            {/* زمان باقیمانده: ۲:۳۵ */}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -545,30 +580,7 @@ export default function ProfilePage() {
                       </div>
                     )}
 
-                    <div className="flex justify-between w-full">
-                      {showVerification && (
-                        <button
-                          type="button"
-                          onClick={sendVerificationCode}
-                          className="flex items-center text-blue-600 text-xs hover:text-blue-800 transition-colors duration-200"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-3 w-3 ml-1"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                            />
-                          </svg>
-                          ارسال مجدد کد
-                        </button>
-                      )}
+                    <div className="flex justify-end w-full">
                       <button
                         type="button"
                         onClick={() => {
