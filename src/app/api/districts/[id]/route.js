@@ -6,6 +6,62 @@ import AcademicYear from "@/models/AcademicYear";
 import dbConnect from "@/lib/dbConnect";
 import { authService } from "@/lib/auth/authService";
 
+// GET /api/districts/[id] - Get district by ID
+export async function GET(request, { params }) {
+  try {
+    const id = params?.id;
+    console.log(`GET /api/districts/${id} - Request received`);
+
+    await dbConnect();
+    console.log("GET /api/districts/[id] - Connected to database");
+
+    const user = await authService.validateToken(request);
+    if (!user) {
+      console.log("GET /api/districts/[id] - User authentication: false");
+      return NextResponse.json(
+        { success: false, error: "عدم احراز هویت کاربر" },
+        { status: 401 }
+      );
+    }
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: "شناسه منطقه الزامی است" },
+        { status: 400 }
+      );
+    }
+
+    const district = await District.findById(id)
+      .populate("province", "name")
+      .lean();
+    if (!district) {
+      return NextResponse.json(
+        { success: false, error: "منطقه مورد نظر یافت نشد" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      district: {
+        ...district,
+        _id: district._id.toString(),
+        province: district.province._id.toString(),
+        province_name: district.province.name,
+      },
+    });
+  } catch (error) {
+    console.error(`GET /api/districts/[id] - Error:`, error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: `خطا در دریافت اطلاعات منطقه: ${error.message}`,
+      },
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE /api/districts - Delete a district
 export async function DELETE(request, { params }) {
   try {

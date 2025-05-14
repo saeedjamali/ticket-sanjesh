@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { getRoleName, getStatusText, ROLES } from "@/lib/permissions";
 
-export default function TicketsList({ user }) {
+export default function TicketsList({ user, districtFilter }) {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -15,7 +15,6 @@ export default function TicketsList({ user }) {
   const [authError, setAuthError] = useState(false);
   const [debugInfo, setDebugInfo] = useState(null);
   const [ticketNumber, setTicketNumber] = useState("");
-
 
   const fetchTickets = async (
     page = 1,
@@ -55,28 +54,37 @@ export default function TicketsList({ user }) {
         url += `&priority=${priorityFilter}`;
       }
 
-      // اضافه کردن پارامترهای کوئری برای فیلتر کردن تیکت‌ها بر اساس نقش کاربر
-      if (user && user.role) {
-        url += `&userRole=${user.role}`;
+      // اضافه کردن پارامتر district که از URL دریافت شده
+      if (districtFilter) {
+        url += `&district=${districtFilter}`;
+        console.log(`Filtering tickets for district: ${districtFilter}`);
+        // اضافه کردن لاگ دیباگ بیشتر
+        console.log(`Full URL with district filter: ${url}`);
+      }
+      // در غیر این صورت از اطلاعات کاربر استفاده می‌کنیم
+      else {
+        // اضافه کردن پارامترهای کوئری برای فیلتر کردن تیکت‌ها بر اساس نقش کاربر
+        if (user && user.role) {
+          url += `&userRole=${user.role}`;
 
-        if (user.id) {
-          url += `&userId=${user.id}`;
-        }
+          if (user.id) {
+            url += `&userId=${user.id}`;
+          }
 
-        if (user.examCenter) {
-          url += `&examCenter=${user.examCenter}`;
-        }
+          if (user.examCenter) {
+            url += `&examCenter=${user.examCenter}`;
+          }
 
-        if (user.district) {
-          url += `&district=${user.district}`;
-        }
+          if (user.district) {
+            url += `&district=${user.district}`;
+          }
 
-        // اضافه کردن فیلتر استان برای مدیر کل استان
-        if (user.province) {
-          url += `&province=${user.province}`;
+          // اضافه کردن فیلتر استان برای مدیر کل استان
+          if (user.province) {
+            url += `&province=${user.province}`;
+          }
         }
       }
-
 
       // تنظیم هدرهای درخواست
       const headers = {
@@ -158,13 +166,12 @@ export default function TicketsList({ user }) {
 
   useEffect(() => {
     if (user) {
-      
       fetchTickets(currentPage, filter, ticketNumber, priorityFilter);
     } else {
       setAuthError(true);
       setLoading(false);
     }
-  }, [currentPage, filter, user, ticketNumber, priorityFilter]);
+  }, [currentPage, filter, user, ticketNumber, priorityFilter, districtFilter]);
 
   // ایجاد یک تیکت تست
   const createTestTicket = async () => {
@@ -662,10 +669,11 @@ export default function TicketsList({ user }) {
                         : "---"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
-                      {getReceiverText(ticket.receiver) 
+                      {
+                        getReceiverText(ticket.receiver)
                         // " | " +
                         // ticket?.district?.name
-                        }
+                      }
                     </td>
                     {(user.role === ROLES.GENERAL_MANAGER ||
                       user.role === ROLES.PROVINCE_EDUCATION_EXPERT ||

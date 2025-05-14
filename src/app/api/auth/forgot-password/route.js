@@ -52,6 +52,9 @@ export async function POST(req) {
     // به‌روزرسانی رمز عبور کاربر
     await User.findByIdAndUpdate(user._id, { password: hashedPassword });
 
+    // تبدیل شماره موبایل به حالت محدود شده (فقط 4 رقم آخر نمایش داده شود)
+    const maskedPhone = user.phone.replace(/^(\d{7})(\d{4})$/, "****" + "$2");
+
     try {
       // ارسال رمز عبور جدید به شماره موبایل کاربر
       await axios.post("https://sms.3300.ir/api/wsSend.ashx", {
@@ -71,12 +74,14 @@ export async function POST(req) {
         message:
           "رمز عبور با موفقیت تغییر کرد اما در ارسال پیامک مشکلی پیش آمد. لطفاً با پشتیبانی تماس بگیرید.",
         smsError: true,
+        maskedPhone,
       });
     }
 
     return NextResponse.json({
       success: true,
       message: "رمز عبور جدید به شماره موبایل شما ارسال شد",
+      maskedPhone,
     });
   } catch (error) {
     console.error("Error in forgot password:", error);

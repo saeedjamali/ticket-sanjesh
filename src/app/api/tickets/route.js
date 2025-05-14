@@ -42,7 +42,8 @@ export async function GET(req) {
     const status = searchParams.get("status");
     const ticketNumber = searchParams.get("ticketNumber");
     const priority = searchParams.get("priority");
-    const skip = (page - 1) * limit;
+    // بررسی پارامتر district از URL
+    const districtFilter = searchParams.get("district");
 
     console.log("GET /api/tickets - query params:", {
       page,
@@ -50,7 +51,10 @@ export async function GET(req) {
       status,
       ticketNumber,
       priority,
+      districtFilter,
     });
+
+    const skip = (page - 1) * limit;
 
     try {
       await connectDB();
@@ -93,6 +97,115 @@ export async function GET(req) {
       query.priority = priority;
     }
 
+    // اضافه کردن فیلتر منطقه از URL اگر وجود داشته باشد
+    if (districtFilter) {
+      try {
+        const districtId = mongoose.Types.ObjectId.isValid(districtFilter)
+          ? new mongoose.Types.ObjectId(districtFilter)
+          : districtFilter;
+
+        query.district = districtId;
+        console.log(`Applied district filter from URL: ${districtId}`);
+        console.log(`District filter type: ${typeof districtId}`);
+
+        // تست و اطمینان از اینکه کوئری با district فیلتر شده است
+        if (query.district) {
+          console.log(
+            `District filter set successfully in query: ${JSON.stringify(
+              query.district
+            )}`
+          );
+
+          // حتی با وجود فیلتر منطقه، برای مسئول مرکز آزمون فقط تیکت‌های مربوط به مرکز خودش را نمایش می‌دهیم
+          if (user.role === ROLES.EXAM_CENTER_MANAGER) {
+            console.log(
+              "EXAM_CENTER_MANAGER with district filter - applying additional filters"
+            );
+
+            const conditions = [];
+
+            // شرط اول: تیکت‌هایی که توسط این کاربر ایجاد شده‌اند
+            if (user.id) {
+              try {
+                const userIdIsValid = mongoose.Types.ObjectId.isValid(user.id);
+                if (userIdIsValid) {
+                  const createdById = new mongoose.Types.ObjectId(user.id);
+                  conditions.push({ createdBy: createdById });
+                  console.log(
+                    `Added createdBy condition with ObjectId: ${createdById}`
+                  );
+                } else {
+                  conditions.push({ createdBy: user.id.toString() });
+                }
+              } catch (error) {
+                console.error(`Error processing user.id (${user.id}):`, error);
+                conditions.push({ createdBy: user.id.toString() });
+              }
+            }
+
+            // شرط دوم: تیکت‌هایی که برای مرکز آزمون این کاربر هستند
+            if (user.examCenter) {
+              try {
+                const examCenterIdIsValid = mongoose.Types.ObjectId.isValid(
+                  user.examCenter
+                );
+                if (examCenterIdIsValid) {
+                  const examCenterId = new mongoose.Types.ObjectId(
+                    user.examCenter
+                  );
+                  conditions.push({ examCenter: examCenterId });
+                  console.log(
+                    `Added examCenter condition with ObjectId: ${examCenterId}`
+                  );
+                } else {
+                  conditions.push({ examCenter: user.examCenter.toString() });
+                }
+              } catch (error) {
+                console.error(
+                  `Error processing examCenter ID (${user.examCenter}):`,
+                  error
+                );
+                conditions.push({ examCenter: user.examCenter.toString() });
+              }
+            }
+
+            // استفاده از $and برای ترکیب شرط منطقه با شرط‌های دسترسی کاربر
+            if (conditions.length > 0) {
+              // اگر قبلاً district را به query اضافه کرده‌ایم
+              const districtCondition = { district: query.district };
+              delete query.district; // حذف district از query اصلی
+
+              // اضافه کردن شرط $or برای نمایش تیکت‌هایی که کاربر ایجاد کرده یا متعلق به مرکز آزمون اوست
+              query.$and = [districtCondition, { $or: conditions }];
+
+              console.log(
+                `Set $and condition combining district with $or conditions: ${JSON.stringify(
+                  query
+                )}`
+              );
+            }
+          }
+
+          // حذف فیلترهای دیگر که ممکن است با district تداخل داشته باشند فقط برای کاربرانی که مسئول مرکز آزمون نیستند
+          else if (query.$or) {
+            console.log(
+              `$or condition existed before: ${JSON.stringify(query.$or)}`
+            );
+            // برای اطمینان از اینکه فیلتر district اعمال شود، $or را حذف می‌کنیم
+            delete query.$or;
+            console.log(
+              "Removed $or condition to ensure district filter works"
+            );
+          }
+        }
+      } catch (error) {
+        console.error(
+          `Error processing district filter: ${districtFilter}`,
+          error
+        );
+      }
+    }
+
     const userRole = user.role;
     console.log("GET /api/tickets - user role:", userRole);
     console.log(
@@ -104,240 +217,246 @@ export async function GET(req) {
       userRole === ROLES.EXAM_CENTER_MANAGER
     );
 
-    // Add user-specific filters based on role
-    if (userRole === ROLES.EXAM_CENTER_MANAGER) {
-      // مسئول مرکز آزمون تیکت‌های مرکز خودش را می‌بیند
-      // و همچنین تیکت‌هایی که خودش ایجاد کرده است
-      try {
-        const conditions = [];
+    // Add user-specific filters based on role (only if no district filter is applied)
+    if (!districtFilter) {
+      console.log("No district filter from URL, applying role-based filters");
 
-        // Check if user.id is valid and log a detailed message for debugging
-        console.log(
-          `EXAM_CENTER_MANAGER user.id: ${user.id}, type: ${typeof user.id}`
-        );
+      if (userRole === ROLES.EXAM_CENTER_MANAGER) {
+        // مسئول مرکز آزمون تیکت‌های مرکز خودش را می‌بیند
+        // و همچنین تیکت‌هایی که خودش ایجاد کرده است
+        try {
+          const conditions = [];
 
-        // شرط اول: تیکت‌هایی که توسط این کاربر ایجاد شده‌اند
-        if (user.id) {
-          try {
-            // Validate user.id is a proper ObjectId
-            const userIdIsValid = mongoose.Types.ObjectId.isValid(user.id);
-            console.log(
-              `Is user.id (${user.id}) a valid ObjectId? ${userIdIsValid}`
-            );
+          // Check if user.id is valid and log a detailed message for debugging
+          console.log(
+            `EXAM_CENTER_MANAGER user.id: ${user.id}, type: ${typeof user.id}`
+          );
 
-            if (userIdIsValid) {
-              const createdById = new mongoose.Types.ObjectId(user.id);
-              conditions.push({ createdBy: createdById });
+          // شرط اول: تیکت‌هایی که توسط این کاربر ایجاد شده‌اند
+          if (user.id) {
+            try {
+              // Validate user.id is a proper ObjectId
+              const userIdIsValid = mongoose.Types.ObjectId.isValid(user.id);
               console.log(
-                `Added createdBy condition with ObjectId: ${createdById}`
+                `Is user.id (${user.id}) a valid ObjectId? ${userIdIsValid}`
               );
-            } else {
-              console.log(
-                `User ID is not a valid ObjectId: ${user.id}. Will use string comparison.`
-              );
-              // For backward compatibility, also try string matching
+
+              if (userIdIsValid) {
+                const createdById = new mongoose.Types.ObjectId(user.id);
+                conditions.push({ createdBy: createdById });
+                console.log(
+                  `Added createdBy condition with ObjectId: ${createdById}`
+                );
+              } else {
+                console.log(
+                  `User ID is not a valid ObjectId: ${user.id}. Will use string comparison.`
+                );
+                // For backward compatibility, also try string matching
+                conditions.push({ createdBy: user.id.toString() });
+              }
+            } catch (idError) {
+              console.error(`Error processing user.id (${user.id}):`, idError);
+              // Adding string comparison as fallback
               conditions.push({ createdBy: user.id.toString() });
             }
-          } catch (idError) {
-            console.error(`Error processing user.id (${user.id}):`, idError);
-            // Adding string comparison as fallback
-            conditions.push({ createdBy: user.id.toString() });
           }
-        }
 
-        // شرط دوم: تیکت‌هایی که برای مرکز آزمون این کاربر هستند
-        if (user.examCenter) {
-          try {
-            const examCenterIdIsValid = mongoose.Types.ObjectId.isValid(
-              user.examCenter
-            );
-            console.log(
-              `Is examCenter (${user.examCenter}) a valid ObjectId? ${examCenterIdIsValid}`
-            );
+          // شرط دوم: تیکت‌هایی که برای مرکز آزمون این کاربر هستند
+          if (user.examCenter) {
+            try {
+              const examCenterIdIsValid = mongoose.Types.ObjectId.isValid(
+                user.examCenter
+              );
+              console.log(
+                `Is examCenter (${user.examCenter}) a valid ObjectId? ${examCenterIdIsValid}`
+              );
 
-            if (examCenterIdIsValid) {
-              const examCenterId = new mongoose.Types.ObjectId(user.examCenter);
-              conditions.push({ examCenter: examCenterId });
-              console.log(
-                `Added examCenter condition with ObjectId: ${examCenterId}`
+              if (examCenterIdIsValid) {
+                const examCenterId = new mongoose.Types.ObjectId(
+                  user.examCenter
+                );
+                conditions.push({ examCenter: examCenterId });
+                console.log(
+                  `Added examCenter condition with ObjectId: ${examCenterId}`
+                );
+              } else {
+                console.log(
+                  `Exam Center ID is not a valid ObjectId: ${user.examCenter}. Will use string comparison.`
+                );
+                // For backward compatibility, also try string matching
+                conditions.push({ examCenter: user.examCenter.toString() });
+              }
+            } catch (ecError) {
+              console.error(
+                `Error processing examCenter ID (${user.examCenter}):`,
+                ecError
               );
-            } else {
-              console.log(
-                `Exam Center ID is not a valid ObjectId: ${user.examCenter}. Will use string comparison.`
-              );
-              // For backward compatibility, also try string matching
+              // Adding string comparison as fallback
               conditions.push({ examCenter: user.examCenter.toString() });
             }
-          } catch (ecError) {
-            console.error(
-              `Error processing examCenter ID (${user.examCenter}):`,
-              ecError
-            );
-            // Adding string comparison as fallback
-            conditions.push({ examCenter: user.examCenter.toString() });
           }
-        }
 
-        // استفاده از $or برای ترکیب شرط‌ها - اگر هریک از شرط‌ها صحیح باشد تیکت‌ها نمایش داده می‌شوند
-        if (conditions.length > 0) {
-          query.$or = conditions;
-          console.log(
-            `Set $or conditions with ${conditions.length} clauses:`,
-            JSON.stringify(conditions)
-          );
-        } else {
-          // اگر هیچ شرطی نداشتیم، یک شرط غیرممکن اضافه کنیم تا هیچ نتیجه‌ای برنگرداند
+          // استفاده از $or برای ترکیب شرط‌ها - اگر هریک از شرط‌ها صحیح باشد تیکت‌ها نمایش داده می‌شوند
+          if (conditions.length > 0) {
+            query.$or = conditions;
+            console.log(
+              `Set $or conditions with ${conditions.length} clauses:`,
+              JSON.stringify(conditions)
+            );
+          } else {
+            // اگر هیچ شرطی نداشتیم، یک شرط غیرممکن اضافه کنیم تا هیچ نتیجه‌ای برنگرداند
+            query._id = new mongoose.Types.ObjectId(); // یک ObjectId که وجود ندارد
+            console.log(
+              `No valid conditions found, setting impossible _id filter`
+            );
+          }
+        } catch (error) {
+          console.error("Error setting up exam center manager filter:", error);
+          // در صورت خطا یک شرط غیرممکن اضافه کنیم تا هیچ نتیجه‌ای برنگرداند
           query._id = new mongoose.Types.ObjectId(); // یک ObjectId که وجود ندارد
-          console.log(
-            `No valid conditions found, setting impossible _id filter`
-          );
         }
-      } catch (error) {
-        console.error("Error setting up exam center manager filter:", error);
-        // در صورت خطا یک شرط غیرممکن اضافه کنیم تا هیچ نتیجه‌ای برنگرداند
-        query._id = new mongoose.Types.ObjectId(); // یک ObjectId که وجود ندارد
-      }
 
-      // افزودن لاگ کامل برای دیباگ
-      console.log(
-        "GET /api/tickets - complete exam center manager filter:",
-        JSON.stringify(query, null, 2)
-      );
-    } else if (userRole === ROLES.DISTRICT_EDUCATION_EXPERT) {
-      // کارشناس آموزش منطقه تیکت‌های آموزشی منطقه خود را می‌بیند
-      try {
-        if (user.district) {
-          const districtId = mongoose.Types.ObjectId.isValid(user.district)
-            ? new mongoose.Types.ObjectId(user.district)
-            : user.district;
-
-          query.district = districtId;
-          // جستجو بر اساس نوع آموزشی یا گیرنده آموزشی
-          query.$or = [
-            { type: "EDUCATION" },
-            { receiver: "education" },
-            { receiver: "districtEducationExpert" },
-            { receiver: "provinceEducationExpert" },
-          ];
-        } else {
-          // اگر منطقه مشخص نشده، هیچ تیکتی نشان نده
-          query._id = new mongoose.Types.ObjectId();
-        }
-      } catch (error) {
-        console.error(
-          "Error setting up district education expert filter:",
-          error
+        // افزودن لاگ کامل برای دیباگ
+        console.log(
+          "GET /api/tickets - complete exam center manager filter:",
+          JSON.stringify(query, null, 2)
         );
-        query._id = new mongoose.Types.ObjectId();
-      }
-      console.log(
-        "GET /api/tickets - district education expert filter:",
-        query
-      );
-    } else if (userRole === ROLES.DISTRICT_TECH_EXPERT) {
-      // کارشناس فنی منطقه تیکت‌های فنی منطقه خود را می‌بیند
-      try {
-        if (user.district) {
-          const districtId = mongoose.Types.ObjectId.isValid(user.district)
-            ? new mongoose.Types.ObjectId(user.district)
-            : user.district;
+      } else if (userRole === ROLES.DISTRICT_EDUCATION_EXPERT) {
+        // کارشناس آموزش منطقه تیکت‌های آموزشی منطقه خود را می‌بیند
+        try {
+          if (user.district) {
+            const districtId = mongoose.Types.ObjectId.isValid(user.district)
+              ? new mongoose.Types.ObjectId(user.district)
+              : user.district;
 
-          query.district = districtId;
-          // جستجو بر اساس نوع فنی یا گیرنده فنی
-          query.$or = [
-            { type: "TECH" },
-            { receiver: "tech" },
-            { receiver: "districtTechExpert" },
-            { receiver: "provinceTechExpert" },
-          ];
-        } else {
-          query._id = new mongoose.Types.ObjectId();
-        }
-      } catch (error) {
-        console.error("Error setting up district tech expert filter:", error);
-        query._id = new mongoose.Types.ObjectId();
-      }
-      console.log("GET /api/tickets - district tech expert filter:", query);
-    } else if (userRole === ROLES.PROVINCE_EDUCATION_EXPERT) {
-      // کارشناس سنجش استان فقط تیکت‌های مربوط به کارشناس سنجش منطقه در استان خودش را می‌بیند
-      try {
-        if (user.province) {
-          const provinceId = mongoose.Types.ObjectId.isValid(user.province)
-            ? new mongoose.Types.ObjectId(user.province)
-            : user.province;
-
-          query.province = provinceId;
-          // جستجو بر اساس نوع آموزشی یا گیرنده آموزشی
-          query.$or = [
-            { type: "EDUCATION" },
-            { receiver: "education" },
-            { receiver: "districtEducationExpert" },
-            { receiver: "provinceEducationExpert" },
-          ];
-
-          console.log("Province Education Expert filter applied:", {
-            province: provinceId,
-            type: "EDUCATION OR receiver: education/districtEducationExpert/provinceEducationExpert",
-          });
-        } else {
-          // اگر استان مشخص نشده، هیچ تیکتی نشان نده
-          query._id = new mongoose.Types.ObjectId();
-          console.log(
-            "No province found for this user, setting impossible filter"
+            query.district = districtId;
+            // جستجو بر اساس نوع آموزشی یا گیرنده آموزشی
+            query.$or = [
+              { type: "EDUCATION" },
+              { receiver: "education" },
+              { receiver: "districtEducationExpert" },
+              { receiver: "provinceEducationExpert" },
+            ];
+          } else {
+            // اگر منطقه مشخص نشده، هیچ تیکتی نشان نده
+            query._id = new mongoose.Types.ObjectId();
+          }
+        } catch (error) {
+          console.error(
+            "Error setting up district education expert filter:",
+            error
           );
+          query._id = new mongoose.Types.ObjectId();
         }
-      } catch (error) {
-        console.error(
-          "Error setting up province education expert filter:",
-          error
+        console.log(
+          "GET /api/tickets - district education expert filter:",
+          query
         );
-        query._id = new mongoose.Types.ObjectId();
-      }
-      console.log(
-        "GET /api/tickets - province education expert filter:",
-        JSON.stringify(query, null, 2)
-      );
-    } else if (userRole === ROLES.PROVINCE_TECH_EXPERT) {
-      // کارشناس فناوری استان فقط تیکت‌های مربوط به کارشناس فناوری منطقه در استان خودش را می‌بیند
-      try {
-        if (user.province) {
-          const provinceId = mongoose.Types.ObjectId.isValid(user.province)
-            ? new mongoose.Types.ObjectId(user.province)
-            : user.province;
+      } else if (userRole === ROLES.DISTRICT_TECH_EXPERT) {
+        // کارشناس فنی منطقه تیکت‌های فنی منطقه خود را می‌بیند
+        try {
+          if (user.district) {
+            const districtId = mongoose.Types.ObjectId.isValid(user.district)
+              ? new mongoose.Types.ObjectId(user.district)
+              : user.district;
 
-          query.province = provinceId;
-          // جستجو بر اساس نوع فنی یا گیرنده فنی
-          query.$or = [
-            { type: "TECH" },
-            { receiver: "tech" },
-            { receiver: "districtTechExpert" },
-            { receiver: "provinceTechExpert" },
-          ];
-
-          console.log("Province Tech Expert filter applied:", {
-            province: provinceId,
-            type: "TECH OR receiver: tech/districtTechExpert/provinceTechExpert",
-          });
-        } else {
-          // اگر استان مشخص نشده، هیچ تیکتی نشان نده
+            query.district = districtId;
+            // جستجو بر اساس نوع فنی یا گیرنده فنی
+            query.$or = [
+              { type: "TECH" },
+              { receiver: "tech" },
+              { receiver: "districtTechExpert" },
+              { receiver: "provinceTechExpert" },
+            ];
+          } else {
+            query._id = new mongoose.Types.ObjectId();
+          }
+        } catch (error) {
+          console.error("Error setting up district tech expert filter:", error);
           query._id = new mongoose.Types.ObjectId();
-          console.log(
-            "No province found for this user, setting impossible filter"
-          );
         }
-      } catch (error) {
-        console.error("Error setting up province tech expert filter:", error);
-        query._id = new mongoose.Types.ObjectId();
+        console.log("GET /api/tickets - district tech expert filter:", query);
+      } else if (userRole === ROLES.PROVINCE_EDUCATION_EXPERT) {
+        // کارشناس سنجش استان فقط تیکت‌های مربوط به کارشناس سنجش منطقه در استان خودش را می‌بیند
+        try {
+          if (user.province) {
+            const provinceId = mongoose.Types.ObjectId.isValid(user.province)
+              ? new mongoose.Types.ObjectId(user.province)
+              : user.province;
+
+            query.province = provinceId;
+            // جستجو بر اساس نوع آموزشی یا گیرنده آموزشی
+            query.$or = [
+              { type: "EDUCATION" },
+              { receiver: "education" },
+              { receiver: "districtEducationExpert" },
+              { receiver: "provinceEducationExpert" },
+            ];
+
+            console.log("Province Education Expert filter applied:", {
+              province: provinceId,
+              type: "EDUCATION OR receiver: education/districtEducationExpert/provinceEducationExpert",
+            });
+          } else {
+            // اگر استان مشخص نشده، هیچ تیکتی نشان نده
+            query._id = new mongoose.Types.ObjectId();
+            console.log(
+              "No province found for this user, setting impossible filter"
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Error setting up province education expert filter:",
+            error
+          );
+          query._id = new mongoose.Types.ObjectId();
+        }
+        console.log(
+          "GET /api/tickets - province education expert filter:",
+          JSON.stringify(query, null, 2)
+        );
+      } else if (userRole === ROLES.PROVINCE_TECH_EXPERT) {
+        // کارشناس فناوری استان فقط تیکت‌های مربوط به کارشناس فناوری منطقه در استان خودش را می‌بیند
+        try {
+          if (user.province) {
+            const provinceId = mongoose.Types.ObjectId.isValid(user.province)
+              ? new mongoose.Types.ObjectId(user.province)
+              : user.province;
+
+            query.province = provinceId;
+            // جستجو بر اساس نوع فنی یا گیرنده فنی
+            query.$or = [
+              { type: "TECH" },
+              { receiver: "tech" },
+              { receiver: "districtTechExpert" },
+              { receiver: "provinceTechExpert" },
+            ];
+
+            console.log("Province Tech Expert filter applied:", {
+              province: provinceId,
+              type: "TECH OR receiver: tech/districtTechExpert/provinceTechExpert",
+            });
+          } else {
+            // اگر استان مشخص نشده، هیچ تیکتی نشان نده
+            query._id = new mongoose.Types.ObjectId();
+            console.log(
+              "No province found for this user, setting impossible filter"
+            );
+          }
+        } catch (error) {
+          console.error("Error setting up province tech expert filter:", error);
+          query._id = new mongoose.Types.ObjectId();
+        }
+        console.log(
+          "GET /api/tickets - province tech expert filter:",
+          JSON.stringify(query, null, 2)
+        );
+      } else if (userRole === ROLES.SYSTEM_ADMIN) {
+        // مدیر سیستم تمام تیکت‌ها را می‌بیند (فیلتر اضافی نیاز نیست)
+        console.log("GET /api/tickets - system admin role, no filters applied");
+      } else {
+        console.log("GET /api/tickets - unknown role:", userRole);
       }
-      console.log(
-        "GET /api/tickets - province tech expert filter:",
-        JSON.stringify(query, null, 2)
-      );
-    } else if (userRole === ROLES.SYSTEM_ADMIN) {
-      // مدیر سیستم تمام تیکت‌ها را می‌بیند (فیلتر اضافی نیاز نیست)
-      console.log("GET /api/tickets - system admin role, no filters applied");
-    } else {
-      console.log("GET /api/tickets - unknown role:", userRole);
     }
 
     console.log("GET /api/tickets - final query:", JSON.stringify(query));

@@ -86,7 +86,11 @@ export default function LoginForm() {
       const data = await response.json();
 
       if (data.success) {
-        setResetPasswordSuccess("رمز عبور جدید به شماره موبایل شما ارسال شد");
+        setResetPasswordSuccess(
+          data.maskedPhone
+            ? `رمز عبور جدید به شماره موبایل ${data.maskedPhone} ارسال شد`
+            : "رمز عبور جدید به شماره موبایل شما ارسال شد"
+        );
       } else if (data.notVerified) {
         setResetPasswordError(
           "شماره موبایل تأیید شده‌ای برای حساب کاربری شما ثبت نشده است. لطفاً پس از ورود به سیستم، شماره موبایل خود را در صفحه پروفایل ثبت و تأیید کنید."
@@ -200,10 +204,10 @@ export default function LoginForm() {
 
           {resetPasswordSuccess && (
             <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md shadow-sm">
-              <div className="flex items-center">
+              <div className="flex items-start">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 ml-2 text-green-500"
+                  className="h-5 w-5 ml-2 text-green-500 flex-shrink-0 mt-0.5"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -213,7 +217,37 @@ export default function LoginForm() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>{resetPasswordSuccess}</span>
+                <div>
+                  <p className="font-medium">{resetPasswordSuccess}</p>
+                  {resetPasswordSuccess.includes("****") && (
+                    <div className="mt-2 bg-green-100 p-3 rounded-md text-sm">
+                      <p className="flex items-center mb-1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 ml-1 text-green-600"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <span className="font-semibold">راهنما:</span>
+                      </p>
+                      <ul className="list-disc list-inside mr-5 text-green-800 space-y-1">
+                        <li>
+                          رمز عبور جدید به صورت پیامک به موبایل شما ارسال شد.
+                        </li>
+                        <li>پس از ورود، حتماً رمز عبور خود را تغییر دهید.</li>
+                        <li>برای تغییر رمز عبور به بخش پروفایل مراجعه کنید.</li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

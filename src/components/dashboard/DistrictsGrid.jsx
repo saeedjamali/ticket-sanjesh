@@ -5,8 +5,11 @@ import { useUserContext } from "@/context/UserContext";
 import { toast } from "react-hot-toast";
 import { format, formatDistance } from "date-fns-jalali";
 import { faIR } from "date-fns-jalali/locale";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function DistrictsGrid() {
+    const router = useRouter();
     const { user } = useUserContext();
     const [districts, setDistricts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -216,6 +219,11 @@ export default function DistrictsGrid() {
             setSortMethod('newTickets');
             toast.success('مرتب‌سازی بر اساس تیکت‌های جدید');
         }
+    };
+
+    // تابع هدایت به صفحه لیست تیکت‌های منطقه
+    const goToDistrictTickets = (districtId) => {
+        router.push(`/dashboard/tickets?district=${districtId}`);
     };
 
     if (loading) {
@@ -485,13 +493,25 @@ export default function DistrictsGrid() {
                         return (
                             <div
                                 key={district._id}
-                                className={`${status.bgGradient} border ${status.color.replace('bg-', 'border-')} rounded-lg shadow-sm hover:shadow transition-all duration-300 overflow-hidden cursor-pointer h-auto relative ${district.newTicketsCount > 0 ? 'ring-2 ring-red-400 ring-opacity-50' : ''}`}
+                                className={`${status.bgGradient} border ${status.color.replace('bg-', 'border-')} rounded-lg shadow-sm hover:shadow-lg active:scale-95 transition-all duration-300 overflow-hidden cursor-pointer h-auto relative ${district.newTicketsCount > 0 ? 'ring-2 ring-red-400 ring-opacity-50' : ''} hover:translate-y-[-2px]`}
+                                onClick={() => goToDistrictTickets(district._id)}
                             >
+                                {/* فلش کوچک در گوشه پایین سمت چپ */}
+                                <div className="absolute bottom-0 left-0 bg-blue-500 bg-opacity-70 p-1 rounded-tr-md z-10 hover:bg-opacity-90 transition-all duration-200 group">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    </svg>
+                                    {/* tooltip */}
+                                    <div className="absolute bottom-full left-0 mb-1 bg-gray-800 text-white px-2 py-1 rounded text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                        مشاهده تیکت‌های منطقه
+                                    </div>
+                                </div>
+
                                 {district.newTicketsCount > 0 && (
                                     <div className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full transform translate-x-1 -translate-y-1 animate-pulse"></div>
                                 )}
                                 <div className="p-3">
-                                    <div className="flex justify-between items-center mb-2" onClick={() => toggleDetails(district._id)}>
+                                    <div className="flex justify-between items-center mb-2">
                                         <h3 className="text-base font-bold text-gray-800 truncate">
                                             {toFarsiNumber(district.name)}
                                         </h3>
@@ -544,11 +564,15 @@ export default function DistrictsGrid() {
                                     {/* دکمه نمایش/مخفی جزئیات */}
                                     <div className="border-t border-gray-200 mt-1 pt-1 text-center">
                                         <button
-                                            onClick={() => toggleDetails(district._id)}
-                                            className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200 focus:outline-none"
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // جلوگیری از هدایت به صفحه لیست تیکت‌ها
+                                                toggleDetails(district._id);
+                                            }}
+                                            className={`inline-flex items-center justify-center px-2 py-0.5 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 text-[10px] ${openDetails[district._id] ? 'bg-blue-50 text-blue-600' : ''}`}
                                             aria-expanded={openDetails[district._id] ? "true" : "false"}
                                             aria-controls={`details-${district._id}`}
                                         >
+                                            <span className="mr-1">{openDetails[district._id] ? 'بستن جزئیات' : 'مشاهده جزئیات'}</span>
                                             <svg xmlns="http://www.w3.org/2000/svg"
                                                 className={`h-3 w-3 transition-transform duration-300 ${openDetails[district._id] ? 'transform rotate-180' : ''}`}
                                                 viewBox="0 0 20 20"
@@ -556,9 +580,6 @@ export default function DistrictsGrid() {
                                             >
                                                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                                             </svg>
-                                            <span className="sr-only">
-                                                {openDetails[district._id] ? 'مخفی کردن جزئیات' : 'نمایش جزئیات'}
-                                            </span>
                                         </button>
                                     </div>
 
@@ -566,6 +587,7 @@ export default function DistrictsGrid() {
                                     <div
                                         id={`details-${district._id}`}
                                         className={`overflow-hidden transition-all duration-300 ${openDetails[district._id] ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}`}
+                                        onClick={(e) => e.stopPropagation()} // جلوگیری از هدایت به صفحه لیست تیکت‌ها
                                     >
                                         <div className="pt-2 border-t border-gray-200 text-xs">
                                             <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
@@ -664,8 +686,6 @@ export default function DistrictsGrid() {
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className={`w-full h-1 ${status.color}`}></div>
                             </div>
                         );
                     })}

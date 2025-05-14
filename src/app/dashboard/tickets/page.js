@@ -5,9 +5,16 @@ import TicketsList from "@/components/tickets/TicketsList";
 import Link from "next/link";
 import { ROLES } from "@/lib/permissions";
 import { useUserContext } from "@/context/UserContext";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 export default function TicketsPage() {
   const { user, loading } = useUserContext();
+  const searchParams = useSearchParams();
+  const districtId = searchParams.get("district");
+  const [districtName, setDistrictName] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     if (user) {
@@ -18,6 +25,37 @@ export default function TicketsPage() {
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    const fetchDistrictInfo = async () => {
+      if (!districtId) {
+        setDistrictName("");
+        return;
+      }
+
+      try {
+        const accessToken = localStorage.getItem("accessToken");
+        const response = await fetch(`/api/districts/${districtId}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          credentials: "include",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.district) {
+            setDistrictName(data.district.name);
+          }
+        }
+      } catch (error) {
+        console.error("خطا در دریافت اطلاعات منطقه:", error);
+      }
+    };
+
+    fetchDistrictInfo();
+  }, [districtId]);
 
   if (loading) {
     return (
@@ -68,23 +106,141 @@ export default function TicketsPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">مدیریت تیکت‌ها</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">مدیریت تیکت‌ها</h1>
+          {districtName && (
+            <div className="flex items-center text-gray-600 mt-1">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 ml-1 text-blue-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <span className="text-sm">
+                منطقه:{" "}
+                <span className="font-semibold text-blue-600">
+                  {districtName}
+                </span>
+              </span>
+              <button
+                onClick={() => router.push("/dashboard/tickets")}
+                className="mr-2 text-xs text-red-500 hover:text-red-700 flex items-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-3 w-3 ml-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+                حذف فیلتر
+              </button>
+            </div>
+          )}
+        </div>
         {(user.role === ROLES.EXAM_CENTER_MANAGER ||
           user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-          user.role === ROLES.DISTRICT_TECH_EXPERT) && (
-          <Link
-            href="/dashboard/tickets/create"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
-          >
-            <span>ایجاد تیکت جدید</span>
-          </Link>
-        )}
+          user.role === ROLES.DISTRICT_TECH_EXPERT) &&
+          (user.phoneVerified ? (
+            <Link
+              href="/dashboard/tickets/create"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
+            >
+              <span>ایجاد تیکت جدید</span>
+            </Link>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  toast.error(
+                    "برای ایجاد تیکت، ابتدا باید شماره موبایل خود را تأیید کنید",
+                    {
+                      duration: 4000,
+                      position: "top-center",
+                      icon: "⚠️",
+                    }
+                  );
+                  router.push("/dashboard/profile");
+                }}
+                className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-md flex items-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 ml-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>ایجاد تیکت جدید</span>
+              </button>
+            </>
+          ))}
       </div>
 
-      <TicketsList user={user} />
+      {!user.phoneVerified && (
+        <div className="bg-amber-50 border-r-4 border-amber-500 p-3 rounded-lg shadow-sm mb-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 ml-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-amber-600"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-amber-700">
+                <strong>توجه:</strong> برای ایجاد تیکت جدید، ابتدا باید شماره
+                موبایل خود را در{" "}
+                <Link
+                  href="/dashboard/profile"
+                  className="text-amber-800 font-semibold underline"
+                >
+                  صفحه پروفایل
+                </Link>{" "}
+                تأیید کنید.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <TicketsList user={user} districtFilter={districtId} />
 
       {/* راهنمای وضعیت تیکت‌ها */}
-      <div className="bg-gradient-to-r from-white to-gray-50 p-5 rounded-lg shadow-sm border border-gray-100 mt-8">
+      {/* <div className="bg-gradient-to-r from-white to-gray-50 p-5 rounded-lg shadow-sm border border-gray-100 mt-8">
         <div className="flex items-center justify-between mb-3 border-b pb-2">
           <div className="flex items-center">
             <svg
@@ -149,7 +305,7 @@ export default function TicketsPage() {
             </span>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
