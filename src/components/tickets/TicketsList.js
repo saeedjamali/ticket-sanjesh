@@ -607,6 +607,9 @@ export default function TicketsList({ user, districtFilter }) {
             <table className="w-full min-w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
+                   <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
+                    عملیات
+                  </th>
                   <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                     شماره پیگیری
                   </th>
@@ -635,9 +638,7 @@ export default function TicketsList({ user, districtFilter }) {
                   <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                     تاریخ
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
-                    عملیات
-                  </th>
+                 
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800">
@@ -646,6 +647,14 @@ export default function TicketsList({ user, districtFilter }) {
                     key={ticket._id}
                     className="hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
+                      <td className="whitespace-nowrap px-6 py-4 text-center text-sm font-medium">
+                      <Link
+                        href={`/dashboard/tickets/${ticket._id}`}
+                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        مشاهده
+                      </Link>
+                    </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-center font-mono text-gray-500 dark:text-gray-400">
                       {ticket.ticketNumber || "---"}
                     </td>
@@ -704,14 +713,7 @@ export default function TicketsList({ user, districtFilter }) {
                         return `${persianDate} - ${time}`;
                       })()}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-center text-sm font-medium">
-                      <Link
-                        href={`/dashboard/tickets/${ticket._id}`}
-                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
-                      >
-                        مشاهده
-                      </Link>
-                    </td>
+                  
                   </tr>
                 ))}
               </tbody>
