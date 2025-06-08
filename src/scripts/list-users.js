@@ -34,7 +34,7 @@ const UserSchema = new mongoose.Schema({
       "provinceTechExpert", // کارشناس فناوری استان
       "districtEducationExpert", // کارشناس سنجش منطقه
       "districtTechExpert", // کارشناس فناوری منطقه
-      "examCenterManager", // مسئول مرکز آزمون
+      "examCenterManager", // مدیر واحد سازمانی
     ],
     required: true,
   },

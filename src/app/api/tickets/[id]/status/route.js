@@ -37,7 +37,7 @@ export async function PUT(request, { params }) {
     if (session.user.role === ROLES.SYSTEM_ADMIN) {
       canUpdateStatus = true;
     }
-    // مسئول مرکز آزمون فقط می‌تواند وضعیت پیش‌نویس را به دیده‌نشده تغییر دهد
+    // مدیر واحد سازمانی فقط می‌تواند وضعیت پیش‌نویس را به دیده‌نشده تغییر دهد
     else if (
       session.user.role === ROLES.EXAM_CENTER_MANAGER &&
       ticket.status === "draft" &&

@@ -68,7 +68,8 @@ export async function GET(request) {
     if (userAuth.role !== ROLES.SYSTEM_ADMIN) {
       if (
         userAuth.role === ROLES.PROVINCE_EDUCATION_EXPERT ||
-        userAuth.role === ROLES.PROVINCE_TECH_EXPERT
+        userAuth.role === ROLES.PROVINCE_TECH_EXPERT ||
+        userAuth.role === ROLES.PROVINCE_EVAL_EXPERT
       ) {
         // کارشناسان استان فقط می‌توانند کاربران استان خود را ببینند
         query.province = userAuth.province;
@@ -82,6 +83,7 @@ export async function GET(request) {
             ROLES.GENERAL_MANAGER,
             ROLES.PROVINCE_EDUCATION_EXPERT,
             ROLES.PROVINCE_TECH_EXPERT,
+            ROLES.PROVINCE_EVAL_EXPERT,
           ],
         };
       }
@@ -168,18 +170,22 @@ export async function POST(request) {
     } else if (userAuth.role === ROLES.GENERAL_MANAGER) {
       // مدیر کل می‌تواند کارشناسان استان را ایجاد کند
       if (
-        [ROLES.PROVINCE_EDUCATION_EXPERT, ROLES.PROVINCE_TECH_EXPERT].includes(
-          data.role
-        )
+        [
+          ROLES.PROVINCE_EDUCATION_EXPERT,
+          ROLES.PROVINCE_TECH_EXPERT,
+          ROLES.PROVINCE_EVAL_EXPERT,
+        ].includes(data.role)
       ) {
         hasPermission = true;
       }
     } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
       // کارشناس فناوری استان می‌تواند کارشناسان منطقه را ایجاد کند
       if (
-        [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT].includes(
-          data.role
-        )
+        [
+          ROLES.DISTRICT_EDUCATION_EXPERT,
+          ROLES.DISTRICT_TECH_EXPERT,
+          ROLES.DISTRICT_EVAL_EXPERT,
+        ].includes(data.role)
       ) {
         hasPermission = true;
         // باید برای استان خودشان باشد
@@ -212,14 +218,17 @@ export async function POST(request) {
     const requiresProvince = [
       ROLES.PROVINCE_EDUCATION_EXPERT,
       ROLES.PROVINCE_TECH_EXPERT,
+      ROLES.PROVINCE_EVAL_EXPERT,
       ROLES.DISTRICT_EDUCATION_EXPERT,
       ROLES.DISTRICT_TECH_EXPERT,
+      ROLES.DISTRICT_EVAL_EXPERT,
       ROLES.EXAM_CENTER_MANAGER,
     ];
 
     const requiresDistrict = [
       ROLES.DISTRICT_EDUCATION_EXPERT,
       ROLES.DISTRICT_TECH_EXPERT,
+      ROLES.DISTRICT_EVAL_EXPERT,
       ROLES.EXAM_CENTER_MANAGER,
     ];
 
@@ -241,7 +250,10 @@ export async function POST(request) {
 
     if (requiresExamCenter.includes(data.role) && !data.examCenter) {
       return NextResponse.json(
-        { success: false, error: "انتخاب مرکز آزمون برای این نقش الزامی است" },
+        {
+          success: false,
+          error: "انتخاب واحد سازمانی برای این نقش الزامی است",
+        },
         { status: 400 }
       );
     }
@@ -345,18 +357,22 @@ export async function PUT(request) {
     } else if (userAuth.role === ROLES.GENERAL_MANAGER) {
       // مدیر کل می‌تواند کارشناسان استان را ویرایش کند
       if (
-        [ROLES.PROVINCE_EDUCATION_EXPERT, ROLES.PROVINCE_TECH_EXPERT].includes(
-          user.role
-        )
+        [
+          ROLES.PROVINCE_EDUCATION_EXPERT,
+          ROLES.PROVINCE_TECH_EXPERT,
+          ROLES.PROVINCE_EVAL_EXPERT,
+        ].includes(user.role)
       ) {
         hasPermission = true;
       }
     } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
       // کارشناس فناوری استان می‌تواند کارشناسان منطقه را ویرایش کند
       if (
-        [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT].includes(
-          user.role
-        )
+        [
+          ROLES.DISTRICT_EDUCATION_EXPERT,
+          ROLES.DISTRICT_TECH_EXPERT,
+          ROLES.DISTRICT_EVAL_EXPERT,
+        ].includes(user.role)
       ) {
         hasPermission = true;
         // باید برای استان خودشان باشد
@@ -521,18 +537,22 @@ export async function PATCH(request) {
     } else if (userAuth.role === ROLES.GENERAL_MANAGER) {
       // General manager can change province experts' passwords
       if (
-        [ROLES.PROVINCE_EDUCATION_EXPERT, ROLES.PROVINCE_TECH_EXPERT].includes(
-          user.role
-        )
+        [
+          ROLES.PROVINCE_EDUCATION_EXPERT,
+          ROLES.PROVINCE_TECH_EXPERT,
+          ROLES.PROVINCE_EVAL_EXPERT,
+        ].includes(user.role)
       ) {
         hasPermission = true;
       }
     } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
       // Province tech expert can change district experts' passwords
       if (
-        [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT].includes(
-          user.role
-        )
+        [
+          ROLES.DISTRICT_EDUCATION_EXPERT,
+          ROLES.DISTRICT_TECH_EXPERT,
+          ROLES.DISTRICT_EVAL_EXPERT,
+        ].includes(user.role)
       ) {
         hasPermission = true;
 

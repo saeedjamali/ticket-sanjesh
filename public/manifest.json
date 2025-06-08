@@ -1,7 +1,7 @@
 {
   "name": "سامانه تیکتینگ",
   "short_name": "تیکتینگ",
-  "description": "سامانه تیکتینگ مرکز آزمون",
+  "description": "سامانه تیکتینگ واحد سازمانی",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

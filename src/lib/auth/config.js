@@ -36,8 +36,10 @@ export const ROLES = {
   GENERAL_MANAGER: "generalManager",
   PROVINCE_EDUCATION_EXPERT: "provinceEducationExpert",
   PROVINCE_TECH_EXPERT: "provinceTechExpert",
+  PROVINCE_EVAL_EXPERT: "provinceEvalExpert",
   DISTRICT_EDUCATION_EXPERT: "districtEducationExpert",
   DISTRICT_TECH_EXPERT: "districtTechExpert",
+  DISTRICT_EVAL_EXPERT: "districtEvalExpert",
   EXAM_CENTER_MANAGER: "examCenterManager",
 };
 
@@ -52,11 +54,19 @@ export const ROLE_PERMISSIONS = {
     "view_province_tickets",
     "manage_province_users",
   ],
+  [ROLES.PROVINCE_EVAL_EXPERT]: [
+    "view_province_tickets",
+    "manage_province_users",
+  ],
   [ROLES.PROVINCE_TECH_EXPERT]: [
     "view_province_tickets",
     "manage_province_technical",
   ],
   [ROLES.DISTRICT_EDUCATION_EXPERT]: [
+    "view_district_tickets",
+    "manage_district_users",
+  ],
+  [ROLES.DISTRICT_EVAL_EXPERT]: [
     "view_district_tickets",
     "manage_district_users",
   ],

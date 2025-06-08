@@ -62,7 +62,7 @@ export async function GET(request) {
           );
           query.district = districtParam;
         }
-        // در غیر این صورت، تمام مراکز آزمون استان را برگردان
+        // در غیر این صورت، تمام واحدهای سازمانی استان را برگردان
         else if (user.province) {
           console.log(
             `Province filter applied for user's province: ${user.province}`
@@ -120,7 +120,7 @@ export async function GET(request) {
         break;
 
       case ROLES.EXAM_CENTER_MANAGER:
-      case "examCenterManager": // مسئول مرکز آزمون
+      case "examCenterManager": // مدیر واحد سازمانی
         console.log("Exam center manager access being processed");
 
         if (user.examCenter) {
@@ -133,7 +133,7 @@ export async function GET(request) {
         } else {
           console.error("No exam center ID found in user profile");
           return NextResponse.json(
-            { success: false, error: "دسترسی به مرکز آزمون تعریف نشده است" },
+            { success: false, error: "دسترسی به واحد سازمانی تعریف نشده است" },
             { status: 403 }
           );
         }
@@ -160,7 +160,9 @@ export async function GET(request) {
       })
       .populate("manager", "fullName")
       .sort({ name: 1 })
-      .select("name code district manager capacity createdAt");
+      .select(
+        "name code district manager capacity address phone gender period studentCount organizationType createdAt"
+      );
 
     console.log(`Found ${examCenters.length} exam centers`);
 
@@ -173,7 +175,7 @@ export async function GET(request) {
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "خطا در دریافت اطلاعات مراکز آزمون",
+        error: error.message || "خطا در دریافت اطلاعات واحدهای سازمانی",
       },
       { status: error.message.includes("عدم احراز هویت") ? 401 : 500 }
     );
@@ -198,20 +200,81 @@ export async function POST(request) {
       !["systemAdmin", "generalManager", "provinceManager"].includes(user.role)
     ) {
       return NextResponse.json(
-        { success: false, error: "شما مجوز ایجاد مرکز آزمون را ندارید" },
+        { success: false, error: "شما مجوز ایجاد واحد سازمانی را ندارید" },
         { status: 403 }
       );
     }
 
-    const { name, code, districtId, manager, capacity, address, phone } =
-      await request.json();
+    const {
+      name,
+      code,
+      districtId,
+      manager,
+      capacity,
+      address,
+      phone,
+      gender,
+      period,
+      studentCount,
+      organizationType,
+    } = await request.json();
 
     // Validate required fields
     if (!name?.trim() || !code?.trim() || !districtId) {
       return NextResponse.json(
         {
           success: false,
-          error: "نام، کد و منطقه مرکز آزمون الزامی است",
+          error: "نام، کد و منطقه واحد سازمانی الزامی است",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate enum fields if provided
+    if (gender && !["دختر", "پسر", "مختلط"].includes(gender)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "جنسیت باید یکی از مقادیر دختر، پسر یا مختلط باشد",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      period &&
+      ![
+        "ابتدایی",
+        "متوسطه اول",
+        "متوسطه دوم فنی",
+        "متوسطه دوم کاردانش",
+        "متوسطه دوم نظری",
+      ].includes(period)
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "دوره باید یکی از مقادیر مجاز باشد",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (organizationType && !["دولتی", "غیردولتی"].includes(organizationType)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "نوع واحد سازمانی باید دولتی یا غیردولتی باشد",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (studentCount && (isNaN(studentCount) || Number(studentCount) < 0)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "تعداد دانش آموز باید عدد مثبت باشد",
         },
         { status: 400 }
       );
@@ -234,7 +297,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          error: "شما مجوز ایجاد مرکز آزمون در این منطقه را ندارید",
+          error: "شما مجوز ایجاد واحد سازمانی در این منطقه را ندارید",
         },
         { status: 403 }
       );
@@ -244,7 +307,7 @@ export async function POST(request) {
     const existingCenter = await ExamCenter.findOne({ code: code.trim() });
     if (existingCenter) {
       return NextResponse.json(
-        { success: false, error: "کد مرکز آزمون تکراری است" },
+        { success: false, error: "کد واحد سازمانی تکراری است" },
         { status: 400 }
       );
     }
@@ -257,6 +320,10 @@ export async function POST(request) {
       capacity: capacity ? Number(capacity) : undefined,
       address: address || undefined,
       phone: phone || undefined,
+      gender: gender || undefined,
+      period: period || undefined,
+      studentCount: studentCount ? Number(studentCount) : undefined,
+      organizationType: organizationType || undefined,
       createdAt: new Date(),
       createdBy: user.id,
     });
@@ -278,7 +345,7 @@ export async function POST(request) {
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "خطا در ایجاد مرکز آزمون",
+        error: error.message || "خطا در ایجاد واحد سازمانی",
       },
       { status: error.message.includes("عدم احراز هویت") ? 401 : 500 }
     );
@@ -303,7 +370,7 @@ export async function PUT(request, { params }) {
       !["systemAdmin", "generalManager", "provinceManager"].includes(user.role)
     ) {
       return NextResponse.json(
-        { success: false, error: "شما مجوز ویرایش مرکز آزمون را ندارید" },
+        { success: false, error: "شما مجوز ویرایش واحد سازمانی را ندارید" },
         { status: 403 }
       );
     }
@@ -311,18 +378,79 @@ export async function PUT(request, { params }) {
     const { id } = params;
     if (!id) {
       return NextResponse.json(
-        { success: false, error: "شناسه مرکز آزمون الزامی است" },
+        { success: false, error: "شناسه واحد سازمانی الزامی است" },
         { status: 400 }
       );
     }
 
-    const { name, code, districtId, managerId, capacity } =
-      await request.json();
+    const {
+      name,
+      code,
+      districtId,
+      managerId,
+      capacity,
+      address,
+      phone,
+      gender,
+      period,
+      studentCount,
+      organizationType,
+    } = await request.json();
     if (!name?.trim() || !code?.trim() || !districtId || !capacity) {
       return NextResponse.json(
         {
           success: false,
-          error: "نام، کد، منطقه و ظرفیت مرکز آزمون الزامی است",
+          error: "نام، کد، منطقه و ظرفیت واحد سازمانی الزامی است",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate enum fields if provided
+    if (gender && !["دختر", "پسر", "مختلط"].includes(gender)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "جنسیت باید یکی از مقادیر دختر، پسر یا مختلط باشد",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (
+      period &&
+      ![
+        "ابتدایی",
+        "متوسطه اول",
+        "متوسطه دوم فنی",
+        "متوسطه دوم کاردانش",
+        "متوسطه دوم نظری",
+      ].includes(period)
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "دوره باید یکی از مقادیر مجاز باشد",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (organizationType && !["دولتی", "غیردولتی"].includes(organizationType)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "نوع واحد سازمانی باید دولتی یا غیردولتی باشد",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (studentCount && (isNaN(studentCount) || Number(studentCount) < 0)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "تعداد دانش آموز باید عدد مثبت باشد",
         },
         { status: 400 }
       );
@@ -331,7 +459,7 @@ export async function PUT(request, { params }) {
     const examCenter = await ExamCenter.findById(id);
     if (!examCenter) {
       return NextResponse.json(
-        { success: false, error: "مرکز آزمون مورد نظر یافت نشد" },
+        { success: false, error: "واحد سازمانی مورد نظر یافت نشد" },
         { status: 404 }
       );
     }
@@ -353,7 +481,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json(
         {
           success: false,
-          error: "شما مجوز ویرایش مرکز آزمون در این منطقه را ندارید",
+          error: "شما مجوز ویرایش واحد سازمانی در این منطقه را ندارید",
         },
         { status: 403 }
       );
@@ -364,7 +492,7 @@ export async function PUT(request, { params }) {
       const existingCenter = await ExamCenter.findOne({ code: code.trim() });
       if (existingCenter) {
         return NextResponse.json(
-          { success: false, error: "کد مرکز آزمون تکراری است" },
+          { success: false, error: "کد واحد سازمانی تکراری است" },
           { status: 400 }
         );
       }
@@ -375,6 +503,12 @@ export async function PUT(request, { params }) {
     examCenter.district = districtId;
     examCenter.manager = managerId;
     examCenter.capacity = Number(capacity);
+    examCenter.address = address || undefined;
+    examCenter.phone = phone || undefined;
+    examCenter.gender = gender || undefined;
+    examCenter.period = period || undefined;
+    examCenter.studentCount = studentCount ? Number(studentCount) : undefined;
+    examCenter.organizationType = organizationType || undefined;
     examCenter.updatedAt = new Date();
     examCenter.updatedBy = user.id;
 
@@ -393,7 +527,7 @@ export async function PUT(request, { params }) {
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "خطا در بروزرسانی مرکز آزمون",
+        error: error.message || "خطا در بروزرسانی واحد سازمانی",
       },
       { status: error.message.includes("عدم احراز هویت") ? 401 : 500 }
     );
@@ -419,7 +553,7 @@ export async function DELETE(request, { params }) {
       !["systemAdmin", "generalManager", "provinceManager"].includes(user.role)
     ) {
       return NextResponse.json(
-        { success: false, error: "شما مجوز حذف مرکز آزمون را ندارید" },
+        { success: false, error: "شما مجوز حذف واحد سازمانی را ندارید" },
         { status: 403 }
       );
     }
@@ -427,7 +561,7 @@ export async function DELETE(request, { params }) {
     const { id } = params;
     if (!id) {
       return NextResponse.json(
-        { success: false, error: "شناسه مرکز آزمون الزامی است" },
+        { success: false, error: "شناسه واحد سازمانی الزامی است" },
         { status: 400 }
       );
     }
@@ -439,7 +573,7 @@ export async function DELETE(request, { params }) {
 
     if (!examCenter) {
       return NextResponse.json(
-        { success: false, error: "مرکز آزمون مورد نظر یافت نشد" },
+        { success: false, error: "واحد سازمانی مورد نظر یافت نشد" },
         { status: 404 }
       );
     }
@@ -453,7 +587,7 @@ export async function DELETE(request, { params }) {
       return NextResponse.json(
         {
           success: false,
-          error: "شما مجوز حذف مرکز آزمون در این منطقه را ندارید",
+          error: "شما مجوز حذف واحد سازمانی در این منطقه را ندارید",
         },
         { status: 403 }
       );
@@ -463,14 +597,14 @@ export async function DELETE(request, { params }) {
 
     return NextResponse.json({
       success: true,
-      message: "مرکز آزمون با موفقیت حذف شد",
+      message: "واحد سازمانی با موفقیت حذف شد",
     });
   } catch (error) {
     console.error("Error in DELETE /api/exam-centers:", error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "خطا در حذف مرکز آزمون",
+        error: error.message || "خطا در حذف واحد سازمانی",
       },
       { status: error.message.includes("عدم احراز هویت") ? 401 : 500 }
     );

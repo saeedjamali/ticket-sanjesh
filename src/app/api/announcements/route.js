@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { authService } from "@/lib/auth/authService";
 import connectDB from "@/lib/db";
 import Announcement from "@/models/Announcement";
+import ExamCenter from "@/models/ExamCenter";
 import { ROLES } from "@/lib/permissions";
 
 // GET API endpoint - fetch announcements
@@ -27,19 +28,37 @@ export async function GET(request) {
     // Build query based on user role
     const query = { status };
 
-    if (
-      [
-        "generalManager",
-        "provinceEducationExpert",
-        "provinceTechExpert",
-      ].includes(user.role)
-    ) {
-      // For province roles - see announcements they created
+    if (user.role === "generalManager") {
+      // General Manager can see all announcements from province roles
+      query.createdByRole = {
+        $in: [
+          "generalManager",
+          "provinceEducationExpert",
+          "provinceTechExpert",
+          "provinceEvalExpert",
+        ],
+      };
       if (user.province) {
         query.province = user.province;
       }
     } else if (
-      ["districtEducationExpert", "districtTechExpert"].includes(user.role)
+      [
+        "provinceEducationExpert",
+        "provinceTechExpert",
+        "provinceEvalExpert",
+      ].includes(user.role)
+    ) {
+      // For other province roles - see only announcements they created (by their role)
+      query.createdByRole = user.role;
+      if (user.province) {
+        query.province = user.province;
+      }
+    } else if (
+      [
+        "districtEducationExpert",
+        "districtTechExpert",
+        "districtEvalExpert",
+      ].includes(user.role)
     ) {
       // For district experts - see announcements targeted at their role and district
       query.targetRoles = user.role;
@@ -49,6 +68,51 @@ export async function GET(request) {
       query.targetRoles = user.role;
       if (user.district) {
         query.targetDistricts = user.district;
+      }
+
+      // Additional filtering for exam center managers based on their exam center properties
+      if (user.examCenter) {
+        try {
+          const examCenter = await ExamCenter.findById(user.examCenter);
+          if (examCenter) {
+            // Build additional query conditions for exam center specific filters
+            const examCenterQuery = { $and: [] };
+
+            // Gender filter
+            examCenterQuery.$and.push({
+              $or: [
+                { targetGender: { $exists: false } },
+                { targetGender: null },
+                { targetGender: examCenter.gender },
+              ],
+            });
+
+            // Period filter
+            examCenterQuery.$and.push({
+              $or: [
+                { targetPeriod: { $exists: false } },
+                { targetPeriod: null },
+                { targetPeriod: examCenter.period },
+              ],
+            });
+
+            // Organization type filter
+            examCenterQuery.$and.push({
+              $or: [
+                { targetOrganizationType: { $exists: false } },
+                { targetOrganizationType: null },
+                { targetOrganizationType: examCenter.organizationType },
+              ],
+            });
+
+            // Combine with existing query
+            query.$and = query.$and
+              ? [...query.$and, ...examCenterQuery.$and]
+              : examCenterQuery.$and;
+          }
+        } catch (error) {
+          console.error("Error fetching exam center for filtering:", error);
+        }
       }
     }
 
@@ -69,6 +133,7 @@ export async function GET(request) {
       [
         "districtEducationExpert",
         "districtTechExpert",
+        "districtEvalExpert",
         "examCenterManager",
       ].includes(user.role)
     ) {
@@ -131,6 +196,7 @@ export async function POST(request) {
       ROLES.GENERAL_MANAGER,
       ROLES.PROVINCE_EDUCATION_EXPERT,
       ROLES.PROVINCE_TECH_EXPERT,
+      ROLES.PROVINCE_EVAL_EXPERT,
     ];
 
     if (!allowedRoles.includes(user.role)) {
@@ -152,12 +218,18 @@ export async function POST(request) {
       // Handle form data request
       const formData = await request.formData();
 
+      console.log("formData--------------->", formData);
       // Process the form data fields
       const title = formData.get("title");
       const content = formData.get("content");
       const priority = formData.get("priority");
       const targetRoles = formData.getAll("targetRoles");
       const targetDistricts = formData.getAll("targetDistricts");
+
+      // Get exam center specific filters
+      const targetGender = formData.get("targetGender");
+      const targetPeriod = formData.get("targetPeriod");
+      const targetOrganizationType = formData.get("targetOrganizationType");
 
       // Basic validation
       if (!title || !content || !targetRoles || targetRoles.length === 0) {
@@ -213,6 +285,9 @@ export async function POST(request) {
         priority,
         targetRoles,
         targetDistricts: targetDistricts.length > 0 ? targetDistricts : [],
+        targetGender: targetGender || null,
+        targetPeriod: targetPeriod || null,
+        targetOrganizationType: targetOrganizationType || null,
       };
     } else {
       // Handle JSON request (backwards compatibility)
@@ -243,6 +318,9 @@ export async function POST(request) {
       priority: data.priority || "low",
       targetRoles: data.targetRoles,
       targetDistricts: data.targetDistricts || [],
+      targetGender: data.targetGender,
+      targetPeriod: data.targetPeriod,
+      targetOrganizationType: data.targetOrganizationType,
       province: user.province,
       createdBy: user.id,
       createdByRole: user.role,

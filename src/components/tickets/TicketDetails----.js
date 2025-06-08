@@ -19,7 +19,7 @@ export default function TicketDetails({ ticket, user }) {
     ticket.status !== "closed" &&
     user.id === ticket.createdBy._id;
 
-  // بررسی امکان ویرایش تیکت توسط مسئول مرکز آزمون قبل از پاسخگویی
+  // بررسی امکان ویرایش تیکت توسط مدیر واحد سازمانی قبل از پاسخگویی
   const canEdit =
     user.role === ROLES.EXAM_CENTER_MANAGER &&
     user.id === ticket.createdBy._id &&
@@ -403,7 +403,7 @@ export default function TicketDetails({ ticket, user }) {
 
               <div>
                 <span className="block text-sm font-medium text-gray-500 dark:text-gray-400">
-                  مرکز آزمون:
+                  واحد سازمانی:
                 </span>
                 <span className="text-gray-900 dark:text-white">
                   {ticket.examCenter.name}

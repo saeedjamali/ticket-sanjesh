@@ -127,7 +127,7 @@ export async function POST(request, { params }) {
     let canRespond = false;
 
     if (user.role === ROLES.EXAM_CENTER_MANAGER) {
-      // مسئول مرکز آزمون می‌تواند به تیکت‌های خودش پاسخ دهد
+      // مدیر واحد سازمانی می‌تواند به تیکت‌های خودش پاسخ دهد
       if (
         user.id === ticket.createdBy.toString() &&
         user.examCenter === ticket.examCenter.toString()
@@ -138,7 +138,17 @@ export async function POST(request, { params }) {
       // کارشناس سنجش منطقه می‌تواند به تیکت‌های سنجش منطقه خودش پاسخ دهد
       if (
         user.district === ticket.district.toString() &&
-        (ticket.receiver === "education" || ticket.type === "EDUCATION")
+        (ticket.receiver === ROLES.DISTRICT_EDUCATION_EXPERT ||
+          ticket.type === "EDUCATION")
+      ) {
+        canRespond = true;
+      }
+    } else if (user.role === ROLES.DISTRICT_EVAL_EXPERT) {
+      // کارشناس ارزیابی منطقه می‌تواند به تیکت‌های ارزیابی منطقه خودش پاسخ دهد
+      if (
+        user.district === ticket.district.toString() &&
+        (ticket.receiver === ROLES.DISTRICT_EVAL_EXPERT ||
+          ticket.type === "EVALUATION")
       ) {
         canRespond = true;
       }
@@ -146,7 +156,8 @@ export async function POST(request, { params }) {
       // کارشناس فناوری منطقه می‌تواند به تیکت‌های فناوری منطقه خودش پاسخ دهد
       if (
         user.district === ticket.district.toString() &&
-        (ticket.receiver === "tech" || ticket.type === "TECH")
+        (ticket.receiver === ROLES.DISTRICT_TECH_EXPERT ||
+          ticket.type === "TECH")
       ) {
         canRespond = true;
       }
@@ -154,7 +165,17 @@ export async function POST(request, { params }) {
       // کارشناس سنجش استان می‌تواند به تیکت‌های سنجش استان خودش پاسخ دهد
       if (
         user.province === ticket.province.toString() &&
-        (ticket.receiver === "education" || ticket.type === "EDUCATION")
+        (ticket.receiver === ROLES.PROVINCE_EDUCATION_EXPERT ||
+          ticket.type === "EDUCATION")
+      ) {
+        canRespond = true;
+      }
+    } else if (user.role === ROLES.PROVINCE_EVAL_EXPERT) {
+      // کارشناس ارزیابی استان می‌تواند به تیکت‌های ارزیابی استان خودش پاسخ دهد
+      if (
+        user.province === ticket.province.toString() &&
+        (ticket.receiver === ROLES.PROVINCE_EVAL_EXPERT ||
+          ticket.type === "EVALUATION")
       ) {
         canRespond = true;
       }
@@ -162,7 +183,8 @@ export async function POST(request, { params }) {
       // کارشناس فناوری استان می‌تواند به تیکت‌های فناوری استان خودش پاسخ دهد
       if (
         user.province === ticket.province.toString() &&
-        (ticket.receiver === "tech" || ticket.type === "TECH")
+        (ticket.receiver === ROLES.PROVINCE_TECH_EXPERT ||
+          ticket.type === "TECH")
       ) {
         canRespond = true;
       }
@@ -210,10 +232,21 @@ export async function POST(request, { params }) {
     // Ensure the type field is set correctly based on receiver if it's missing
     if (!ticket.type || ticket.type === "UNKNOWN") {
       console.log("Setting ticket type based on receiver:", ticket.receiver);
-      if (ticket.receiver === "education") {
+      if (
+        ticket.receiver === ROLES.DISTRICT_EDUCATION_EXPERT ||
+        ticket.receiver === ROLES.PROVINCE_EDUCATION_EXPERT
+      ) {
         ticket.type = "EDUCATION";
-      } else if (ticket.receiver === "tech") {
+      } else if (
+        ticket.receiver === ROLES.PROVINCE_TECH_EXPERT ||
+        ticket.receiver === ROLES.DISTRICT_TECH_EXPERT
+      ) {
         ticket.type = "TECH";
+      } else if (
+        ticket.receiver === ROLES.PROVINCE_EVAL_EXPERT ||
+        ticket.receiver === ROLES.DISTRICT_EVAL_EXPERT
+      ) {
+        ticket.type = "EVALUATION";
       } else {
         // Default fallback
         ticket.type = "UNKNOWN";
@@ -243,8 +276,10 @@ export async function POST(request, { params }) {
       [
         ROLES.DISTRICT_EDUCATION_EXPERT,
         ROLES.DISTRICT_TECH_EXPERT,
+        ROLES.DISTRICT_EVAL_EXPERT,
         ROLES.PROVINCE_EDUCATION_EXPERT,
         ROLES.PROVINCE_TECH_EXPERT,
+        ROLES.PROVINCE_EVAL_EXPERT,
       ].includes(user.role)
     ) {
       // If an expert is responding, set to "resolved"

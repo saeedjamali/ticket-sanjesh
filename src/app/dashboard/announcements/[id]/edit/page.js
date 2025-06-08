@@ -22,6 +22,9 @@ export default function EditAnnouncementPage() {
     priority: "low",
     targetRoles: [],
     targetDistricts: [],
+    targetGender: "",
+    targetPeriod: "",
+    targetOrganizationType: "",
     status: "active",
   });
   const [districts, setDistricts] = useState([]);
@@ -52,6 +55,7 @@ export default function EditAnnouncementPage() {
         "generalManager",
         "provinceEducationExpert",
         "provinceTechExpert",
+        "provinceEvalExpert",
       ].includes(user.role)
     ) {
       toast.error("شما دسترسی به ویرایش اطلاعیه ندارید");
@@ -92,6 +96,9 @@ export default function EditAnnouncementPage() {
           targetRoles: announcement.targetRoles || [],
           targetDistricts:
             announcement.targetDistricts?.map((d) => d._id) || [],
+          targetGender: announcement.targetGender || "",
+          targetPeriod: announcement.targetPeriod || "",
+          targetOrganizationType: announcement.targetOrganizationType || "",
           status: announcement.status,
         });
 
@@ -159,6 +166,12 @@ export default function EditAnnouncementPage() {
       setFormData({
         ...formData,
         targetRoles: formData.targetRoles.filter((role) => role !== value),
+        // Reset exam center specific filters when examCenterManager is unchecked
+        ...(value === "examCenterManager" && {
+          targetGender: "",
+          targetPeriod: "",
+          targetOrganizationType: "",
+        }),
       });
     }
   };
@@ -310,6 +323,22 @@ export default function EditAnnouncementPage() {
       formData.targetDistricts.forEach((district) => {
         submitFormData.append("targetDistricts", district);
       });
+
+      // Add exam center specific filters if examCenterManager is selected
+      if (formData.targetRoles.includes("examCenterManager")) {
+        if (formData.targetGender) {
+          submitFormData.append("targetGender", formData.targetGender);
+        }
+        if (formData.targetPeriod) {
+          submitFormData.append("targetPeriod", formData.targetPeriod);
+        }
+        if (formData.targetOrganizationType) {
+          submitFormData.append(
+            "targetOrganizationType",
+            formData.targetOrganizationType
+          );
+        }
+      }
 
       // Add image if selected
       if (selectedImage) {
@@ -491,60 +520,242 @@ export default function EditAnnouncementPage() {
                 گروه‌های هدف <span className="text-red-500">*</span>
               </label>
               <div className="space-y-2">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="role-district-education"
-                    value="districtEducationExpert"
-                    checked={formData.targetRoles.includes(
-                      "districtEducationExpert"
-                    )}
-                    onChange={handleRoleChange}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor="role-district-education"
-                    className="mr-2 text-sm text-gray-700"
-                  >
-                    کارشناس سنجش منطقه
-                  </label>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="role-district-tech"
-                    value="districtTechExpert"
-                    checked={formData.targetRoles.includes(
-                      "districtTechExpert"
-                    )}
-                    onChange={handleRoleChange}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor="role-district-tech"
-                    className="mr-2 text-sm text-gray-700"
-                  >
-                    کارشناس فناوری منطقه
-                  </label>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="role-exam-center"
-                    value="examCenterManager"
-                    checked={formData.targetRoles.includes("examCenterManager")}
-                    onChange={handleRoleChange}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor="role-exam-center"
-                    className="mr-2 text-sm text-gray-700"
-                  >
-                    مسئول مرکز آزمون
-                  </label>
-                </div>
+                {/* Show district education expert only for province education expert */}
+                {user.role === "provinceEducationExpert" && (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="role-district-education"
+                      value="districtEducationExpert"
+                      checked={formData.targetRoles.includes(
+                        "districtEducationExpert"
+                      )}
+                      onChange={handleRoleChange}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="role-district-education"
+                      className="mr-2 text-sm text-gray-700"
+                    >
+                      کارشناس سنجش منطقه
+                    </label>
+                  </div>
+                )}
+
+                {/* Show district tech expert only for province tech expert */}
+                {user.role === "provinceTechExpert" && (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="role-district-tech"
+                      value="districtTechExpert"
+                      checked={formData.targetRoles.includes(
+                        "districtTechExpert"
+                      )}
+                      onChange={handleRoleChange}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="role-district-tech"
+                      className="mr-2 text-sm text-gray-700"
+                    >
+                      کارشناس فناوری منطقه
+                    </label>
+                  </div>
+                )}
+
+                {/* Show district eval expert only for province eval expert */}
+                {user.role === "provinceEvalExpert" && (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="role-district-eval"
+                      value="districtEvalExpert"
+                      checked={formData.targetRoles.includes(
+                        "districtEvalExpert"
+                      )}
+                      onChange={handleRoleChange}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="role-district-eval"
+                      className="mr-2 text-sm text-gray-700"
+                    >
+                      کارشناس ارزیابی منطقه
+                    </label>
+                  </div>
+                )}
+
+                {/* Show all district roles for general manager */}
+                {user.role === "generalManager" && (
+                  <>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="role-district-education"
+                        value="districtEducationExpert"
+                        checked={formData.targetRoles.includes(
+                          "districtEducationExpert"
+                        )}
+                        onChange={handleRoleChange}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="role-district-education"
+                        className="mr-2 text-sm text-gray-700"
+                      >
+                        کارشناس سنجش منطقه
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="role-district-tech"
+                        value="districtTechExpert"
+                        checked={formData.targetRoles.includes(
+                          "districtTechExpert"
+                        )}
+                        onChange={handleRoleChange}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="role-district-tech"
+                        className="mr-2 text-sm text-gray-700"
+                      >
+                        کارشناس فناوری منطقه
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="role-district-eval"
+                        value="districtEvalExpert"
+                        checked={formData.targetRoles.includes(
+                          "districtEvalExpert"
+                        )}
+                        onChange={handleRoleChange}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="role-district-eval"
+                        className="mr-2 text-sm text-gray-700"
+                      >
+                        کارشناس ارزیابی منطقه
+                      </label>
+                    </div>
+                  </>
+                )}
+
+                {/* Exam center manager is available for all province roles */}
+                {[
+                  "provinceEducationExpert",
+                  "provinceTechExpert",
+                  "provinceEvalExpert",
+                  "generalManager",
+                ].includes(user.role) && (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="role-exam-center"
+                      value="examCenterManager"
+                      checked={formData.targetRoles.includes(
+                        "examCenterManager"
+                      )}
+                      onChange={handleRoleChange}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="role-exam-center"
+                      className="mr-2 text-sm text-gray-700"
+                    >
+                      مدیر واحد سازمانی
+                    </label>
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Exam Center Specific Filters - Only show when examCenterManager is selected */}
+            {formData.targetRoles.includes("examCenterManager") && (
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <h4 className="text-sm font-medium text-blue-800 mb-3">
+                  فیلترهای مخصوص واحدهای سازمانی
+                </h4>
+                <div className="space-y-3">
+                  {/* Gender Filter */}
+                  <div>
+                    <label
+                      htmlFor="targetGender"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      جنسیت
+                    </label>
+                    <select
+                      id="targetGender"
+                      name="targetGender"
+                      value={formData.targetGender}
+                      onChange={handleInputChange}
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                      <option value="">همه جنسیت‌ها</option>
+                      <option value="دختر">دختر</option>
+                      <option value="پسر">پسر</option>
+                      <option value="مختلط">مختلط</option>
+                    </select>
+                  </div>
+
+                  {/* Period Filter */}
+                  <div>
+                    <label
+                      htmlFor="targetPeriod"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      دوره
+                    </label>
+                    <select
+                      id="targetPeriod"
+                      name="targetPeriod"
+                      value={formData.targetPeriod}
+                      onChange={handleInputChange}
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                      <option value="">همه دوره‌ها</option>
+                      <option value="ابتدایی">ابتدایی</option>
+                      <option value="متوسطه اول">متوسطه اول</option>
+                      <option value="متوسطه دوم فنی">متوسطه دوم فنی</option>
+                      <option value="متوسطه دوم کاردانش">
+                        متوسطه دوم کاردانش
+                      </option>
+                      <option value="متوسطه دوم نظری">متوسطه دوم نظری</option>
+                    </select>
+                  </div>
+
+                  {/* Organization Type Filter */}
+                  <div>
+                    <label
+                      htmlFor="targetOrganizationType"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                      نوع واحد سازمانی
+                    </label>
+                    <select
+                      id="targetOrganizationType"
+                      name="targetOrganizationType"
+                      value={formData.targetOrganizationType}
+                      onChange={handleInputChange}
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                      <option value="">همه انواع</option>
+                      <option value="دولتی">دولتی</option>
+                      <option value="غیردولتی">غیردولتی</option>
+                    </select>
+                  </div>
+                </div>
+                <p className="text-xs text-blue-600 mt-2">
+                  این فیلترها فقط برای مدیران واحدهای سازمانی اعمال می‌شود
+                </p>
+              </div>
+            )}
 
             {/* Image Upload */}
             <div className="form-group">

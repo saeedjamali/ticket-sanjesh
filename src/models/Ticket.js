@@ -40,14 +40,16 @@ const TicketSchema = new mongoose.Schema({
       "tech",
       "provinceEducationExpert",
       "provinceTechExpert",
+      "provinceEvalExpert",
       "districtEducationExpert",
       "districtTechExpert",
+      "districtEvalExpert",
     ], // سنجش منطقه، فناوری منطقه، کارشناس سنجش استان، کارشناس فناوری استان، کارشناس سنجش منطقه، کارشناس فناوری منطقه
     required: true,
   },
   type: {
     type: String,
-    enum: ["EDUCATION", "TECH", "UNKNOWN"],
+    enum: ["EDUCATION", "TECH", "EVALUATION", "UNKNOWN"],
     required: true,
   },
   createdBy: {

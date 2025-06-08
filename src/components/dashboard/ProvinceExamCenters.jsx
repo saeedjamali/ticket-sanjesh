@@ -68,7 +68,7 @@ export default function ProvinceExamCenters() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">مراکز آزمون استان‌ها</h2>
+                <h2 className="text-2xl font-bold text-gray-900">واحدهای سازمانی استان‌ها</h2>
                 <div className="flex gap-2">
                     <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
                         افزودن مرکز جدید

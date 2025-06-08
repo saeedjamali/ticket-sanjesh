@@ -4,19 +4,19 @@ const examCenterSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "نام مرکز آزمون الزامی است"],
+      required: [true, "نام واحد سازمانی الزامی است"],
       trim: true,
     },
     code: {
       type: String,
-      required: [true, "کد مرکز آزمون الزامی است"],
+      required: [true, "کد واحد سازمانی الزامی است"],
       unique: true,
       trim: true,
     },
     district: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "District",
-      required: [true, "منطقه مرکز آزمون الزامی است"],
+      required: [true, "منطقه واحد سازمانی الزامی است"],
     },
     manager: {
       type: mongoose.Schema.Types.ObjectId,
@@ -24,7 +24,7 @@ const examCenterSchema = new mongoose.Schema(
     },
     capacity: {
       type: Number,
-      min: [1, "ظرفیت مرکز آزمون باید حداقل 1 نفر باشد"],
+      min: [1, "ظرفیت واحد سازمانی باید حداقل 1 نفر باشد"],
     },
     address: {
       type: String,
@@ -32,6 +32,40 @@ const examCenterSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
+      trim: true,
+    },
+    gender: {
+      type: String,
+      enum: {
+        values: ["دختر", "پسر", "مختلط"],
+        message: "جنسیت باید یکی از مقادیر دختر، پسر یا مختلط باشد",
+      },
+      trim: true,
+    },
+    period: {
+      type: String,
+      enum: {
+        values: [
+          "ابتدایی",
+          "متوسطه اول",
+          "متوسطه دوم فنی",
+          "متوسطه دوم کاردانش",
+          "متوسطه دوم نظری",
+        ],
+        message: "دوره باید یکی از مقادیر مجاز باشد",
+      },
+      trim: true,
+    },
+    studentCount: {
+      type: Number,
+      min: [0, "تعداد دانش آموز نمی‌تواند منفی باشد"],
+    },
+    organizationType: {
+      type: String,
+      enum: {
+        values: ["دولتی", "غیردولتی"],
+        message: "نوع واحد سازمانی باید دولتی یا غیردولتی باشد",
+      },
       trim: true,
     },
     isActive: {
@@ -64,8 +98,6 @@ const examCenterSchema = new mongoose.Schema(
   }
 );
 
-
-
 // میدل‌ور برای پر کردن خودکار updatedAt
 examCenterSchema.pre("save", function (next) {
   if (this.isModified()) {
@@ -74,12 +106,12 @@ examCenterSchema.pre("save", function (next) {
   next();
 });
 
-// متد استاتیک برای بررسی وجود مرکز آزمون با کد مشخص
+// متد استاتیک برای بررسی وجود واحد سازمانی با کد مشخص
 examCenterSchema.statics.findByCode = async function (code) {
   return this.findOne({ code: code.trim() });
 };
 
-// متد برای بررسی اینکه آیا مرکز آزمون در استان مشخصی قرار دارد
+// متد برای بررسی اینکه آیا واحد سازمانی در استان مشخصی قرار دارد
 examCenterSchema.methods.isInProvince = async function (provinceId) {
   await this.populate({
     path: "district",
@@ -88,7 +120,7 @@ examCenterSchema.methods.isInProvince = async function (provinceId) {
   return this.district.province._id.toString() === provinceId.toString();
 };
 
-// متد برای بررسی اینکه آیا مرکز آزمون در منطقه مشخصی قرار دارد
+// متد برای بررسی اینکه آیا واحد سازمانی در منطقه مشخصی قرار دارد
 examCenterSchema.methods.isInDistrict = function (districtId) {
   return this.district.toString() === districtId.toString();
 };

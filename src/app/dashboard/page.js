@@ -42,7 +42,8 @@ export default function DashboardPage() {
   const isProvinceUser =
     user?.role === ROLES.GENERAL_MANAGER ||
     user?.role === ROLES.PROVINCE_EDUCATION_EXPERT ||
-    user?.role === ROLES.PROVINCE_TECH_EXPERT;
+    user?.role === ROLES.PROVINCE_TECH_EXPERT ||
+    user?.role === ROLES.PROVINCE_EVAL_EXPERT;
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -269,11 +270,11 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* بخش مراکز امتحانی استان - فقط برای مدیران کل و کارشناسان استان */}
+      {/* بخش مدارس امتحانی استان - فقط برای مدیران کل و کارشناسان استان */}
       {isProvinceUser && (
         <div className="mt-4 sm:mt-8">
           <div className="flex justify-between items-center mb-3 sm:mb-4">
-            <h2 className="heading-3">مراکز امتحانی استان</h2>
+            <h2 className="heading-3">مدارس امتحانی استان</h2>
             <button
               onClick={() => setShowExamCenters(!showExamCenters)}
               className="btn-icon-responsive bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md"

@@ -40,14 +40,7 @@ export async function GET(request, { params }) {
     // بررسی دسترسی
     let canView = false;
 
-    console.log("user---->", user);
-    console.log("ticket---->", ticket);
-    console.log(
-      "user.role---->",
-      user.role,
-      "--------",
-      ROLES.DISTRICT_TECH_EXPERT
-    );
+  
     switch (user.role) {
       case ROLES.EXAM_CENTER_MANAGER:
         // مسئول مرکز فقط می‌تواند تیکت‌های خودش را ببیند
@@ -63,12 +56,19 @@ export async function GET(request, { params }) {
         canView = ticket.district?._id.toString() === user.district?.toString();
 
         break;
+        case ROLES.DISTRICT_EVAL_EXPERT:
+          canView = ticket.district?._id.toString() === user.district?.toString();
+  
+          break;
       case ROLES.PROVINCE_EDUCATION_EXPERT:
         // کارشناس استان می‌تواند تیکت‌های مراکز و مناطق استان خود را ببیند
         canView = ticket.province?._id.toString() === user.province?.toString();
         break;
 
       case ROLES.PROVINCE_TECH_EXPERT:
+        canView = ticket.province?._id.toString() === user.province?.toString();
+        break;
+      case ROLES.PROVINCE_EVAL_EXPERT:
         canView = ticket.province?._id.toString() === user.province?.toString();
         break;
       case ROLES.GENERAL_MANAGER:
@@ -96,6 +96,7 @@ export async function GET(request, { params }) {
     const isDistrictExpert = [
       ROLES.DISTRICT_TECH_EXPERT,
       ROLES.DISTRICT_EDUCATION_EXPERT,
+      ROLES.DISTRICT_EVAL_EXPERT,
     ].includes(user.role);
     if (isDistrictExpert && ticket.status === "new") {
       ticket.status = "seen";
@@ -135,7 +136,7 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
     }
 
-    // فقط مسئول مرکز آزمونی که تیکت را ایجاد کرده و تنها قبل از پاسخگویی کارشناس می‌تواند ویرایش کند
+    // فقط مدیر واحد سازمانیی که تیکت را ایجاد کرده و تنها قبل از پاسخگویی کارشناس می‌تواند ویرایش کند
     const isCreator = user.id === ticket.createdBy.toString();
     const isSameExamCenter = user.examCenter === ticket.examCenter.toString();
 

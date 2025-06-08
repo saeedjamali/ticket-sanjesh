@@ -27,7 +27,7 @@ export default function CreateTicketPage() {
         user.role !== ROLES.DISTRICT_TECH_EXPERT
       ) {
         setError(
-          "خطای دسترسی: فقط مسئولین مرکز آزمون و کارشناسان منطقه می‌توانند تیکت ایجاد کنند."
+          "خطای دسترسی: فقط مسئولین واحد سازمانی و کارشناسان منطقه می‌توانند تیکت ایجاد کنند."
         );
         return;
       }

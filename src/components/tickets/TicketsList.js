@@ -295,10 +295,14 @@ export default function TicketsList({ user, districtFilter }) {
         return "کارشناس سنجش استان";
       case "provinceTechExpert":
         return "کارشناس فناوری استان";
+      case "provinceEvalExpert":
+        return "کارشناس ارزیابی استان";
       case "districtEducationExpert":
         return "کارشناس سنجش منطقه";
       case "districtTechExpert":
         return "کارشناس فناوری منطقه";
+      case "districtEvalExpert":
+        return "کارشناس ارزیابی منطقه";
       default:
         return receiver;
     }
@@ -627,7 +631,7 @@ export default function TicketsList({ user, districtFilter }) {
                   </th>
                   {(user.role === ROLES.GENERAL_MANAGER ||
                     user.role === ROLES.PROVINCE_EDUCATION_EXPERT ||
-                    user.role === ROLES.PROVINCE_TECH_EXPERT) && (
+                    user.role === ROLES.PROVINCE_TECH_EXPERT || user.role===ROLES.PROVINCE_EVAL_EXPERT) && (
                     <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300">
                       منطقه
                     </th>
@@ -686,7 +690,7 @@ export default function TicketsList({ user, districtFilter }) {
                     </td>
                     {(user.role === ROLES.GENERAL_MANAGER ||
                       user.role === ROLES.PROVINCE_EDUCATION_EXPERT ||
-                      user.role === ROLES.PROVINCE_TECH_EXPERT) && (
+                      user.role === ROLES.PROVINCE_TECH_EXPERT ||user.role=== ROLES.PROVINCE_EVAL_EXPERT) && (
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-center text-gray-500 dark:text-gray-400">
                         {ticket.district && ticket.district.name
                           ? ticket.district.name

@@ -22,12 +22,14 @@ export default function DashboardStatCards({ userRole, userId }) {
           endpoint += `?userId=${userId}`;
         } else if (
           userRole === ROLES.DISTRICT_EDUCATION_EXPERT ||
-          userRole === ROLES.DISTRICT_TECH_EXPERT
+          userRole === ROLES.DISTRICT_TECH_EXPERT ||
+          userRole === ROLES.DISTRICT_EVAL_EXPERT
         ) {
           endpoint += `?districtUser=${userId}`;
         } else if (
           userRole === ROLES.PROVINCE_EDUCATION_EXPERT ||
-          userRole === ROLES.PROVINCE_TECH_EXPERT
+          userRole === ROLES.PROVINCE_TECH_EXPERT ||
+          userRole === ROLES.PROVINCE_EVAL_EXPERT
         ) {
           endpoint += `?provinceUser=${userId}`;
         }

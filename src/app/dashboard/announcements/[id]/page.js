@@ -24,6 +24,7 @@ export default function AnnouncementDetailPage() {
       "generalManager",
       "provinceEducationExpert",
       "provinceTechExpert",
+      "provinceEvalExpert",
     ].includes(user.role);
 
   useEffect(() => {
@@ -244,7 +245,8 @@ export default function AnnouncementDetailPage() {
     const roles = {
       districtEducationExpert: "کارشناس سنجش منطقه",
       districtTechExpert: "کارشناس فناوری منطقه",
-      examCenterManager: "مسئول مرکز آزمون",
+      districtEvalExpert: "کارشناس ارزیابی منطقه",
+      examCenterManager: "مدیر واحد سازمانی",
     };
     return roles[role] || role;
   };
@@ -464,6 +466,56 @@ export default function AnnouncementDetailPage() {
                         {district.name}
                       </span>
                     ))}
+                  </div>
+                </div>
+              )}
+
+            {/* Exam Center Specific Filters */}
+            {announcement.targetRoles.includes("examCenterManager") &&
+              (announcement.targetGender ||
+                announcement.targetPeriod ||
+                announcement.targetOrganizationType) && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">
+                    فیلترهای واحدهای سازمانی:
+                  </h3>
+                  <div className="bg-blue-50 p-3 rounded-lg">
+                    <div className="flex flex-wrap gap-2">
+                      {announcement.targetGender && (
+                        <div className="flex items-center">
+                          <span className="text-xs text-blue-600 font-medium ml-1">
+                            جنسیت:
+                          </span>
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                            {announcement.targetGender}
+                          </span>
+                        </div>
+                      )}
+                      {announcement.targetPeriod && (
+                        <div className="flex items-center">
+                          <span className="text-xs text-blue-600 font-medium ml-1">
+                            دوره:
+                          </span>
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                            {announcement.targetPeriod}
+                          </span>
+                        </div>
+                      )}
+                      {announcement.targetOrganizationType && (
+                        <div className="flex items-center">
+                          <span className="text-xs text-blue-600 font-medium ml-1">
+                            نوع واحد:
+                          </span>
+                          <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                            {announcement.targetOrganizationType}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-blue-600 mt-2">
+                      این اطلاعیه فقط برای واحدهای سازمانی با مشخصات فوق ارسال
+                      می‌شود
+                    </p>
                   </div>
                 </div>
               )}

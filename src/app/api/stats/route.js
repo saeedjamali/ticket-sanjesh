@@ -33,11 +33,15 @@ export async function GET(request) {
 
         // If the user is a district education expert, only show education tickets
         if (user.role === ROLES.DISTRICT_EDUCATION_EXPERT) {
-          query.receiver =ROLES.DISTRICT_EDUCATION_EXPERT;
+          query.receiver = ROLES.DISTRICT_EDUCATION_EXPERT;
         }
         // If the user is a district tech expert, only show tech tickets
         else if (user.role === ROLES.DISTRICT_TECH_EXPERT) {
           query.receiver = ROLES.DISTRICT_TECH_EXPERT;
+        }
+        // If the user is a district eval expert, only show evaluation tickets
+        else if (user.role === ROLES.DISTRICT_EVAL_EXPERT) {
+          query.receiver = ROLES.DISTRICT_EVAL_EXPERT;
         }
       }
     } else if (provinceUser) {
@@ -53,18 +57,22 @@ export async function GET(request) {
         query.createdBy = session.user.id;
       } else if (
         session.user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-        session.user.role === ROLES.DISTRICT_TECH_EXPERT
+        session.user.role === ROLES.DISTRICT_TECH_EXPERT ||
+        session.user.role === ROLES.DISTRICT_EVAL_EXPERT
       ) {
         query.district = session.user.district;
 
         if (session.user.role === ROLES.DISTRICT_EDUCATION_EXPERT) {
           query.receiver = ROLES.DISTRICT_EDUCATION_EXPERT;
-        } else {
+        } else if (session.user.role === ROLES.DISTRICT_TECH_EXPERT) {
           query.receiver = ROLES.DISTRICT_TECH_EXPERT;
+        } else if (session.user.role === ROLES.DISTRICT_EVAL_EXPERT) {
+          query.receiver = ROLES.DISTRICT_EVAL_EXPERT;
         }
       } else if (
         session.user.role === ROLES.PROVINCE_EDUCATION_EXPERT ||
-        session.user.role === ROLES.PROVINCE_TECH_EXPERT
+        session.user.role === ROLES.PROVINCE_TECH_EXPERT ||
+        session.user.role === ROLES.PROVINCE_EVAL_EXPERT
       ) {
         query.province = session.user.province;
       }

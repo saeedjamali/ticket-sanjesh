@@ -21,8 +21,10 @@ export const ROLES = {
   GENERAL_MANAGER: "generalManager",
   PROVINCE_EDUCATION_EXPERT: "provinceEducationExpert",
   PROVINCE_TECH_EXPERT: "provinceTechExpert",
+  PROVINCE_EVAL_EXPERT: "provinceEvalExpert",
   DISTRICT_EDUCATION_EXPERT: "districtEducationExpert",
   DISTRICT_TECH_EXPERT: "districtTechExpert",
+  DISTRICT_EVAL_EXPERT: "districtEvalExpert",
   EXAM_CENTER_MANAGER: "examCenterManager",
 };
 
@@ -84,6 +86,15 @@ export function getRolePermissions(role) {
       permissions.canManageAnnouncements = true;
       break;
 
+    case ROLES.PROVINCE_EVAL_EXPERT:
+      permissions.canViewProvinceTickets = true;
+      permissions.canViewProvinceDistricts = true;
+      permissions.canViewProvinceExamCenters = true;
+      permissions.canViewExamCenterTickets = true;
+      permissions.canCreateAnnouncements = true;
+      permissions.canManageAnnouncements = true;
+      break;
+
     case ROLES.PROVINCE_TECH_EXPERT:
       permissions.canManageDistrictExperts = true;
       permissions.canManageExamCenters = true;
@@ -110,6 +121,12 @@ export function getRolePermissions(role) {
       permissions.canViewExamCenterTickets = true;
       break;
 
+    case ROLES.DISTRICT_EVAL_EXPERT:
+      permissions.canRespondToTickets = true;
+      permissions.canViewDistrictTickets = true;
+      permissions.canViewExamCenterTickets = true;
+      break;
+
     case ROLES.EXAM_CENTER_MANAGER:
       permissions.canCreateTickets = true;
       break;
@@ -124,9 +141,11 @@ export function getRoleName(role) {
     [ROLES.GENERAL_MANAGER]: "مدیر کل",
     [ROLES.PROVINCE_EDUCATION_EXPERT]: "کارشناس سنجش استان",
     [ROLES.PROVINCE_TECH_EXPERT]: "کارشناس فناوری استان",
+    [ROLES.PROVINCE_EVAL_EXPERT]: "کارشناس ارزیابی استان",
     [ROLES.DISTRICT_EDUCATION_EXPERT]: "کارشناس سنجش منطقه",
     [ROLES.DISTRICT_TECH_EXPERT]: "کارشناس فناوری منطقه",
-    [ROLES.EXAM_CENTER_MANAGER]: "مسئول مرکز آزمون",
+    [ROLES.DISTRICT_EVAL_EXPERT]: "کارشناس ارزیابی منطقه",
+    [ROLES.EXAM_CENTER_MANAGER]: "مدیر واحد سازمانی",
   };
 
   return roleNames[role] || "کاربر";
@@ -213,7 +232,7 @@ export function getMenuItemsByRole(role) {
           path: "/dashboard/districts",
         },
         {
-          label: "مراکز آزمون",
+          label: "واحدهای سازمانی",
           path: "/dashboard/exam-centers",
         },
       ],

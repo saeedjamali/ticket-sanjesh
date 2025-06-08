@@ -45,12 +45,16 @@ export async function GET(request, { params }) {
           "generalManager",
           "provinceEducationExpert",
           "provinceTechExpert",
-        ].includes(user.role));
+          "provinceEvalExpert",
+        ].includes(user.role) &&
+        (user.role === "generalManager" ||
+          announcement.createdByRole === user.role));
 
     const isTarget =
       [
         "districtEducationExpert",
         "districtTechExpert",
+        "districtEvalExpert",
         "examCenterManager",
       ].includes(user.role) &&
       announcement.targetRoles.includes(user.role) &&
@@ -115,6 +119,7 @@ export async function PUT(request, { params }) {
       ROLES.GENERAL_MANAGER,
       ROLES.PROVINCE_EDUCATION_EXPERT,
       ROLES.PROVINCE_TECH_EXPERT,
+      ROLES.PROVINCE_EVAL_EXPERT,
     ];
 
     if (!allowedRoles.includes(user.role)) {
@@ -139,15 +144,17 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // Check if user is the creator or has appropriate province-level permission
-    const isCreator = user.id === announcement.createdBy.toString();
-    const sameProvince =
-      user.province &&
-      user.province.toString() === announcement.province.toString();
-
-    if (!isCreator && !sameProvince) {
+    // Check if user can edit this announcement - only announcements created by the same role
+    if (
+      user.role !== "generalManager" &&
+      announcement.createdByRole !== user.role
+    ) {
       return NextResponse.json(
-        { success: false, message: "شما دسترسی به ویرایش این اطلاعیه ندارید" },
+        {
+          success: false,
+          message:
+            "شما فقط می‌توانید اطلاعیه‌های ایجاد شده توسط نقش خودتان را ویرایش کنید",
+        },
         { status: 403 }
       );
     }
@@ -169,6 +176,11 @@ export async function PUT(request, { params }) {
       const status = formData.get("status");
       const targetRoles = formData.getAll("targetRoles");
       const targetDistricts = formData.getAll("targetDistricts");
+
+      // Get exam center specific filters
+      const targetGender = formData.get("targetGender");
+      const targetPeriod = formData.get("targetPeriod");
+      const targetOrganizationType = formData.get("targetOrganizationType");
 
       // Basic validation
       if (!title || !content || !targetRoles || targetRoles.length === 0) {
@@ -221,6 +233,9 @@ export async function PUT(request, { params }) {
         status,
         targetRoles,
         targetDistricts: targetDistricts.length > 0 ? targetDistricts : [],
+        targetGender: targetGender || null,
+        targetPeriod: targetPeriod || null,
+        targetOrganizationType: targetOrganizationType || null,
         updatedAt: new Date(),
       };
     } else {
@@ -242,6 +257,12 @@ export async function PUT(request, { params }) {
           { status: 400 }
         );
       }
+
+      // Add exam center specific filters to data
+      data.targetGender = data.targetGender || null;
+      data.targetPeriod = data.targetPeriod || null;
+      data.targetOrganizationType = data.targetOrganizationType || null;
+      data.updatedAt = new Date();
     }
 
     // Update the announcement
@@ -286,6 +307,7 @@ export async function DELETE(request, { params }) {
       ROLES.GENERAL_MANAGER,
       ROLES.PROVINCE_EDUCATION_EXPERT,
       ROLES.PROVINCE_TECH_EXPERT,
+      ROLES.PROVINCE_EVAL_EXPERT,
     ];
 
     if (!allowedRoles.includes(user.role)) {
@@ -310,15 +332,17 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    // Check if user is the creator or has appropriate province-level permission
-    const isCreator = user.id === announcement.createdBy.toString();
-    const sameProvince =
-      user.province &&
-      user.province.toString() === announcement.province.toString();
-
-    if (!isCreator && !sameProvince) {
+    // Check if user can delete this announcement - only announcements created by the same role
+    if (
+      user.role !== "generalManager" &&
+      announcement.createdByRole !== user.role
+    ) {
       return NextResponse.json(
-        { success: false, message: "شما دسترسی به حذف این اطلاعیه ندارید" },
+        {
+          success: false,
+          message:
+            "شما فقط می‌توانید اطلاعیه‌های ایجاد شده توسط نقش خودتان را حذف کنید",
+        },
         { status: 403 }
       );
     }

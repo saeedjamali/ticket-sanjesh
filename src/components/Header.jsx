@@ -97,7 +97,7 @@ export default function Header() {
         if (!user) return;
 
         // Only fetch announcements for district experts and exam center managers
-        if (!["districtEducationExpert", "districtTechExpert", "examCenterManager"].includes(user.role)) {
+        if (!["districtEvalExpert districtEducationExpert", "districtTechExpert", "examCenterManager"].includes(user.role)) {
             return;
         }
 

@@ -117,7 +117,7 @@ export async function GET(req) {
             )}`
           );
 
-          // حتی با وجود فیلتر منطقه، برای مسئول مرکز آزمون فقط تیکت‌های مربوط به مرکز خودش را نمایش می‌دهیم
+          // حتی با وجود فیلتر منطقه، برای مدیر واحد سازمانی فقط تیکت‌های مربوط به مرکز خودش را نمایش می‌دهیم
           if (user.role === ROLES.EXAM_CENTER_MANAGER) {
             console.log(
               "EXAM_CENTER_MANAGER with district filter - applying additional filters"
@@ -144,7 +144,7 @@ export async function GET(req) {
               }
             }
 
-            // شرط دوم: تیکت‌هایی که برای مرکز آزمون این کاربر هستند
+            // شرط دوم: تیکت‌هایی که برای واحد سازمانی این کاربر هستند
             if (user.examCenter) {
               try {
                 const examCenterIdIsValid = mongoose.Types.ObjectId.isValid(
@@ -176,7 +176,7 @@ export async function GET(req) {
               const districtCondition = { district: query.district };
               delete query.district; // حذف district از query اصلی
 
-              // اضافه کردن شرط $or برای نمایش تیکت‌هایی که کاربر ایجاد کرده یا متعلق به مرکز آزمون اوست
+              // اضافه کردن شرط $or برای نمایش تیکت‌هایی که کاربر ایجاد کرده یا متعلق به واحد سازمانی اوست
               query.$and = [districtCondition, { $or: conditions }];
 
               console.log(
@@ -185,141 +185,263 @@ export async function GET(req) {
                 )}`
               );
             }
-          }else if (user.role === ROLES.DISTRICT_EDUCATION_EXPERT) {
-        // کارشناس آموزش منطقه تیکت‌های آموزشی منطقه خود را می‌بیند
-        try {
-          if (user.district) {
-            const districtId = mongoose.Types.ObjectId.isValid(user.district)
-              ? new mongoose.Types.ObjectId(user.district)
-              : user.district;
+          } else if (user.role === ROLES.DISTRICT_EDUCATION_EXPERT) {
+            // کارشناس آموزش منطقه تیکت‌های آموزشی منطقه خود را می‌بیند
+            try {
+              if (user.district) {
+                const districtId = mongoose.Types.ObjectId.isValid(
+                  user.district
+                )
+                  ? new mongoose.Types.ObjectId(user.district)
+                  : user.district;
 
-            query.district = districtId;
-            // جستجو بر اساس نوع آموزشی یا گیرنده آموزشی
-            query.$or = [
-              { type: "EDUCATION" },
-              { receiver: "education" },
-              { receiver: "districtEducationExpert" },
-              { receiver: "provinceEducationExpert" },
-            ];
-            console.log("query.districtEducationExpert==========>", query);
-          } else {
-            // اگر منطقه مشخص نشده، هیچ تیکتی نشان نده
-            query._id = new mongoose.Types.ObjectId();
-          }
-        } catch (error) {
-          console.error(
-            "Error setting up district education expert filter:",
-            error
-          );
-          query._id = new mongoose.Types.ObjectId();
-        }
-        console.log(
-          "GET /api/tickets - district education expert filter:",
-          query
-        );
-      } else if (user.role === ROLES.DISTRICT_TECH_EXPERT) {
-        // کارشناس فنی منطقه تیکت‌های فنی منطقه خود را می‌بیند
-        try {
-          if (user.district) {
-            const districtId = mongoose.Types.ObjectId.isValid(user.district)
-              ? new mongoose.Types.ObjectId(user.district)
-              : user.district;
-
-            query.district = districtId;
-            // جستجو بر اساس نوع فنی یا گیرنده فنی
-            query.$or = [
-              { type: "TECH" },
-              { receiver: "tech" },
-              { receiver: "districtTechExpert" },
-              { receiver: "provinceTechExpert" },
-            ];
-          } else {
-            query._id = new mongoose.Types.ObjectId();
-          }
-        } catch (error) {
-          console.error("Error setting up district tech expert filter:", error);
-          query._id = new mongoose.Types.ObjectId();
-        }
-        console.log("GET /api/tickets - district tech expert filter:", query);
-      } else if (user.role === ROLES.PROVINCE_EDUCATION_EXPERT) {
-        // کارشناس سنجش استان فقط تیکت‌های مربوط به کارشناس سنجش منطقه در استان خودش را می‌بیند
-        try {
-          if (user.province) {
-            const provinceId = mongoose.Types.ObjectId.isValid(user.province)
-              ? new mongoose.Types.ObjectId(user.province)
-              : user.province;
-
-            query.province = provinceId;
-            // جستجو بر اساس نوع آموزشی یا گیرنده آموزشی
-            query.$or = [
-              { type: "EDUCATION" },
-              { receiver: "education" },
-              { receiver: "districtEducationExpert" },
-              { receiver: "provinceEducationExpert" },
-            ];
-
-            console.log("Province Education Expert filter applied:", {
-              province: provinceId,
-              type: "EDUCATION OR receiver: education/districtEducationExpert/provinceEducationExpert",
-            });
-          } else {
-            // اگر استان مشخص نشده، هیچ تیکتی نشان نده
-            query._id = new mongoose.Types.ObjectId();
-
-          }
-        } catch (error) {
-          console.error(
-            "Error setting up province education expert filter:",
-            error
-          );
-          query._id = new mongoose.Types.ObjectId();
-        }
-        console.log(
-          "GET /api/tickets - province education expert filter:",
-          JSON.stringify(query, null, 2)
-        );
-      } else if (user.role === ROLES.PROVINCE_TECH_EXPERT) {
-        // کارشناس فناوری استان فقط تیکت‌های مربوط به کارشناس فناوری منطقه در استان خودش را می‌بیند
-        try {
-          if (user.province) {
-            const provinceId = mongoose.Types.ObjectId.isValid(user.province)
-              ? new mongoose.Types.ObjectId(user.province)
-              : user.province;
-
-            query.province = provinceId;
-            // جستجو بر اساس نوع فنی یا گیرنده فنی
-            query.$or = [
-              { type: "TECH" },
-              { receiver: "tech" },
-              { receiver: "districtTechExpert" },
-              { receiver: "provinceTechExpert" },
-            ];
-
-            console.log("Province Tech Expert filter applied:", {
-              province: provinceId,
-              type: "TECH OR receiver: tech/districtTechExpert/provinceTechExpert",
-            });
-          } else {
-            // اگر استان مشخص نشده، هیچ تیکتی نشان نده
-            query._id = new mongoose.Types.ObjectId();
+                query.district = districtId;
+                // جستجو بر اساس نوع آموزشی یا گیرنده آموزشی
+                query.$or = [
+                  { type: "EDUCATION" },
+                  { receiver: "education" },
+                  { receiver: ROLES.DISTRICT_EDUCATION_EXPERT },
+                  { receiver: ROLES.PROVINCE_EDUCATION_EXPERT },
+                ];
+                console.log("query.districtEducationExpert==========>", query);
+              } else {
+                // اگر منطقه مشخص نشده، هیچ تیکتی نشان نده
+                query._id = new mongoose.Types.ObjectId();
+              }
+            } catch (error) {
+              console.error(
+                "Error setting up district education expert filter:",
+                error
+              );
+              query._id = new mongoose.Types.ObjectId();
+            }
             console.log(
-              "No province found for this user, setting impossible filter"
+              "GET /api/tickets - district education expert filter:",
+              query
+            );
+          } else if (user.role === ROLES.DISTRICT_EVAL_EXPERT) {
+            // کارشناس ارزیابی منطقه تیکت‌های ارزیابی منطقه خود را می‌بیند
+            try {
+              if (user.district) {
+                const districtId = mongoose.Types.ObjectId.isValid(
+                  user.district
+                )
+                  ? new mongoose.Types.ObjectId(user.district)
+                  : user.district;
+
+                query.district = districtId;
+                // جستجو بر اساس نوع ارزیابی یا گیرنده ارزیابی
+                query.$or = [
+                  { type: "EVALUATION" },
+                  { receiver: "evaluation" },
+                  { receiver: ROLES.DISTRICT_EVAL_EXPERT },
+                  { receiver: ROLES.PROVINCE_EVAL_EXPERT },
+                ];
+                console.log("query.districtEvalExpert==========>", query);
+              } else {
+                // اگر منطقه مشخص نشده، هیچ تیکتی نشان نده
+                query._id = new mongoose.Types.ObjectId();
+              }
+            } catch (error) {
+              console.error(
+                "Error setting up district eval expert filter:",
+                error
+              );
+              query._id = new mongoose.Types.ObjectId();
+            }
+            console.log(
+              "GET /api/tickets - district eval expert filter:",
+              query
+            );
+          } else if (user.role === ROLES.DISTRICT_TECH_EXPERT) {
+            // کارشناس فنی منطقه تیکت‌های فنی منطقه خود را می‌بیند
+            try {
+              if (user.district) {
+                const districtId = mongoose.Types.ObjectId.isValid(
+                  user.district
+                )
+                  ? new mongoose.Types.ObjectId(user.district)
+                  : user.district;
+
+                query.district = districtId;
+                // جستجو بر اساس نوع فنی یا گیرنده فنی
+                query.$or = [
+                  { type: "TECH" },
+                  { receiver: "tech" },
+                  { receiver: ROLES.DISTRICT_TECH_EXPERT },
+                  { receiver: ROLES.PROVINCE_TECH_EXPERT },
+                ];
+              } else {
+                query._id = new mongoose.Types.ObjectId();
+              }
+            } catch (error) {
+              console.error(
+                "Error setting up district tech expert filter:",
+                error
+              );
+              query._id = new mongoose.Types.ObjectId();
+            }
+            console.log(
+              "GET /api/tickets - district tech expert filter:",
+              query
+            );
+          } else if (user.role === ROLES.PROVINCE_EDUCATION_EXPERT) {
+            // کارشناس سنجش استان فقط تیکت‌هایی که دریافت کننده اش کارشناس سنجش استان یا کارشناس سنجش منطقه است را می‌بیند
+            try {
+              if (user.province) {
+                const provinceId = mongoose.Types.ObjectId.isValid(
+                  user.province
+                )
+                  ? new mongoose.Types.ObjectId(user.province)
+                  : user.province;
+
+                query.province = provinceId;
+                // جستجو بر اساس نوع آموزشی یا گیرنده آموزشی
+                query.$or = [
+                  { type: "EDUCATION" },
+                  { receiver: "education" },
+                  { receiver: ROLES.DISTRICT_EDUCATION_EXPERT },
+                  { receiver: ROLES.PROVINCE_EDUCATION_EXPERT },
+                ];
+
+                console.log("Province Education Expert filter applied:", {
+                  province: provinceId,
+                  type: "EDUCATION OR receiver: education/districtEducationExpert/provinceEducationExpert",
+                });
+              } else {
+                // اگر استان مشخص نشده، هیچ تیکتی نشان نده
+                query._id = new mongoose.Types.ObjectId();
+              }
+            } catch (error) {
+              console.error(
+                "Error setting up province education expert filter:",
+                error
+              );
+              query._id = new mongoose.Types.ObjectId();
+            }
+            console.log(
+              "GET /api/tickets - province education expert filter:",
+              JSON.stringify(query, null, 2)
+            );
+          } else if (user.role === ROLES.PROVINCE_EVAL_EXPERT) {
+            // کارشناس ارزیابی استان فقط تیکت‌هایی که دریافت کننده اش کارشناس ارزیابی استان یا کارشناس ارزیابی منطقه است را می‌بیند
+            try {
+              if (user.province) {
+                const provinceId = mongoose.Types.ObjectId.isValid(
+                  user.province
+                )
+                  ? new mongoose.Types.ObjectId(user.province)
+                  : user.province;
+
+                query.province = provinceId;
+                // جستجو بر اساس نوع ارزیابی یا گیرنده ارزیابی
+                query.$or = [
+                  { type: "EVALUATION" },
+                  { receiver: "evaluation" },
+                  { receiver: ROLES.DISTRICT_EVAL_EXPERT },
+                  { receiver: ROLES.PROVINCE_EVAL_EXPERT },
+                ];
+
+                console.log("Province Eval Expert filter applied:", {
+                  province: provinceId,
+                  type: "EVALUATION OR receiver: evaluation/districtEvalExpert/provinceEvalExpert",
+                });
+              } else {
+                // اگر استان مشخص نشده، هیچ تیکتی نشان نده
+                query._id = new mongoose.Types.ObjectId();
+              }
+            } catch (error) {
+              console.error(
+                "Error setting up province eval expert filter:",
+                error
+              );
+              query._id = new mongoose.Types.ObjectId();
+            }
+            console.log(
+              "GET /api/tickets - province eval expert filter:",
+              JSON.stringify(query, null, 2)
+            );
+          } else if (user.role === ROLES.PROVINCE_TECH_EXPERT) {
+            // کارشناس فناوری استان فقط تیکت‌هایی که دریافت کننده اش کارشناس فناوری استان یا کارشناس فناوری منطقه است را می‌بیند
+            try {
+              if (user.province) {
+                const provinceId = mongoose.Types.ObjectId.isValid(
+                  user.province
+                )
+                  ? new mongoose.Types.ObjectId(user.province)
+                  : user.province;
+
+                query.province = provinceId;
+                // جستجو بر اساس نوع فنی یا گیرنده فنی
+                query.$or = [
+                  { type: "TECH" },
+                  { receiver: "tech" },
+                  { receiver: ROLES.DISTRICT_TECH_EXPERT },
+                  { receiver: ROLES.PROVINCE_TECH_EXPERT },
+                ];
+
+                console.log("Province Tech Expert filter applied:", {
+                  province: provinceId,
+                  type: "TECH OR receiver: tech/districtTechExpert/provinceTechExpert",
+                });
+              } else {
+                // اگر استان مشخص نشده، هیچ تیکتی نشان نده
+                query._id = new mongoose.Types.ObjectId();
+                console.log(
+                  "No province found for this user, setting impossible filter"
+                );
+              }
+            } catch (error) {
+              console.error(
+                "Error setting up province tech expert filter:",
+                error
+              );
+              query._id = new mongoose.Types.ObjectId();
+            }
+            console.log(
+              "GET /api/tickets - province tech expert filter:",
+              JSON.stringify(query, null, 2)
+            );
+          } else if (user.role === ROLES.GENERAL_MANAGER) {
+            // مدیر کل همه تیکت‌های استان خودش را می‌بیند
+            try {
+              if (user.province) {
+                const provinceId = mongoose.Types.ObjectId.isValid(
+                  user.province
+                )
+                  ? new mongoose.Types.ObjectId(user.province)
+                  : user.province;
+
+                query.province = provinceId;
+                // مدیر کل همه تیکت‌های استان را می‌بیند - فیلتر اضافی نیاز نیست
+
+                console.log("General Manager filter applied:", {
+                  province: provinceId,
+                  note: "All tickets in the province",
+                });
+              } else {
+                // اگر استان مشخص نشده، هیچ تیکتی نشان نده
+                query._id = new mongoose.Types.ObjectId();
+                console.log(
+                  "No province found for general manager, setting impossible filter"
+                );
+              }
+            } catch (error) {
+              console.error("Error setting up general manager filter:", error);
+              query._id = new mongoose.Types.ObjectId();
+            }
+            console.log(
+              "GET /api/tickets - general manager filter:",
+              JSON.stringify(query, null, 2)
+            );
+          } else if (user.role === ROLES.SYSTEM_ADMIN) {
+            // مدیر سیستم تمام تیکت‌ها را می‌بیند (فیلتر اضافی نیاز نیست)
+            console.log(
+              "GET /api/tickets - system admin role, no filters applied"
             );
           }
-        } catch (error) {
-          console.error("Error setting up province tech expert filter:", error);
-          query._id = new mongoose.Types.ObjectId();
-        }
-        console.log(
-          "GET /api/tickets - province tech expert filter:",
-          JSON.stringify(query, null, 2)
-        );
-      } else if (user.role === ROLES.SYSTEM_ADMIN) {
-        // مدیر سیستم تمام تیکت‌ها را می‌بیند (فیلتر اضافی نیاز نیست)
-        console.log("GET /api/tickets - system admin role, no filters applied");
-      }
 
-          // حذف فیلترهای دیگر که ممکن است با district تداخل داشته باشند فقط برای کاربرانی که مسئول مرکز آزمون نیستند
+          // حذف فیلترهای دیگر که ممکن است با district تداخل داشته باشند فقط برای کاربرانی که مدیر واحد سازمانی نیستند
           else if (query.$or) {
             console.log(
               `$or condition existed before: ${JSON.stringify(query.$or)}`
@@ -357,7 +479,7 @@ export async function GET(req) {
       console.log("No district filter from URL, applying role-based filters");
 
       if (userRole === ROLES.EXAM_CENTER_MANAGER) {
-        // مسئول مرکز آزمون تیکت‌های مرکز خودش را می‌بیند
+        // مدیر واحد سازمانی تیکت‌های مرکز خودش را می‌بیند
         // و همچنین تیکت‌هایی که خودش ایجاد کرده است
         try {
           const conditions = [];
@@ -396,7 +518,7 @@ export async function GET(req) {
             }
           }
 
-          // شرط دوم: تیکت‌هایی که برای مرکز آزمون این کاربر هستند
+          // شرط دوم: تیکت‌هایی که برای واحد سازمانی این کاربر هستند
           if (user.examCenter) {
             try {
               const examCenterIdIsValid = mongoose.Types.ObjectId.isValid(
@@ -469,8 +591,8 @@ export async function GET(req) {
             query.$or = [
               { type: "EDUCATION" },
               { receiver: "education" },
-              { receiver: "districtEducationExpert" },
-              { receiver: "provinceEducationExpert" },
+              { receiver: ROLES.DISTRICT_EDUCATION_EXPERT },
+              { receiver: ROLES.PROVINCE_EDUCATION_EXPERT },
             ];
           } else {
             // اگر منطقه مشخص نشده، هیچ تیکتی نشان نده
@@ -487,6 +609,32 @@ export async function GET(req) {
           "GET /api/tickets - district education expert filter:",
           query
         );
+      } else if (userRole === ROLES.DISTRICT_EVAL_EXPERT) {
+        // کارشناس ارزیابی منطقه تیکت‌های ارزیابی منطقه خود را می‌بیند
+        try {
+          if (user.district) {
+            const districtId = mongoose.Types.ObjectId.isValid(user.district)
+              ? new mongoose.Types.ObjectId(user.district)
+              : user.district;
+
+            query.district = districtId;
+            // جستجو بر اساس نوع ارزیابی یا گیرنده ارزیابی
+            query.$or = [
+              { type: "EVALUATION" },
+              { receiver: "evaluation" },
+              { receiver: ROLES.DISTRICT_EVAL_EXPERT },
+              { receiver: ROLES.PROVINCE_EVAL_EXPERT },
+            ];
+            console.log("query.districtEvalExpert==========>", query);
+          } else {
+            // اگر منطقه مشخص نشده، هیچ تیکتی نشان نده
+            query._id = new mongoose.Types.ObjectId();
+          }
+        } catch (error) {
+          console.error("Error setting up district eval expert filter:", error);
+          query._id = new mongoose.Types.ObjectId();
+        }
+        console.log("GET /api/tickets - district eval expert filter:", query);
       } else if (userRole === ROLES.DISTRICT_TECH_EXPERT) {
         // کارشناس فنی منطقه تیکت‌های فنی منطقه خود را می‌بیند
         try {
@@ -500,8 +648,8 @@ export async function GET(req) {
             query.$or = [
               { type: "TECH" },
               { receiver: "tech" },
-              { receiver: "districtTechExpert" },
-              { receiver: "provinceTechExpert" },
+              { receiver: ROLES.DISTRICT_TECH_EXPERT },
+              { receiver: ROLES.PROVINCE_TECH_EXPERT },
             ];
           } else {
             query._id = new mongoose.Types.ObjectId();
@@ -512,7 +660,7 @@ export async function GET(req) {
         }
         console.log("GET /api/tickets - district tech expert filter:", query);
       } else if (userRole === ROLES.PROVINCE_EDUCATION_EXPERT) {
-        // کارشناس سنجش استان فقط تیکت‌های مربوط به کارشناس سنجش منطقه در استان خودش را می‌بیند
+        // کارشناس سنجش استان فقط تیکت‌هایی که دریافت کننده اش کارشناس سنجش استان یا کارشناس سنجش منطقه است را می‌بیند
         try {
           if (user.province) {
             const provinceId = mongoose.Types.ObjectId.isValid(user.province)
@@ -524,8 +672,8 @@ export async function GET(req) {
             query.$or = [
               { type: "EDUCATION" },
               { receiver: "education" },
-              { receiver: "districtEducationExpert" },
-              { receiver: "provinceEducationExpert" },
+              { receiver: ROLES.DISTRICT_EDUCATION_EXPERT },
+              { receiver: ROLES.PROVINCE_EDUCATION_EXPERT },
             ];
 
             console.log("Province Education Expert filter applied:", {
@@ -535,9 +683,6 @@ export async function GET(req) {
           } else {
             // اگر استان مشخص نشده، هیچ تیکتی نشان نده
             query._id = new mongoose.Types.ObjectId();
-            console.log(
-              "No province found for this user, setting impossible filter"
-            );
           }
         } catch (error) {
           console.error(
@@ -550,8 +695,41 @@ export async function GET(req) {
           "GET /api/tickets - province education expert filter:",
           JSON.stringify(query, null, 2)
         );
+      } else if (userRole === ROLES.PROVINCE_EVAL_EXPERT) {
+        // کارشناس ارزیابی استان فقط تیکت‌هایی که دریافت کننده اش کارشناس ارزیابی استان یا کارشناس ارزیابی منطقه است را می‌بیند
+        try {
+          if (user.province) {
+            const provinceId = mongoose.Types.ObjectId.isValid(user.province)
+              ? new mongoose.Types.ObjectId(user.province)
+              : user.province;
+
+            query.province = provinceId;
+            // جستجو بر اساس نوع ارزیابی یا گیرنده ارزیابی
+            query.$or = [
+              { type: "EVALUATION" },
+              { receiver: "evaluation" },
+              { receiver: ROLES.DISTRICT_EVAL_EXPERT },
+              { receiver: ROLES.PROVINCE_EVAL_EXPERT },
+            ];
+
+            console.log("Province Eval Expert filter applied:", {
+              province: provinceId,
+              type: "EVALUATION OR receiver: evaluation/districtEvalExpert/provinceEvalExpert",
+            });
+          } else {
+            // اگر استان مشخص نشده، هیچ تیکتی نشان نده
+            query._id = new mongoose.Types.ObjectId();
+          }
+        } catch (error) {
+          console.error("Error setting up province eval expert filter:", error);
+          query._id = new mongoose.Types.ObjectId();
+        }
+        console.log(
+          "GET /api/tickets - province eval expert filter:",
+          JSON.stringify(query, null, 2)
+        );
       } else if (userRole === ROLES.PROVINCE_TECH_EXPERT) {
-        // کارشناس فناوری استان فقط تیکت‌های مربوط به کارشناس فناوری منطقه در استان خودش را می‌بیند
+        // کارشناس فناوری استان فقط تیکت‌هایی که دریافت کننده اش کارشناس فناوری استان یا کارشناس فناوری منطقه است را می‌بیند
         try {
           if (user.province) {
             const provinceId = mongoose.Types.ObjectId.isValid(user.province)
@@ -563,8 +741,8 @@ export async function GET(req) {
             query.$or = [
               { type: "TECH" },
               { receiver: "tech" },
-              { receiver: "districtTechExpert" },
-              { receiver: "provinceTechExpert" },
+              { receiver: ROLES.DISTRICT_TECH_EXPERT },
+              { receiver: ROLES.PROVINCE_TECH_EXPERT },
             ];
 
             console.log("Province Tech Expert filter applied:", {
@@ -584,6 +762,36 @@ export async function GET(req) {
         }
         console.log(
           "GET /api/tickets - province tech expert filter:",
+          JSON.stringify(query, null, 2)
+        );
+      } else if (userRole === ROLES.GENERAL_MANAGER) {
+        // مدیر کل همه تیکت‌های استان خودش را می‌بیند
+        try {
+          if (user.province) {
+            const provinceId = mongoose.Types.ObjectId.isValid(user.province)
+              ? new mongoose.Types.ObjectId(user.province)
+              : user.province;
+
+            query.province = provinceId;
+            // مدیر کل همه تیکت‌های استان را می‌بیند - فیلتر اضافی نیاز نیست
+
+            console.log("General Manager filter applied:", {
+              province: provinceId,
+              note: "All tickets in the province",
+            });
+          } else {
+            // اگر استان مشخص نشده، هیچ تیکتی نشان نده
+            query._id = new mongoose.Types.ObjectId();
+            console.log(
+              "No province found for general manager, setting impossible filter"
+            );
+          }
+        } catch (error) {
+          console.error("Error setting up general manager filter:", error);
+          query._id = new mongoose.Types.ObjectId();
+        }
+        console.log(
+          "GET /api/tickets - general manager filter:",
           JSON.stringify(query, null, 2)
         );
       } else if (userRole === ROLES.SYSTEM_ADMIN) {
@@ -719,7 +927,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // فقط مسئولین مرکز آزمون می‌توانند تیکت ایجاد کنند
+    // فقط مسئولین واحد سازمانی می‌توانند تیکت ایجاد کنند
     if (
       user.role !== ROLES.EXAM_CENTER_MANAGER &&
       user.role !== ROLES.DISTRICT_EDUCATION_EXPERT &&
@@ -767,7 +975,7 @@ export async function POST(request) {
     // تبدیل سایر شناسه‌ها به ObjectId
     let examCenterObjId = null;
 
-    // برای مسئولین مرکز آزمون، از مرکز آزمون خودشان استفاده می‌کنیم
+    // برای مسئولین واحد سازمانی، از واحد سازمانی خودشان استفاده می‌کنیم
     if (user.examCenter) {
       try {
         examCenterObjId = mongoose.Types.ObjectId.isValid(user.examCenter)
@@ -845,6 +1053,12 @@ export async function POST(request) {
       receiver === "provinceTechExpert"
     ) {
       type = "TECH";
+    } else if (
+      receiver === "evaluation" ||
+      receiver === "districtEvalExpert" ||
+      receiver === "provinceEvalExpert"
+    ) {
+      type = "EVALUATION";
     }
 
     // تنظیم سال تحصیلی - اگر در اطلاعات کاربر وجود نداشت از سال جاری استفاده می‌کنیم
@@ -874,16 +1088,17 @@ export async function POST(request) {
       status,
     };
 
-    // اضافه کردن مرکز آزمون به تیکت در صورت وجود
+    // اضافه کردن واحد سازمانی به تیکت در صورت وجود
     if (examCenterObjId) {
       ticket.examCenter = examCenterObjId;
     } else {
-      // اگر هیچ مرکز آزمونی مشخص نشده است، برای کارشناسان منطقه یک مقدار پیش‌فرض تنظیم می‌کنیم
+      // اگر هیچ واحد سازمانیی مشخص نشده است، برای کارشناسان منطقه یک مقدار پیش‌فرض تنظیم می‌کنیم
       if (
         user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-        user.role === ROLES.DISTRICT_TECH_EXPERT
+        user.role === ROLES.DISTRICT_TECH_EXPERT ||
+        user.role === ROLES.DISTRICT_EVAL_EXPERT
       ) {
-        // بررسی وجود اولین مرکز آزمون در منطقه
+        // بررسی وجود اولین واحد سازمانی در منطقه
         try {
           const ExamCenter = mongoose.models.ExamCenter;
           const defaultExamCenter = await ExamCenter.findOne({
@@ -895,7 +1110,7 @@ export async function POST(request) {
               `Using default examCenter from district: ${defaultExamCenter._id}`
             );
           } else {
-            // اگر هیچ مرکز آزمونی یافت نشد، از یک ObjectId جدید استفاده می‌کنیم
+            // اگر هیچ واحد سازمانیی یافت نشد، از یک ObjectId جدید استفاده می‌کنیم
             ticket.examCenter = new mongoose.Types.ObjectId();
             console.log(
               `No examCenter found. Using dummy ObjectId: ${ticket.examCenter}`

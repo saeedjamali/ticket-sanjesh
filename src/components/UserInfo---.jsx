@@ -13,7 +13,7 @@ const getRoleName = (role) => {
         case ROLES.SYSTEM_ADMIN:
             return "مدیر سیستم";
         case ROLES.EXAM_CENTER_ADMIN:
-            return "مدیر مرکز آزمون";
+            return "مدیر واحد سازمانی";
         case ROLES.DISTRICT_ADMIN:
             return "مدیر منطقه";
         case ROLES.PROVINCE_ADMIN:

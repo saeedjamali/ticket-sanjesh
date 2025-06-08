@@ -16,7 +16,7 @@ const robotoMono = Roboto_Mono({
 
 export const metadata = {
   title: "سامانه تیکتینگ",
-  description: "سامانه تیکتینگ مرکز آزمون",
+  description: "سامانه تیکتینگ واحد سازمانی",
   manifest: "/manifest.json",
   icons: {
     icon: [

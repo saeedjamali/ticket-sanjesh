@@ -71,7 +71,7 @@ export default function DistrictsPage() {
     }
   };
 
-  // فانکشن جدید برای دریافت مراکز آزمون یک منطقه
+  // فانکشن جدید برای دریافت واحدهای سازمانی یک منطقه
   const fetchExamCentersForDistrict = async (districtId) => {
     try {
       setLoadingCenters(true);
@@ -81,7 +81,7 @@ export default function DistrictsPage() {
         Authorization: `Bearer ${accessToken}`,
       };
 
-      console.log(`درخواست مراکز آزمون برای منطقه با شناسه: ${districtId}`);
+      console.log(`درخواست واحدهای سازمانی برای منطقه با شناسه: ${districtId}`);
 
       const response = await fetch(`/api/exam-centers?district=${districtId}`, {
         credentials: "include",
@@ -89,16 +89,16 @@ export default function DistrictsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("خطا در دریافت اطلاعات مراکز آزمون");
+        throw new Error("خطا در دریافت اطلاعات واحدهای سازمانی");
       }
 
       const data = await response.json();
 
       if (!data.success) {
-        throw new Error(data.error || "خطا در دریافت اطلاعات مراکز آزمون");
+        throw new Error(data.error || "خطا در دریافت اطلاعات واحدهای سازمانی");
       }
 
-      // فیلتر کردن مراکز آزمون در سمت کلاینت برای اطمینان از نمایش مراکز آزمون فقط منطقه انتخاب شده
+      // فیلتر کردن واحدهای سازمانی در سمت کلاینت برای اطمینان از نمایش واحدهای سازمانی فقط منطقه انتخاب شده
       const filteredCenters = (data.examCenters || []).filter(
         (center) =>
           center.district === districtId ||
@@ -107,14 +107,16 @@ export default function DistrictsPage() {
       );
 
       console.log(
-        `تعداد مراکز آزمون دریافت شده: ${data.examCenters?.length || 0}`
+        `تعداد واحدهای سازمانی دریافت شده: ${data.examCenters?.length || 0}`
       );
-      console.log(`تعداد مراکز آزمون پس از فیلتر: ${filteredCenters.length}`);
+      console.log(
+        `تعداد واحدهای سازمانی پس از فیلتر: ${filteredCenters.length}`
+      );
 
       setExamCenters(filteredCenters);
     } catch (error) {
       console.error("Error fetching exam centers:", error);
-      toast.error(error.message || "خطا در دریافت اطلاعات مراکز آزمون");
+      toast.error(error.message || "خطا در دریافت اطلاعات واحدهای سازمانی");
     } finally {
       setLoadingCenters(false);
     }
@@ -226,7 +228,7 @@ export default function DistrictsPage() {
     }
   };
 
-  // تغییر در رفتار دکمه‌های نمایش مراکز آزمون و کاربران
+  // تغییر در رفتار دکمه‌های نمایش واحدهای سازمانی و کاربران
   const handleShowExamCenters = (district) => {
     setSelectedDistrict(district);
     fetchExamCentersForDistrict(district._id);
@@ -269,7 +271,7 @@ export default function DistrictsPage() {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">مدیریت مناطق</h1>
 
       {viewingExamCenters ? (
-        // نمایش مراکز آزمون منطقه انتخاب شده
+        // نمایش واحدهای سازمانی منطقه انتخاب شده
         <div>
           <div className="flex items-center mb-6">
             <button
@@ -295,13 +297,13 @@ export default function DistrictsPage() {
           <div className="bg-white shadow-sm rounded-lg p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-semibold">
-                مراکز آزمون منطقه {selectedDistrict?.name}
+                واحدهای سازمانی منطقه {selectedDistrict?.name}
               </h2>
               <Link
                 href={`/dashboard/exam-centers?district=${selectedDistrict?._id}`}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
               >
-                افزودن مرکز آزمون جدید
+                افزودن واحد سازمانی جدید
               </Link>
             </div>
 
@@ -314,7 +316,7 @@ export default function DistrictsPage() {
                 <table className="min-w-full bg-white">
                   <thead>
                     <tr className="bg-gray-100 text-gray-700">
-                      <th className="py-3 px-4 text-right">نام مرکز آزمون</th>
+                      <th className="py-3 px-4 text-right">نام واحد سازمانی</th>
                       <th className="py-3 px-4 text-right">کد مرکز</th>
                       <th className="py-3 px-4 text-right">ظرفیت</th>
                       <th className="py-3 px-4 text-right">تلفن</th>
@@ -349,7 +351,7 @@ export default function DistrictsPage() {
                           colSpan="5"
                           className="text-center py-4 text-gray-500"
                         >
-                          هیچ مرکز آزمونی برای این منطقه یافت نشد
+                          هیچ واحد سازمانیی برای این منطقه یافت نشد
                         </td>
                       </tr>
                     )}
@@ -587,7 +589,7 @@ export default function DistrictsPage() {
                             className="text-blue-600 hover:text-blue-800"
                             onClick={() => handleShowExamCenters(district)}
                           >
-                            مراکز آزمون
+                            واحدهای سازمانی
                           </button>
                           <button
                             className="text-indigo-600 hover:text-indigo-800"
@@ -626,15 +628,15 @@ export default function DistrictsPage() {
             <h2 className="text-xl font-semibold mb-4">راهنما</h2>
             <ul className="list-disc list-inside space-y-2 text-gray-700">
               <li>
-                برای مشاهده مراکز آزمون یک منطقه، روی دکمه «مراکز آزمون» کلیک
-                کنید.
+                برای مشاهده واحدهای سازمانی یک منطقه، روی دکمه «واحدهای سازمانی»
+                کلیک کنید.
               </li>
               <li>
                 برای مشاهده کاربران فعال یک منطقه، روی دکمه «کاربران» کلیک کنید.
               </li>
               <li>
-                مناطقی که دارای مراکز آزمون یا کاربران فعال هستند را نمی‌توان
-                حذف کرد.
+                مناطقی که دارای واحدهای سازمانی یا کاربران فعال هستند را
+                نمی‌توان حذف کرد.
               </li>
               <li>کد منطقه باید منحصر به فرد باشد.</li>
             </ul>

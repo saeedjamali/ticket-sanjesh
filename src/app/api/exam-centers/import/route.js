@@ -93,14 +93,20 @@ export async function POST(request) {
           : undefined;
         const address = row[4]?.toString().trim();
         const phone = row[5]?.toString().trim();
+        const gender = row[6]?.toString().trim();
+        const period = row[7]?.toString().trim();
+        const studentCount = row[8]
+          ? parseInt(row[8].toString().trim(), 10)
+          : undefined;
+        const organizationType = row[9]?.toString().trim();
 
         // بررسی مقادیر الزامی
         if (!name) {
-          throw new Error("نام مرکز آزمون الزامی است");
+          throw new Error("نام واحد سازمانی الزامی است");
         }
 
         if (!code) {
-          throw new Error("کد مرکز آزمون الزامی است");
+          throw new Error("کد واحد سازمانی الزامی است");
         }
 
         if (!districtId) {
@@ -109,13 +115,43 @@ export async function POST(request) {
 
         // بررسی اگر ظرفیت وارد شده عدد صحیح است
         if (capacity !== undefined && isNaN(capacity)) {
-          throw new Error("ظرفیت مرکز آزمون باید عدد صحیح باشد");
+          throw new Error("ظرفیت واحد سازمانی باید عدد صحیح باشد");
         }
 
-        // بررسی تکراری نبودن کد مرکز آزمون
+        // بررسی اگر تعداد دانش آموز وارد شده عدد صحیح است
+        if (studentCount !== undefined && isNaN(studentCount)) {
+          throw new Error("تعداد دانش آموز باید عدد صحیح باشد");
+        }
+
+        // اعتبارسنجی فیلدهای enum
+        if (gender && !["دختر", "پسر", "مختلط"].includes(gender)) {
+          throw new Error("جنسیت باید یکی از مقادیر دختر، پسر یا مختلط باشد");
+        }
+
+        if (
+          period &&
+          ![
+            "ابتدایی",
+            "متوسطه اول",
+            "متوسطه دوم فنی",
+            "متوسطه دوم کاردانش",
+            "متوسطه دوم نظری",
+          ].includes(period)
+        ) {
+          throw new Error("دوره باید یکی از مقادیر مجاز باشد");
+        }
+
+        if (
+          organizationType &&
+          !["دولتی", "غیردولتی"].includes(organizationType)
+        ) {
+          throw new Error("نوع واحد سازمانی باید دولتی یا غیردولتی باشد");
+        }
+
+        // بررسی تکراری نبودن کد واحد سازمانی
         const existingCenterByCode = await ExamCenter.findOne({ code });
         if (existingCenterByCode) {
-          throw new Error(`کد مرکز آزمون '${code}' قبلاً ثبت شده است`);
+          throw new Error(`کد واحد سازمانی '${code}' قبلاً ثبت شده است`);
         }
 
         // بررسی وجود منطقه
@@ -126,7 +162,7 @@ export async function POST(request) {
           throw new Error(`منطقه با شناسه '${districtId}' یافت نشد`);
         }
 
-        // ایجاد مرکز آزمون جدید
+        // ایجاد واحد سازمانی جدید
         const newExamCenter = new ExamCenter({
           name,
           code,
@@ -134,6 +170,10 @@ export async function POST(request) {
           capacity: capacity || 0,
           address: address || undefined,
           phone: phone || undefined,
+          gender: gender || undefined,
+          period: period || undefined,
+          studentCount: studentCount || undefined,
+          organizationType: organizationType || undefined,
           createdBy: user.id,
           isActive: true,
         });

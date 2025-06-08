@@ -119,13 +119,15 @@ export default function UsersPage() {
           router.replace("/login");
           return;
         }
-        throw new Error(errorData.error || "خطا در دریافت اطلاعات مراکز آزمون");
+        throw new Error(
+          errorData.error || "خطا در دریافت اطلاعات واحدهای سازمانی"
+        );
       }
 
       const examCentersData = await examCentersResponse.json();
       if (!examCentersData.success) {
         throw new Error(
-          examCentersData.error || "خطا در دریافت اطلاعات مراکز آزمون"
+          examCentersData.error || "خطا در دریافت اطلاعات واحدهای سازمانی"
         );
       }
 
@@ -210,7 +212,7 @@ export default function UsersPage() {
     return filtered;
   };
 
-  // فیلتر کردن مراکز آزمون بر اساس منطقه انتخاب شده
+  // فیلتر کردن واحدهای سازمانی بر اساس منطقه انتخاب شده
   const filteredExamCenters = (province, district) => {
     console.log("province--->", province);
     console.log("district--->", district);
@@ -249,9 +251,11 @@ export default function UsersPage() {
       generalManager: "مدیر کل",
       provinceEducationExpert: "کارشناس سنجش استان",
       provinceTechExpert: "کارشناس فناوری استان",
+      provinceEvalExpert: "کارشناس ارزیابی استان",
       districtEducationExpert: "کارشناس سنجش منطقه",
       districtTechExpert: "کارشناس فناوری منطقه",
-      examCenterManager: "مسئول مرکز آزمون",
+      districtEvalExpert: "کارشناس ارزیابی منطقه",
+      examCenterManager: "مدیر واحد سازمانی",
     };
 
     return roleMap[role] || role;
@@ -262,12 +266,12 @@ export default function UsersPage() {
     const { name, value } = e.target;
     setSearchFilters((prev) => ({ ...prev, [name]: value }));
 
-    // اگر استان تغییر کرد، باید منطقه و مرکز آزمون را ریست کنیم
+    // اگر استان تغییر کرد، باید منطقه و واحد سازمانی را ریست کنیم
     if (name === "province") {
       setSearchFilters((prev) => ({ ...prev, district: "", examCenter: "" }));
     }
 
-    // اگر منطقه تغییر کرد، باید مرکز آزمون را ریست کنیم
+    // اگر منطقه تغییر کرد، باید واحد سازمانی را ریست کنیم
     if (name === "district") {
       setSearchFilters((prev) => ({ ...prev, examCenter: "" }));
     }
@@ -309,7 +313,7 @@ export default function UsersPage() {
       return false;
     }
 
-    // فیلتر مرکز آزمون
+    // فیلتر واحد سازمانی
     if (
       searchFilters.examCenter &&
       user.examCenter !== searchFilters.examCenter
@@ -333,7 +337,7 @@ export default function UsersPage() {
         const resetFields = { province: "", district: "", examCenter: "" };
         setNewUser((prev) => ({ ...prev, ...resetFields }));
       } else if (name === "province") {
-        // ریست کردن منطقه و مرکز آزمون
+        // ریست کردن منطقه و واحد سازمانی
         setNewUser((prev) => ({ ...prev, district: "", examCenter: "" }));
 
         // اگر استان انتخاب شده باشد، مناطق وابسته را دریافت کنیم
@@ -371,45 +375,48 @@ export default function UsersPage() {
             });
         }
       } else if (name === "district") {
-        // ریست کردن مرکز آزمون
+        // ریست کردن واحد سازمانی
         setNewUser((prev) => ({ ...prev, examCenter: "" }));
 
-        // اگر منطقه انتخاب شده باشد، مراکز آزمون وابسته را دریافت کنیم
+        // اگر منطقه انتخاب شده باشد، واحدهای سازمانی وابسته را دریافت کنیم
         if (value && newUser.province) {
           // لاگ برای بررسی
-          console.log("فرم اضافه کردن: دریافت مراکز آزمون برای منطقه", value);
+          console.log(
+            "فرم اضافه کردن: دریافت واحدهای سازمانی برای منطقه",
+            value
+          );
 
-          // دریافت مراکز آزمون وابسته به منطقه
+          // دریافت واحدهای سازمانی وابسته به منطقه
           fetch(`/api/exam-centers?district=${value}`)
             .then((response) => {
               if (!response.ok) {
-                throw new Error("خطا در دریافت مراکز آزمون");
+                throw new Error("خطا در دریافت واحدهای سازمانی");
               }
               return response.json();
             })
             .then((data) => {
-              console.log("درخواست مراکز آزمون انجام شد. پاسخ:", data);
+              console.log("درخواست واحدهای سازمانی انجام شد. پاسخ:", data);
 
               // بررسی ساختار پاسخ
               if (data.examCenters && Array.isArray(data.examCenters)) {
                 // ساختار جدید - examCenters در یک شیء است
                 console.log(
-                  `مراکز آزمون دریافت شده: ${data.examCenters.length}`
+                  `واحدهای سازمانی دریافت شده: ${data.examCenters.length}`
                 );
                 setExamCenters(data.examCenters);
               } else if (Array.isArray(data)) {
                 // ساختار قدیمی - آرایه مستقیم
                 console.log(
-                  `مراکز آزمون دریافت شده (ساختار قدیمی): ${data.length}`
+                  `واحدهای سازمانی دریافت شده (ساختار قدیمی): ${data.length}`
                 );
                 setExamCenters(data);
               } else {
-                console.error("ساختار داده مراکز آزمون نامعتبر است:", data);
+                console.error("ساختار داده واحدهای سازمانی نامعتبر است:", data);
                 setExamCenters([]);
               }
             })
             .catch((error) => {
-              console.error("خطا در دریافت مراکز آزمون:", error);
+              console.error("خطا در دریافت واحدهای سازمانی:", error);
             });
         }
       }
@@ -422,7 +429,7 @@ export default function UsersPage() {
         const resetFields = { province: "", district: "", examCenter: "" };
         setEditingUser((prev) => ({ ...prev, ...resetFields }));
       } else if (name === "province") {
-        // ریست کردن منطقه و مرکز آزمون
+        // ریست کردن منطقه و واحد سازمانی
         setEditingUser((prev) => ({ ...prev, district: "", examCenter: "" }));
 
         // اگر استان انتخاب شده باشد، مناطق وابسته را دریافت کنیم
@@ -460,45 +467,45 @@ export default function UsersPage() {
             });
         }
       } else if (name === "district") {
-        // ریست کردن مرکز آزمون
+        // ریست کردن واحد سازمانی
         setEditingUser((prev) => ({ ...prev, examCenter: "" }));
 
-        // اگر منطقه انتخاب شده باشد، مراکز آزمون وابسته را دریافت کنیم
+        // اگر منطقه انتخاب شده باشد، واحدهای سازمانی وابسته را دریافت کنیم
         if (value && editingUser.province) {
           // لاگ برای بررسی
-          console.log("فرم ویرایش: دریافت مراکز آزمون برای منطقه", value);
+          console.log("فرم ویرایش: دریافت واحدهای سازمانی برای منطقه", value);
 
-          // دریافت مراکز آزمون وابسته به منطقه
+          // دریافت واحدهای سازمانی وابسته به منطقه
           fetch(`/api/exam-centers?district=${value}`)
             .then((response) => {
               if (!response.ok) {
-                throw new Error("خطا در دریافت مراکز آزمون");
+                throw new Error("خطا در دریافت واحدهای سازمانی");
               }
               return response.json();
             })
             .then((data) => {
-              console.log("درخواست مراکز آزمون انجام شد. پاسخ:", data);
+              console.log("درخواست واحدهای سازمانی انجام شد. پاسخ:", data);
 
               // بررسی ساختار پاسخ
               if (data.examCenters && Array.isArray(data.examCenters)) {
                 // ساختار جدید - examCenters در یک شیء است
                 console.log(
-                  `مراکز آزمون دریافت شده: ${data.examCenters.length}`
+                  `واحدهای سازمانی دریافت شده: ${data.examCenters.length}`
                 );
                 setExamCenters(data.examCenters);
               } else if (Array.isArray(data)) {
                 // ساختار قدیمی - آرایه مستقیم
                 console.log(
-                  `مراکز آزمون دریافت شده (ساختار قدیمی): ${data.length}`
+                  `واحدهای سازمانی دریافت شده (ساختار قدیمی): ${data.length}`
                 );
                 setExamCenters(data);
               } else {
-                console.error("ساختار داده مراکز آزمون نامعتبر است:", data);
+                console.error("ساختار داده واحدهای سازمانی نامعتبر است:", data);
                 setExamCenters([]);
               }
             })
             .catch((error) => {
-              console.error("خطا در دریافت مراکز آزمون:", error);
+              console.error("خطا در دریافت واحدهای سازمانی:", error);
             });
         }
       }
@@ -630,7 +637,7 @@ export default function UsersPage() {
     }
 
     if (requiresExamCenter.includes(newUser.role) && !newUser.examCenter) {
-      alert("لطفاً مرکز آزمون را انتخاب کنید");
+      alert("لطفاً واحد سازمانی را انتخاب کنید");
       return;
     }
 
@@ -711,7 +718,7 @@ export default function UsersPage() {
       requiresExamCenter.includes(editingUser.role) &&
       !editingUser.examCenter
     ) {
-      alert("لطفاً مرکز آزمون را انتخاب کنید");
+      alert("لطفاً واحد سازمانی را انتخاب کنید");
       return;
     }
 
@@ -917,11 +924,17 @@ export default function UsersPage() {
                 کارشناس سنجش استان
               </option>
               <option value="provinceTechExpert">کارشناس فناوری استان</option>
+              <option value="provinceEvalExpert">
+                کارشناس ارزیابی استان
+              </option>
               <option value="districtEducationExpert">
                 کارشناس سنجش منطقه
               </option>
               <option value="districtTechExpert">کارشناس فناوری منطقه</option>
-              <option value="examCenterManager">مسئول مرکز آزمون</option>
+                <option value="districtEvalExpert">
+                کارشناس ارزیابی منطقه
+              </option>
+              <option value="examCenterManager">مدیر واحد سازمانی</option>
             </select>
           </div>
           <div>
@@ -979,7 +992,7 @@ export default function UsersPage() {
                   className="py-3 px-6 border-b text-center
                 "
                 >
-                  مرکز آزمون
+                  واحد سازمانی
                 </th>
                 <th
                   className="py-3 px-6 border-b text-center
@@ -1228,13 +1241,19 @@ export default function UsersPage() {
                     <option value="provinceTechExpert">
                       کارشناس فناوری استان
                     </option>
+                    <option value="provinceEvalExpert">
+                      کارشناس ارزیابی استان
+                    </option>
                     <option value="districtEducationExpert">
                       کارشناس سنجش منطقه
                     </option>
                     <option value="districtTechExpert">
                       کارشناس فناوری منطقه
                     </option>
-                    <option value="examCenterManager">مسئول مرکز آزمون</option>
+                    <option value="districtEvalExpert">
+                      کارشناس ارزیابی منطقه
+                    </option>
+                    <option value="examCenterManager">مدیر واحد سازمانی</option>
                   </select>
                 </div>
               </div>
@@ -1244,8 +1263,10 @@ export default function UsersPage() {
                 "generalManager",
                 "provinceEducationExpert",
                 "provinceTechExpert",
+                "provinceEvalExpert",
                 "districtEducationExpert",
                 "districtTechExpert",
+                "districtEvalExpert",
                 "examCenterManager",
               ].includes(newUser.role) && (
                 <div>
@@ -1276,6 +1297,7 @@ export default function UsersPage() {
               {[
                 "districtEducationExpert",
                 "districtTechExpert",
+                "districtEvalExpert",
                 "examCenterManager",
               ].includes(newUser.role) &&
                 newUser.province && (
@@ -1303,7 +1325,7 @@ export default function UsersPage() {
               {newUser.role === "examCenterManager" && newUser.district && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    مرکز آزمون *
+                    واحد سازمانی *
                   </label>
                   <select
                     name="examCenter"
@@ -1420,13 +1442,19 @@ export default function UsersPage() {
                     <option value="provinceTechExpert">
                       کارشناس فناوری استان
                     </option>
+                    <option value="provinceEvalExpert">
+                      کارشناس ارزیابی استان
+                    </option>
                     <option value="districtEducationExpert">
                       کارشناس سنجش منطقه
+                    </option>
+                    <option value="districtEvalExpert">
+                      کارشناس ارزیابی منطقه
                     </option>
                     <option value="districtTechExpert">
                       کارشناس فناوری منطقه
                     </option>
-                    <option value="examCenterManager">مسئول مرکز آزمون</option>
+                    <option value="examCenterManager">مدیر واحد سازمانی</option>
                   </select>
                 </div>
               </div>
@@ -1438,6 +1466,8 @@ export default function UsersPage() {
                 "provinceTechExpert",
                 "districtEducationExpert",
                 "districtTechExpert",
+                "districtEvalExpert",
+                "provinceEvalExpert",
                 "examCenterManager",
               ].includes(editingUser.role) && (
                 <div>
@@ -1468,6 +1498,7 @@ export default function UsersPage() {
               {[
                 "districtEducationExpert",
                 "districtTechExpert",
+                "districtEvalExpert",
                 "examCenterManager",
               ].includes(editingUser.role) &&
                 editingUser.province && (
@@ -1498,7 +1529,7 @@ export default function UsersPage() {
                 editingUser.district && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      مرکز آزمون *
+                      واحد سازمانی *
                     </label>
                     <select
                       name="examCenter"

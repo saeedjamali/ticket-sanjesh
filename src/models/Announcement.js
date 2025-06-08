@@ -34,7 +34,8 @@ const AnnouncementSchema = new mongoose.Schema({
     enum: [
       "districtEducationExpert", // کارشناس سنجش منطقه
       "districtTechExpert", // کارشناس فناوری منطقه
-      "examCenterManager", // مسئول مرکز آزمون
+      "districtEvalExpert", // کارشناس ارزیابی منطقه
+      "examCenterManager", // مدیر واحد سازمانی
     ],
     required: true,
   },
@@ -44,6 +45,28 @@ const AnnouncementSchema = new mongoose.Schema({
       ref: "District",
     },
   ],
+  // New fields for exam center filtering
+  targetGender: {
+    type: String,
+    enum: ["دختر", "پسر", "مختلط"],
+    default: null,
+  },
+  targetPeriod: {
+    type: String,
+    enum: [
+      "ابتدایی",
+      "متوسطه اول",
+      "متوسطه دوم فنی",
+      "متوسطه دوم کاردانش",
+      "متوسطه دوم نظری",
+    ],
+    default: null,
+  },
+  targetOrganizationType: {
+    type: String,
+    enum: ["دولتی", "غیردولتی"],
+    default: null,
+  },
   province: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Province",
@@ -60,6 +83,7 @@ const AnnouncementSchema = new mongoose.Schema({
       "generalManager", // مدیر کل
       "provinceEducationExpert", // کارشناس سنجش استان
       "provinceTechExpert", // کارشناس فناوری استان
+      "provinceEvalExpert", // کارشناس ارزیابی استان
     ],
     required: true,
   },

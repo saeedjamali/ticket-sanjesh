@@ -77,29 +77,46 @@ export default function ImportExamCentersPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800">
-          افزودن گروهی مراکز آزمون
+          افزودن گروهی واحدهای سازمانی
         </h1>
         <Link
           href="/dashboard/exam-centers"
           className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
         >
-          بازگشت به مدیریت مراکز آزمون
+          بازگشت به مدیریت واحدهای سازمانی
         </Link>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-2">
-            راهنمای افزودن گروهی مراکز آزمون
+            راهنمای افزودن گروهی واحدهای سازمانی
           </h2>
           <p className="text-gray-600">
-            برای افزودن گروهی مراکز آزمون، لطفا مراحل زیر را دنبال کنید:
+            برای افزودن گروهی واحدهای سازمانی، لطفا مراحل زیر را دنبال کنید:
           </p>
           <ol className="list-decimal list-inside mt-2 space-y-2 text-gray-600 pr-4">
             <li>فایل نمونه اکسل را دانلود کنید</li>
-            <li>اطلاعات مراکز آزمون را در فایل وارد کنید</li>
+            <li>
+              اطلاعات واحدهای سازمانی را در فایل وارد کنید (شامل فیلدهای جدید:
+              جنسیت، دوره، تعداد دانش آموز، نوع واحد سازمانی)
+            </li>
             <li>فایل تکمیل شده را آپلود کنید</li>
           </ol>
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-blue-700 text-sm">
+              <strong>توجه:</strong> فیلدهای جدید اضافه شده شامل:
+            </p>
+            <ul className="text-blue-600 text-sm mt-1 pr-4">
+              <li>• جنسیت: دختر، پسر، مختلط</li>
+              <li>
+                • دوره: ابتدایی، متوسطه اول، متوسطه دوم فنی، متوسطه دوم کاردانش،
+                متوسطه دوم نظری
+              </li>
+              <li>• تعداد دانش آموز: عدد صحیح</li>
+              <li>• نوع واحد سازمانی: دولتی، غیردولتی</li>
+            </ul>
+          </div>
           <div className="mt-4">
             <button
               onClick={downloadTemplate}
@@ -163,7 +180,7 @@ export default function ImportExamCentersPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-green-50 border border-green-200 p-4 rounded-md">
                 <p className="text-green-700 font-medium">
-                  مراکز آزمون ایجاد شده
+                  واحدهای سازمانی ایجاد شده
                 </p>
                 <p className="text-3xl font-bold text-green-600 mt-2">
                   {uploadResults.success}
@@ -196,7 +213,7 @@ export default function ImportExamCentersPage() {
                           ردیف
                         </th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          نام مرکز آزمون
+                          نام واحد سازمانی
                         </th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                           پیام خطا

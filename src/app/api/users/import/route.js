@@ -152,7 +152,7 @@ export async function POST(request) {
         }
 
         if (requiresExamCenter.includes(role) && !examCenter) {
-          throw new Error("شناسه مرکز آزمون برای این نقش الزامی است");
+          throw new Error("شناسه واحد سازمانی برای این نقش الزامی است");
         }
 
         // بررسی تکراری نبودن کد ملی

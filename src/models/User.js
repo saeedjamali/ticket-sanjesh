@@ -41,9 +41,11 @@ const UserSchema = new mongoose.Schema({
       "generalManager", // مدیر کل
       "provinceEducationExpert", // کارشناس سنجش استان
       "provinceTechExpert", // کارشناس فناوری استان
+      "provinceEvalExpert", // کارشناس ارزیابی استان
       "districtEducationExpert", // کارشناس سنجش منطقه
       "districtTechExpert", // کارشناس فناوری منطقه
-      "examCenterManager", // مسئول مرکز آزمون
+      "districtEvalExpert", // کارشناس ارزیابی منطقه
+      "examCenterManager", // مدیر واحد سازمانی
     ],
     required: true,
   },

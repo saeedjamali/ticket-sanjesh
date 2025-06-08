@@ -30,7 +30,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
       : {},
   });
 
-  // برای کارشناسان منطقه، لیست مراکز آزمون مربوط به منطقه را بارگذاری می‌کنیم
+  // برای کارشناسان منطقه، لیست واحدهای سازمانی مربوط به منطقه را بارگذاری می‌کنیم
   useEffect(() => {
     // console.log("CreateTicketForm - useEffect running with user:", user);
     // console.log("User role:", user.role);
@@ -43,7 +43,8 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
 
     if (
       user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-      user.role === ROLES.DISTRICT_TECH_EXPERT
+      user.role === ROLES.DISTRICT_TECH_EXPERT ||
+      user.role === ROLES.DISTRICT_EVAL_EXPERT
     ) {
       const loadExamCenters = async () => {
         if (!user.district) {
@@ -81,13 +82,13 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
               setExamCenters(data.examCenters);
             } else {
               console.warn("No exam centers found for this district");
-              setError("هیچ مرکز آزمونی در منطقه شما یافت نشد");
+              setError("هیچ واحد سازمانیی در منطقه شما یافت نشد");
             }
           } else {
             console.error("Failed to load exam centers:", response.statusText);
             const errorText = await response.text();
             console.error("Error response:", errorText);
-            setError("خطا در بارگیری لیست مراکز آزمون");
+            setError("خطا در بارگیری لیست واحدهای سازمانی");
           }
         } catch (error) {
           console.error("Error loading exam centers:", error);
@@ -132,17 +133,22 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
       return [
         { value: "provinceEducationExpert", label: "کارشناس سنجش استان" },
       ];
+    } else if (user.role === ROLES.DISTRICT_EVAL_EXPERT) {
+      // کارشناس ارزیابی منطقه فقط می‌تواند به کارشناس ارزیابی استان تیکت ارسال کند
+      return [{ value: "provinceEvalExpert", label: "کارشناس ارزیابی استان" }];
     } else if (user.role === ROLES.EXAM_CENTER_MANAGER) {
-      // مدیر مرکز آزمون می‌تواند به کارشناسان منطقه تیکت ارسال کند
+      // مدیر واحد سازمانی می‌تواند به کارشناسان منطقه تیکت ارسال کند
       return [
         { value: "districtEducationExpert", label: "کارشناس سنجش منطقه" },
         { value: "districtTechExpert", label: "کارشناس فناوری منطقه" },
+        { value: "districtEvalExpert", label: "کارشناس ارزیابی منطقه" },
       ];
     } else {
       // سایر نقش‌ها (پیش‌فرض)
       return [
         { value: "districtEducationExpert", label: "کارشناس سنجش منطقه" },
         { value: "districtTechExpert", label: "کارشناس فناوری منطقه" },
+        { value: "districtEvalExpert", label: "کارشناس ارزیابی منطقه" },
       ];
     }
   };
@@ -168,10 +174,11 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         formData.append("status", "new");
       }
 
-      // اضافه کردن مرکز آزمون به فرم در صورتی که کارشناس منطقه باشد و مرکز آزمون انتخاب شده باشد
+      // اضافه کردن واحد سازمانی به فرم در صورتی که کارشناس منطقه باشد و واحد سازمانی انتخاب شده باشد
       if (
         (user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-          user.role === ROLES.DISTRICT_TECH_EXPERT) &&
+          user.role === ROLES.DISTRICT_TECH_EXPERT ||
+          user.role === ROLES.DISTRICT_EVAL_EXPERT) &&
         data.examCenter
       ) {
         formData.append("examCenter", data.examCenter);
@@ -334,12 +341,13 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
         )}
       </div>
 
-      {/* اضافه کردن فیلد انتخاب مرکز آزمون برای کارشناسان منطقه */}
+      {/* اضافه کردن فیلد انتخاب واحد سازمانی برای کارشناسان منطقه */}
       {(user.role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-        user.role === ROLES.DISTRICT_TECH_EXPERT) && (
+        user.role === ROLES.DISTRICT_TECH_EXPERT ||
+        user.role === ROLES.DISTRICT_EVAL_EXPERT) && (
         <div className="form-group">
           <label htmlFor="examCenter" className="form-label">
-            مرکز آزمون
+            واحد سازمانی
           </label>
           <select
             id="examCenter"
@@ -347,7 +355,7 @@ export default function CreateTicketForm({ user, ticket, isEditing = false }) {
               errors.examCenter ? "border-red-500" : ""
             }`}
             {...register("examCenter", {
-              required: "انتخاب مرکز آزمون الزامی است",
+              required: "انتخاب واحد سازمانی الزامی است",
             })}
           >
             <option value="">انتخاب کنید</option>

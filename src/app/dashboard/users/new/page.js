@@ -27,9 +27,11 @@ export default function NewUserPage() {
     { value: ROLES.SUPER_ADMIN, label: "مدیر کل" },
     { value: ROLES.PROVINCE_EDUCATION_EXPERT, label: "کارشناس آموزش استان" },
     { value: ROLES.PROVINCE_TECH_EXPERT, label: "کارشناس فناوری استان" },
+    { value: ROLES.PROVINCE_EVAL_EXPERT, label: "کارشناس ارزیابی استان" },
     { value: ROLES.DISTRICT_EDUCATION_EXPERT, label: "کارشناس آموزش منطقه" },
     { value: ROLES.DISTRICT_TECH_EXPERT, label: "کارشناس فناوری منطقه" },
-    { value: ROLES.EXAM_CENTER_MANAGER, label: "مدیر مرکز آزمون" },
+    { value: ROLES.DISTRICT_EVAL_EXPERT, label: "کارشناس ارزیابی منطقه" },
+    { value: ROLES.EXAM_CENTER_MANAGER, label: "مدیر واحد سازمانی" },
   ];
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export default function NewUserPage() {
           setDistricts(districtsData.districts);
         }
 
-        // دریافت مراکز آزمون
+        // دریافت واحدهای سازمانی
         const examCentersResponse = await fetch("/api/exam-centers", {
           credentials: "include",
           cache: "no-store",
@@ -80,19 +82,22 @@ export default function NewUserPage() {
     ROLES.SUPER_ADMIN, // مدیر کل
     ROLES.PROVINCE_EDUCATION_EXPERT, // کارشناس آموزش استان
     ROLES.PROVINCE_TECH_EXPERT, // کارشناس فناوری استان
+    ROLES.PROVINCE_EVAL_EXPERT, // کارشناس ارزیابی استان
     ROLES.DISTRICT_EDUCATION_EXPERT, // کارشناس آموزش منطقه
     ROLES.DISTRICT_TECH_EXPERT, // کارشناس فناوری منطقه
-    ROLES.EXAM_CENTER_MANAGER, // مدیر مرکز آزمون
+    ROLES.DISTRICT_EVAL_EXPERT, // کارشناس ارزیابی منطقه
+    ROLES.EXAM_CENTER_MANAGER, // مدیر واحد سازمانی
   ].includes(formData.role);
 
   const showDistrictField = [
     ROLES.DISTRICT_EDUCATION_EXPERT, // کارشناس آموزش منطقه
     ROLES.DISTRICT_TECH_EXPERT, // کارشناس فناوری منطقه
-    ROLES.EXAM_CENTER_MANAGER, // مدیر مرکز آزمون
+    ROLES.DISTRICT_EVAL_EXPERT, // کارشناس ارزیابی منطقه
+    ROLES.EXAM_CENTER_MANAGER, // مدیر واحد سازمانی
   ].includes(formData.role);
 
   const showExamCenterField = [
-    ROLES.EXAM_CENTER_MANAGER, // مدیر مرکز آزمون
+    ROLES.EXAM_CENTER_MANAGER, // مدیر واحد سازمانی
   ].includes(formData.role);
 
   // پاک کردن فیلدهای غیر مرتبط هنگام تغییر نقش
@@ -111,7 +116,7 @@ export default function NewUserPage() {
         newData.district = "";
         newData.examCenter = "";
       }
-      // اگر نقش انتخاب شده نیاز به مرکز آزمون ندارد
+      // اگر نقش انتخاب شده نیاز به واحد سازمانی ندارد
       else if (!showExamCenterField) {
         newData.examCenter = "";
       }
@@ -136,7 +141,7 @@ export default function NewUserPage() {
     }
 
     if (showExamCenterField && !formData.examCenter) {
-      toast.error("لطفا مرکز آزمون را انتخاب کنید");
+      toast.error("لطفا واحد سازمانی را انتخاب کنید");
       return;
     }
 
@@ -296,11 +301,11 @@ export default function NewUserPage() {
             </div>
           )}
 
-          {/* مرکز آزمون */}
+          {/* واحد سازمانی */}
           {showExamCenterField && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                مرکز آزمون
+                واحد سازمانی
               </label>
               <select
                 name="examCenter"
@@ -309,7 +314,7 @@ export default function NewUserPage() {
                 required
                 className="w-full p-2 border rounded-md"
               >
-                <option value="">انتخاب مرکز آزمون</option>
+                <option value="">انتخاب واحد سازمانی</option>
                 {examCenters
                   .filter(
                     (center) =>

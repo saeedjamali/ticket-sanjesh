@@ -23,7 +23,24 @@ export default function AnnouncementsPage() {
       "generalManager",
       "provinceEducationExpert",
       "provinceTechExpert",
+      "provinceEvalExpert",
     ].includes(user.role);
+
+  // Check if user can edit/delete a specific announcement
+  const canEditAnnouncement = (announcement) => {
+    if (!canManageAnnouncements) return false;
+    // General Manager can edit all announcements from province roles
+    if (user.role === "generalManager") {
+      return [
+        "generalManager",
+        "provinceEducationExpert",
+        "provinceTechExpert",
+        "provinceEvalExpert",
+      ].includes(announcement.createdByRole);
+    }
+    // Other users can only edit announcements created by their own role
+    return announcement.createdByRole === user.role;
+  };
 
   useEffect(() => {
     if (user) {
@@ -77,6 +94,13 @@ export default function AnnouncementsPage() {
   };
 
   const handleDelete = async (id) => {
+    // Check if user can edit this announcement
+    const announcement = announcements.find((a) => a._id === id);
+    if (!announcement || !canEditAnnouncement(announcement)) {
+      toast.error("شما اجازه حذف این اطلاعیه را ندارید");
+      return;
+    }
+
     if (!window.confirm("آیا از حذف این اطلاعیه اطمینان دارید؟")) {
       return;
     }
@@ -108,11 +132,17 @@ export default function AnnouncementsPage() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      const accessToken = localStorage.getItem("accessToken");
       const announcement = announcements.find((a) => a._id === id);
 
       if (!announcement) return;
 
+      // Check if user can edit this announcement
+      if (!canEditAnnouncement(announcement)) {
+        toast.error("شما اجازه ویرایش این اطلاعیه را ندارید");
+        return;
+      }
+
+      const accessToken = localStorage.getItem("accessToken");
       const response = await fetch(`/api/announcements/${id}`, {
         method: "PUT",
         headers: {
@@ -191,6 +221,22 @@ export default function AnnouncementsPage() {
         return "بایگانی";
       default:
         return status;
+    }
+  };
+
+  // Helper function to get role text in Persian
+  const getRoleText = (role) => {
+    switch (role) {
+      case "generalManager":
+        return "مدیر کل";
+      case "provinceEducationExpert":
+        return "کارشناس سنجش استان";
+      case "provinceTechExpert":
+        return "کارشناس فناوری استان";
+      case "provinceEvalExpert":
+        return "کارشناس ارزیابی استان";
+      default:
+        return role;
     }
   };
 
@@ -342,11 +388,21 @@ export default function AnnouncementsPage() {
                           type="checkbox"
                           className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                           checked={
-                            selectedItems.length === announcements.length
+                            announcements.filter((a) => canEditAnnouncement(a))
+                              .length > 0 &&
+                            selectedItems.length ===
+                              announcements.filter((a) =>
+                                canEditAnnouncement(a)
+                              ).length
                           }
                           onChange={(e) => {
+                            const editableAnnouncements = announcements.filter(
+                              (a) => canEditAnnouncement(a)
+                            );
                             if (e.target.checked) {
-                              setSelectedItems(announcements.map((a) => a._id));
+                              setSelectedItems(
+                                editableAnnouncements.map((a) => a._id)
+                              );
                             } else {
                               setSelectedItems([]);
                             }
@@ -376,6 +432,12 @@ export default function AnnouncementsPage() {
                       scope="col"
                       className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
+                      سازنده
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       تاریخ ایجاد
                     </th>
                     <th
@@ -395,7 +457,7 @@ export default function AnnouncementsPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {announcements.map((announcement) => (
                     <tr key={announcement._id} className="hover:bg-gray-50">
-                      {canManageAnnouncements && (
+                      {canEditAnnouncement(announcement) && (
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <input
                             type="checkbox"
@@ -418,13 +480,19 @@ export default function AnnouncementsPage() {
                           />
                         </td>
                       )}
+                      {!canEditAnnouncement(announcement) &&
+                        canManageAnnouncements && (
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            {/* Empty cell for announcements user cannot edit */}
+                          </td>
+                        )}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm text-right font-medium text-gray-900">
                               {announcement.title}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-right text-gray-500">
                               {announcement.content.substring(0, 60)}...
                             </div>
                           </div>
@@ -441,6 +509,13 @@ export default function AnnouncementsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                         <div className="flex flex-col items-center gap-1">
+                          {announcement.targetRoles.includes(
+                            "districtEvalExpert"
+                          ) && (
+                            <span className="bg-orange-50 text-orange-700 text-xs px-2 py-0.5 rounded-full">
+                              کارشناس ارزیابی منطقه
+                            </span>
+                          )}
                           {announcement.targetRoles.includes(
                             "districtEducationExpert"
                           ) && (
@@ -459,10 +534,15 @@ export default function AnnouncementsPage() {
                             "examCenterManager"
                           ) && (
                             <span className="bg-purple-50 text-purple-700 text-xs px-2 py-0.5 rounded-full">
-                              مسئول مرکز آزمون
+                              مدیر واحد سازمانی
                             </span>
                           )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                        <span className="bg-gray-50 text-gray-700 text-xs px-2 py-1 rounded-full">
+                          {getRoleText(announcement.createdByRole)}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                         {formatDate(announcement.createdAt)}
@@ -488,7 +568,7 @@ export default function AnnouncementsPage() {
                           >
                             مشاهده
                           </Link>
-                          {canManageAnnouncements && (
+                          {canEditAnnouncement(announcement) && (
                             <>
                               <span className="text-gray-300">|</span>
                               <Link

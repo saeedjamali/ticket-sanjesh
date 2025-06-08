@@ -57,7 +57,7 @@ export default function ProfilePage() {
       provinceTechExpert: "کارشناس فناوری استان",
       districtEducationExpert: "کارشناس سنجش منطقه",
       districtTechExpert: "کارشناس فناوری منطقه",
-      examCenterManager: "مسئول مرکز آزمون",
+      examCenterManager: "مدیر واحد سازمانی",
     };
 
     return roleMap[role] || role;
@@ -278,7 +278,7 @@ export default function ProfilePage() {
             )}
             {/* {userInfo?.examCenter?.address && (
               <p className="text-white mt-1">
-                آدرس مرکز آزمون: {userInfo?.examCenter?.address || "تعیین نشده"}
+                آدرس واحد سازمانی: {userInfo?.examCenter?.address || "تعیین نشده"}
               </p>
             )} */}
           </div>
@@ -406,7 +406,7 @@ export default function ProfilePage() {
                   </div>
                   <div className="mr-3">
                     <h4 className="text-sm font-semibold text-gray-500">
-                      مرکز آزمون
+                      واحد سازمانی
                     </h4>
                     <div className="mt-1 text-lg font-bold text-gray-800">
                       {userInfo.examCenter.name}
