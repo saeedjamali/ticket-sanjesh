@@ -48,6 +48,9 @@ export function getRolePermissions(role) {
     canViewExamCenterTickets: false,
     canCreateAnnouncements: false,
     canManageAnnouncements: false,
+    canCreateForms: false,
+    canManageForms: false,
+    canSubmitForms: false,
   };
 
   switch (role) {
@@ -65,6 +68,9 @@ export function getRolePermissions(role) {
       permissions.canViewExamCenterTickets = true;
       permissions.canCreateAnnouncements = true;
       permissions.canManageAnnouncements = true;
+      permissions.canCreateForms = true;
+      permissions.canManageForms = true;
+      permissions.canSubmitForms = true;
       break;
 
     case ROLES.GENERAL_MANAGER:
@@ -75,6 +81,9 @@ export function getRolePermissions(role) {
       permissions.canViewExamCenterTickets = true;
       permissions.canCreateAnnouncements = true;
       permissions.canManageAnnouncements = true;
+      permissions.canCreateForms = true;
+      permissions.canManageForms = true;
+      permissions.canSubmitForms = true;
       break;
 
     case ROLES.PROVINCE_EDUCATION_EXPERT:
@@ -84,6 +93,9 @@ export function getRolePermissions(role) {
       permissions.canViewExamCenterTickets = true;
       permissions.canCreateAnnouncements = true;
       permissions.canManageAnnouncements = true;
+      permissions.canCreateForms = true;
+      permissions.canManageForms = true;
+      permissions.canSubmitForms = true;
       break;
 
     case ROLES.PROVINCE_EVAL_EXPERT:
@@ -93,6 +105,9 @@ export function getRolePermissions(role) {
       permissions.canViewExamCenterTickets = true;
       permissions.canCreateAnnouncements = true;
       permissions.canManageAnnouncements = true;
+      permissions.canCreateForms = true;
+      permissions.canManageForms = true;
+      permissions.canSubmitForms = true;
       break;
 
     case ROLES.PROVINCE_TECH_EXPERT:
@@ -105,6 +120,9 @@ export function getRolePermissions(role) {
       permissions.canViewExamCenterTickets = true;
       permissions.canCreateAnnouncements = true;
       permissions.canManageAnnouncements = true;
+      permissions.canCreateForms = true;
+      permissions.canManageForms = true;
+      permissions.canSubmitForms = true;
       break;
 
     case ROLES.DISTRICT_TECH_EXPERT:
@@ -113,22 +131,26 @@ export function getRolePermissions(role) {
       permissions.canRespondToTickets = true;
       permissions.canViewDistrictTickets = true;
       permissions.canViewExamCenterTickets = true;
+      permissions.canSubmitForms = true;
       break;
 
     case ROLES.DISTRICT_EDUCATION_EXPERT:
       permissions.canRespondToTickets = true;
       permissions.canViewDistrictTickets = true;
       permissions.canViewExamCenterTickets = true;
+      permissions.canSubmitForms = true;
       break;
 
     case ROLES.DISTRICT_EVAL_EXPERT:
       permissions.canRespondToTickets = true;
       permissions.canViewDistrictTickets = true;
       permissions.canViewExamCenterTickets = true;
+      permissions.canSubmitForms = true;
       break;
 
     case ROLES.EXAM_CENTER_MANAGER:
       permissions.canCreateTickets = true;
+      permissions.canSubmitForms = true;
       break;
   }
 
@@ -151,7 +173,7 @@ export function getRoleName(role) {
   return roleNames[role] || "کاربر";
 }
 
-export function getMenuItemsByRole(role) {
+export function getMenuItemsByRole(role, pendingFormsCount = 0) {
   const menuItems = [];
 
   // داشبورد برای همه کاربران قابل دسترس است
@@ -174,6 +196,51 @@ export function getMenuItemsByRole(role) {
     path: "/dashboard/announcements",
     icon: "announcements",
   });
+
+  // منوی فرم‌ها - برای کاربران مجاز
+  if (
+    role === ROLES.SYSTEM_ADMIN ||
+    role === ROLES.GENERAL_MANAGER ||
+    role === ROLES.PROVINCE_EDUCATION_EXPERT ||
+    role === ROLES.PROVINCE_TECH_EXPERT ||
+    role === ROLES.PROVINCE_EVAL_EXPERT ||
+    role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+    role === ROLES.DISTRICT_TECH_EXPERT ||
+    role === ROLES.DISTRICT_EVAL_EXPERT ||
+    role === ROLES.EXAM_CENTER_MANAGER
+  ) {
+    const formsMenuItem = {
+      label: "فرم‌ها",
+      path: "/dashboard/forms",
+      icon: "forms",
+    };
+
+    // Add badge count for users who can submit forms (not managers)
+    if (
+      role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+      role === ROLES.DISTRICT_TECH_EXPERT ||
+      role === ROLES.DISTRICT_EVAL_EXPERT ||
+      role === ROLES.EXAM_CENTER_MANAGER
+    ) {
+      formsMenuItem.badge = pendingFormsCount;
+    }
+
+    menuItems.push(formsMenuItem);
+  }
+
+  // منوی گزارش‌های ارسالی - برای کاربران که می‌توانند فرم ارسال کنند
+  if (
+    role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+    role === ROLES.DISTRICT_TECH_EXPERT ||
+    role === ROLES.DISTRICT_EVAL_EXPERT ||
+    role === ROLES.EXAM_CENTER_MANAGER
+  ) {
+    menuItems.push({
+      label: "گزارش‌های ارسالی",
+      path: "/dashboard/submissions",
+      icon: "reports",
+    });
+  }
 
   // منوی پروفایل کاربری - برای همه کاربران
   menuItems.push({

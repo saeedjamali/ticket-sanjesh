@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { getMenuItemsByRole } from "@/lib/permissions";
+import { usePendingFormsCount } from "@/hooks/usePendingFormsCount";
 import {
   FaTicketAlt,
   FaUsers,
@@ -17,6 +18,7 @@ import {
   FaAngleRight,
   FaAngleLeft,
   FaBullhorn,
+  FaWpforms,
 } from "react-icons/fa";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -24,6 +26,7 @@ const icons = {
   dashboard: <FaHome className="h-5 w-5" />,
   tickets: <FaTicketAlt className="h-5 w-5" />,
   announcements: <FaBullhorn className="h-5 w-5" />,
+  forms: <FaWpforms className="h-5 w-5" />,
   users: <FaUsers className="h-5 w-5" />,
   reports: <FaChartLine className="h-5 w-5" />,
   settings: <FaCog className="h-5 w-5" />,
@@ -32,7 +35,8 @@ const icons = {
 
 export default function Sidebar({ user, children }) {
   const pathname = usePathname();
-  const menuItems = getMenuItemsByRole(user?.role || "");
+  const { count: pendingFormsCount } = usePendingFormsCount();
+  const menuItems = getMenuItemsByRole(user?.role || "", pendingFormsCount);
   const { isOpen, toggleSidebar, openSubmenu, toggleSubmenu, isMobile } =
     useSidebar();
 
@@ -133,7 +137,7 @@ export default function Sidebar({ user, children }) {
                 ) : (
                   <Link href={item.path}>
                     <div
-                      className={`flex items-center p-3 rounded-lg ${
+                      className={`flex items-center justify-between p-3 rounded-lg ${
                         pathname === item.path
                           ? "bg-blue-600"
                           : "hover:bg-gray-700"
@@ -142,8 +146,15 @@ export default function Sidebar({ user, children }) {
                         if (window.innerWidth < 1024) toggleSidebar();
                       }}
                     >
-                      <span className="ml-3">{icons[item.icon]}</span>
-                      <span>{item.label}</span>
+                      <div className="flex items-center">
+                        <span className="ml-3">{icons[item.icon]}</span>
+                        <span>{item.label}</span>
+                      </div>
+                      {item.badge && item.badge > 0 && (
+                        <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                          {item.badge}
+                        </span>
+                      )}
                     </div>
                   </Link>
                 )}

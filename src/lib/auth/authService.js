@@ -22,6 +22,7 @@ class AuthService {
       console.log("user in AuthService Login---->", user);
       // Check if user exists
       if (!user) {
+        
         throw new Error("کد ملی یا رمز عبور اشتباه است");
       }
 
@@ -144,7 +145,10 @@ class AuthService {
         .lean();
 
       if (!user) {
-        throw new Error("User not found");
+        return false
+        //redirect("/login");
+        //throw new Error("User not found");
+        
       }
       // Check if user is active
       if (!user.isActive && user.role !== "systemAdmin") {
