@@ -228,11 +228,11 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
     menuItems.push(formsMenuItem);
   }
 
-  // منوی اطلاعات دانش آموزی - برای مدیران واحد سازمانی
+  // منوی دانش‌آموزان - برای مدیران واحد سازمانی
   if (role === ROLES.EXAM_CENTER_MANAGER) {
     menuItems.push({
-      label: "اطلاعات دانش آموزی",
-      path: "/dashboard/student-info",
+      label: "لیست دانش آموزان",
+      path: "/dashboard/students",
       icon: "studentInfo",
     });
   }

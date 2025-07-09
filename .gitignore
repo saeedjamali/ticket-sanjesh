@@ -44,3 +44,4 @@ next-env.d.ts
 /uploads/attachments/*
 !/uploads/attachments/.gitkeep
 !/uploads/README.md
+/uploads/temp_*

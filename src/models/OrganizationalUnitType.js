@@ -32,7 +32,6 @@ const organizationalUnitTypeSchema = new mongoose.Schema(
   }
 );
 
-
 const OrganizationalUnitType =
   mongoose.models?.OrganizationalUnitType ||
   mongoose.model("OrganizationalUnitType", organizationalUnitTypeSchema);
