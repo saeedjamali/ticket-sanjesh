@@ -19,6 +19,9 @@ import {
   FaAngleLeft,
   FaBullhorn,
   FaWpforms,
+  FaGraduationCap,
+  FaVenusMars,
+  FaSitemap,
 } from "react-icons/fa";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -31,6 +34,9 @@ const icons = {
   reports: <FaChartLine className="h-5 w-5" />,
   settings: <FaCog className="h-5 w-5" />,
   profile: <FaUserCircle className="h-5 w-5" />,
+  studentInfo: <FaGraduationCap className="h-5 w-5" />,
+  gender: <FaVenusMars className="h-5 w-5" />,
+  organizationalUnit: <FaSitemap className="h-5 w-5" />,
 };
 
 export default function Sidebar({ user, children }) {

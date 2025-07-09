@@ -10,6 +10,10 @@ export default function ExamCentersPage() {
   const [examCenters, setExamCenters] = useState([]);
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
+  const [genders, setGenders] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [organizationTypes, setOrganizationTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -24,7 +28,8 @@ export default function ExamCentersPage() {
     phone: "",
     capacity: "",
     gender: "",
-    period: "",
+    course: "",
+    branch: "",
     studentCount: "",
     organizationType: "",
   });
@@ -33,7 +38,7 @@ export default function ExamCentersPage() {
     province: "",
     district: "",
     gender: "",
-    period: "",
+    course: "",
     organizationType: "",
   });
 
@@ -135,6 +140,46 @@ export default function ExamCentersPage() {
 
         console.log("Processed exam centers:", processedCenters);
         setExamCenters(processedCenters);
+
+        // Fetch genders
+        const gendersResponse = await fetch("/api/genders", {
+          credentials: "include",
+        });
+        if (gendersResponse.ok) {
+          const gendersData = await gendersResponse.json();
+          if (gendersData.success) {
+            setGenders(gendersData.data || []);
+          }
+        }
+
+        // Fetch courses
+        const coursesResponse = await fetch("/api/course-grades", {
+          credentials: "include",
+        });
+        if (coursesResponse.ok) {
+          const coursesData = await coursesResponse.json();
+          if (coursesData.success) {
+            // حذف دوره‌های تکراری بر اساس courseName
+            const uniqueCourses = {};
+            (coursesData.data || []).forEach((course) => {
+              if (!uniqueCourses[course.courseName]) {
+                uniqueCourses[course.courseName] = course;
+              }
+            });
+            setCourses(Object.values(uniqueCourses));
+          }
+        }
+
+        // Fetch organization types
+        const orgTypesResponse = await fetch("/api/organizational-unit-types", {
+          credentials: "include",
+        });
+        if (orgTypesResponse.ok) {
+          const orgTypesData = await orgTypesResponse.json();
+          if (orgTypesData.success) {
+            setOrganizationTypes(orgTypesData.data || []);
+          }
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
         setError(error.message);
@@ -175,6 +220,39 @@ export default function ExamCentersPage() {
       // Log available districts for the selected province
       const availableDistricts = filteredDistricts(value);
       console.log("Available districts for province:", availableDistricts);
+    }
+
+    // If course changes, fetch branches and reset branch
+    if (field === "course") {
+      setNewExamCenter((prev) => ({ ...prev, branch: "" }));
+      fetchBranchesForCourse(value);
+    }
+  };
+
+  // Fetch branches based on selected course
+  const fetchBranchesForCourse = async (courseId) => {
+    if (!courseId) {
+      setBranches([]);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/course-branch-fields/branches?course=${courseId}`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setBranches(data.data || []);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+      setBranches([]);
     }
   };
 
@@ -248,6 +326,10 @@ export default function ExamCentersPage() {
       code: "کد مرکز",
       province: "استان",
       district: "منطقه",
+      gender: "جنسیت",
+      course: "دوره",
+      branch: "شاخه",
+      organizationType: "نوع واحد سازمانی",
     };
 
     const missingFields = Object.entries(requiredFields)
@@ -271,12 +353,13 @@ export default function ExamCentersPage() {
         manager: newExamCenter.manager || undefined,
         address: newExamCenter.address || undefined,
         phone: newExamCenter.phone || undefined,
-        gender: newExamCenter.gender || undefined,
-        period: newExamCenter.period || undefined,
+        gender: newExamCenter.gender,
+        course: newExamCenter.course,
+        branch: newExamCenter.branch,
         studentCount: newExamCenter.studentCount
           ? Number(newExamCenter.studentCount)
           : undefined,
-        organizationType: newExamCenter.organizationType || undefined,
+        organizationType: newExamCenter.organizationType,
       };
 
       console.log("Sending data to API:", examCenterData);
@@ -330,10 +413,12 @@ export default function ExamCentersPage() {
         phone: "",
         capacity: "",
         gender: "",
-        period: "",
+        course: "",
+        branch: "",
         studentCount: "",
         organizationType: "",
       });
+      setBranches([]);
 
       toast.success("واحد سازمانی با موفقیت ثبت شد");
     } catch (error) {
@@ -372,7 +457,17 @@ export default function ExamCentersPage() {
       ...center,
       province: center.district?.province?._id || "",
       district: center.district?._id || "",
+      gender: center.gender?._id || "",
+      course: center.course?._id || "",
+      branch: center.branch?._id || "",
+      organizationType: center.organizationType?._id || "",
     });
+
+    // Fetch branches for the selected course
+    if (center.course?._id) {
+      fetchBranchesForCourse(center.course._id);
+    }
+
     setIsEditModalOpen(true);
   };
 
@@ -390,12 +485,13 @@ export default function ExamCentersPage() {
         managerId: editingCenter.manager?._id || undefined,
         address: editingCenter.address || undefined,
         phone: editingCenter.phone || undefined,
-        gender: editingCenter.gender || undefined,
-        period: editingCenter.period || undefined,
+        gender: editingCenter.gender,
+        course: editingCenter.course,
+        branch: editingCenter.branch,
         studentCount: editingCenter.studentCount
           ? Number(editingCenter.studentCount)
           : undefined,
-        organizationType: editingCenter.organizationType || undefined,
+        organizationType: editingCenter.organizationType,
       };
 
       const response = await fetch(`/api/exam-centers/${editingCenter._id}`, {
@@ -449,6 +545,12 @@ export default function ExamCentersPage() {
     // Reset district when province changes
     if (name === "province") {
       setEditingCenter((prev) => ({ ...prev, district: "" }));
+    }
+
+    // Reset branch when course changes and fetch new branches
+    if (name === "course") {
+      setEditingCenter((prev) => ({ ...prev, branch: "" }));
+      fetchBranchesForCourse(value);
     }
   };
 
@@ -515,19 +617,25 @@ export default function ExamCentersPage() {
 
     if (selectedFilters.gender) {
       filtered = filtered.filter(
-        (center) => center.gender === selectedFilters.gender
+        (center) =>
+          center.gender?._id === selectedFilters.gender ||
+          center.gender === selectedFilters.gender
       );
     }
 
-    if (selectedFilters.period) {
+    if (selectedFilters.course) {
       filtered = filtered.filter(
-        (center) => center.period === selectedFilters.period
+        (center) =>
+          center.course?._id === selectedFilters.course ||
+          center.course === selectedFilters.course
       );
     }
 
     if (selectedFilters.organizationType) {
       filtered = filtered.filter(
-        (center) => center.organizationType === selectedFilters.organizationType
+        (center) =>
+          center.organizationType?._id === selectedFilters.organizationType ||
+          center.organizationType === selectedFilters.organizationType
       );
     }
 
@@ -811,42 +919,71 @@ export default function ExamCentersPage() {
               htmlFor="gender"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              جنسیت
+              جنسیت *
             </label>
             <select
               id="gender"
               name="gender"
               value={newExamCenter.gender}
-              onChange={handleInputChange}
+              onChange={(e) => handleChange("gender", e.target.value)}
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              required
             >
               <option value="">انتخاب جنسیت</option>
-              <option value="دختر">دختر</option>
-              <option value="پسر">پسر</option>
-              <option value="مختلط">مختلط</option>
+              {genders.map((gender) => (
+                <option key={gender._id} value={gender._id}>
+                  {gender.genderTitle}
+                </option>
+              ))}
             </select>
           </div>
 
           <div>
             <label
-              htmlFor="period"
+              htmlFor="course"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              دوره
+              دوره *
             </label>
             <select
-              id="period"
-              name="period"
-              value={newExamCenter.period}
-              onChange={handleInputChange}
+              id="course"
+              name="course"
+              value={newExamCenter.course}
+              onChange={(e) => handleChange("course", e.target.value)}
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              required
             >
               <option value="">انتخاب دوره</option>
-              <option value="ابتدایی">ابتدایی</option>
-              <option value="متوسطه اول">متوسطه اول</option>
-              <option value="متوسطه دوم فنی">متوسطه دوم فنی</option>
-              <option value="متوسطه دوم کاردانش">متوسطه دوم کاردانش</option>
-              <option value="متوسطه دوم نظری">متوسطه دوم نظری</option>
+              {courses.map((course) => (
+                <option key={course._id} value={course._id}>
+                  {course.courseName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="branch"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              شاخه *
+            </label>
+            <select
+              id="branch"
+              name="branch"
+              value={newExamCenter.branch}
+              onChange={(e) => handleChange("branch", e.target.value)}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              required
+              disabled={!newExamCenter.course}
+            >
+              <option value="">انتخاب شاخه</option>
+              {branches.map((branch) => (
+                <option key={branch._id} value={branch._id}>
+                  {branch.branchTitle}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -873,18 +1010,22 @@ export default function ExamCentersPage() {
               htmlFor="organizationType"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              نوع واحد سازمانی
+              نوع واحد سازمانی *
             </label>
             <select
               id="organizationType"
               name="organizationType"
               value={newExamCenter.organizationType}
-              onChange={handleInputChange}
+              onChange={(e) => handleChange("organizationType", e.target.value)}
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              required
             >
               <option value="">انتخاب نوع واحد سازمانی</option>
-              <option value="دولتی">دولتی</option>
-              <option value="غیردولتی">غیردولتی</option>
+              {organizationTypes.map((orgType) => (
+                <option key={orgType._id} value={orgType._id}>
+                  {orgType.unitTypeTitle}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -1012,37 +1153,39 @@ export default function ExamCentersPage() {
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">همه جنسیت‌ها</option>
-              <option value="دختر">دختر</option>
-              <option value="پسر">پسر</option>
-              <option value="مختلط">مختلط</option>
+              {genders.map((gender) => (
+                <option key={gender._id} value={gender._id}>
+                  {gender.genderTitle}
+                </option>
+              ))}
             </select>
           </div>
 
           <div>
             <label
-              htmlFor="filter-period"
+              htmlFor="filter-course"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
               فیلتر بر اساس دوره
             </label>
             <select
-              id="filter-period"
-              name="period"
-              value={selectedFilters.period}
+              id="filter-course"
+              name="course"
+              value={selectedFilters.course}
               onChange={(e) =>
                 setSelectedFilters({
                   ...selectedFilters,
-                  period: e.target.value,
+                  course: e.target.value,
                 })
               }
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">همه دوره‌ها</option>
-              <option value="ابتدایی">ابتدایی</option>
-              <option value="متوسطه اول">متوسطه اول</option>
-              <option value="متوسطه دوم فنی">متوسطه دوم فنی</option>
-              <option value="متوسطه دوم کاردانش">متوسطه دوم کاردانش</option>
-              <option value="متوسطه دوم نظری">متوسطه دوم نظری</option>
+              {courses.map((course) => (
+                <option key={course._id} value={course._id}>
+                  {course.courseName}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -1066,8 +1209,11 @@ export default function ExamCentersPage() {
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">همه انواع</option>
-              <option value="دولتی">دولتی</option>
-              <option value="غیردولتی">غیردولتی</option>
+              {organizationTypes.map((orgType) => (
+                <option key={orgType._id} value={orgType._id}>
+                  {orgType.unitTypeTitle}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -1083,7 +1229,7 @@ export default function ExamCentersPage() {
                 province: "",
                 district: "",
                 gender: "",
-                period: "",
+                course: "",
                 organizationType: "",
               });
               setSearchTerm("");
@@ -1156,6 +1302,12 @@ export default function ExamCentersPage() {
                   scope="col"
                   className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
                 >
+                  شاخه
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+                >
                   تعداد دانش آموز
                 </th>
                 <th
@@ -1176,7 +1328,7 @@ export default function ExamCentersPage() {
               {filteredExamCenters().length === 0 ? (
                 <tr>
                   <td
-                    colSpan="12"
+                    colSpan="13"
                     className="px-6 py-4 text-center text-sm text-gray-500"
                   >
                     هیچ واحد سازمانی یافت نشد
@@ -1221,16 +1373,21 @@ export default function ExamCentersPage() {
                       {center.capacity || "-"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                      {center.gender || "-"}
+                      {center.gender?.genderTitle || center.gender || "-"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                      {center.period || "-"}
+                      {center.course?.courseName || center.course || "-"}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                      {center.branch?.branchTitle || center.branch || "-"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                       {center.studentCount || "-"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                      {center.organizationType || "-"}
+                      {center.organizationType?.unitTypeTitle ||
+                        center.organizationType ||
+                        "-"}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                       {center.manager ? (
@@ -1359,39 +1516,62 @@ export default function ExamCentersPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      جنسیت
+                      جنسیت *
                     </label>
                     <select
                       name="gender"
                       value={editingCenter.gender || ""}
                       onChange={handleEditInputChange}
                       className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      required
                     >
                       <option value="">انتخاب جنسیت</option>
-                      <option value="دختر">دختر</option>
-                      <option value="پسر">پسر</option>
-                      <option value="مختلط">مختلط</option>
+                      {genders.map((gender) => (
+                        <option key={gender._id} value={gender._id}>
+                          {gender.genderTitle}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      دوره
+                      دوره *
                     </label>
                     <select
-                      name="period"
-                      value={editingCenter.period || ""}
+                      name="course"
+                      value={editingCenter.course || ""}
                       onChange={handleEditInputChange}
                       className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      required
                     >
                       <option value="">انتخاب دوره</option>
-                      <option value="ابتدایی">ابتدایی</option>
-                      <option value="متوسطه اول">متوسطه اول</option>
-                      <option value="متوسطه دوم فنی">متوسطه دوم فنی</option>
-                      <option value="متوسطه دوم کاردانش">
-                        متوسطه دوم کاردانش
-                      </option>
-                      <option value="متوسطه دوم نظری">متوسطه دوم نظری</option>
+                      {courses.map((course) => (
+                        <option key={course._id} value={course._id}>
+                          {course.courseName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      شاخه *
+                    </label>
+                    <select
+                      name="branch"
+                      value={editingCenter.branch || ""}
+                      onChange={handleEditInputChange}
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      required
+                      disabled={!editingCenter.course}
+                    >
+                      <option value="">انتخاب شاخه</option>
+                      {branches.map((branch) => (
+                        <option key={branch._id} value={branch._id}>
+                          {branch.branchTitle}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -1411,17 +1591,21 @@ export default function ExamCentersPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      نوع واحد سازمانی
+                      نوع واحد سازمانی *
                     </label>
                     <select
                       name="organizationType"
                       value={editingCenter.organizationType || ""}
                       onChange={handleEditInputChange}
                       className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      required
                     >
                       <option value="">انتخاب نوع واحد سازمانی</option>
-                      <option value="دولتی">دولتی</option>
-                      <option value="غیردولتی">غیردولتی</option>
+                      {organizationTypes.map((orgType) => (
+                        <option key={orgType._id} value={orgType._id}>
+                          {orgType.unitTypeTitle}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

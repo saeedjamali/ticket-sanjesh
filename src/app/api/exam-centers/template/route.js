@@ -4,6 +4,10 @@ import { authService } from "@/lib/auth/authService";
 import { ROLES } from "@/lib/permissions";
 import Province from "@/models/Province";
 import District from "@/models/District";
+import Gender from "@/models/Gender";
+import CourseGrade from "@/models/CourseGrade";
+import CourseBranchField from "@/models/CourseBranchField";
+import OrganizationalUnitType from "@/models/OrganizationalUnitType";
 import connectDB from "@/lib/db";
 
 export async function GET(request) {
@@ -32,6 +36,20 @@ export async function GET(request) {
       .populate("province")
       .select("_id name code province");
 
+    // دریافت داده‌های مرجع
+    const genders = await Gender.find({ isActive: true }).select(
+      "genderCode genderTitle"
+    );
+    const courses = await CourseGrade.find({ isActive: true }).select(
+      "courseCode courseName"
+    );
+    const branches = await CourseBranchField.find({ isActive: true }).select(
+      "branchCode branchTitle"
+    );
+    const organizationTypes = await OrganizationalUnitType.find({
+      isActive: true,
+    }).select("unitTypeCode unitTypeTitle");
+
     // ایجاد فایل اکسل نمونه
     const workbook = XLSX.utils.book_new();
 
@@ -44,10 +62,11 @@ export async function GET(request) {
         "ظرفیت",
         "آدرس",
         "تلفن",
-        "جنسیت",
-        "دوره",
+        "کد جنسیت",
+        "کد دوره",
+        "کد شاخه",
         "تعداد دانش آموز",
-        "نوع واحد سازمانی",
+        "کد نوع واحد سازمانی",
       ],
       [
         "واحد سازمانی 1",
@@ -58,10 +77,13 @@ export async function GET(request) {
         "30",
         "آدرس واحد سازمانی 1",
         "021-12345678",
-        "مختلط",
-        "متوسطه اول",
+        genders.length > 0 ? genders[0].genderCode : "MIXED",
+        courses.length > 0 ? courses[0].courseCode : "SECONDARY1",
+        branches.length > 0 ? branches[0].branchCode : "SCIENCE",
         "150",
-        "دولتی",
+        organizationTypes.length > 0
+          ? organizationTypes[0].unitTypeCode
+          : "PUBLIC",
       ],
       [
         "واحد سازمانی 2",
@@ -72,10 +94,13 @@ export async function GET(request) {
         "50",
         "آدرس واحد سازمانی 2",
         "021-87654321",
-        "دختر",
-        "ابتدایی",
+        genders.length > 1 ? genders[1].genderCode : "FEMALE",
+        courses.length > 1 ? courses[1].courseCode : "PRIMARY",
+        branches.length > 1 ? branches[1].branchCode : "MATH",
         "200",
-        "غیردولتی",
+        organizationTypes.length > 1
+          ? organizationTypes[1].unitTypeCode
+          : "PRIVATE",
       ],
       [
         "راهنما:",
@@ -84,10 +109,11 @@ export async function GET(request) {
         "عدد صحیح",
         "اختیاری",
         "اختیاری",
-        "دختر/پسر/مختلط",
-        "ابتدایی/متوسطه اول/متوسطه دوم فنی/متوسطه دوم کاردانش/متوسطه دوم نظری",
+        "کد جنسیت از شیت جنسیت‌ها",
+        "کد دوره از شیت دوره‌ها",
+        "کد شاخه از شیت شاخه‌ها",
         "عدد صحیح",
-        "دولتی/غیردولتی",
+        "کد نوع واحد از شیت انواع واحد",
       ],
     ];
 
@@ -104,8 +130,38 @@ export async function GET(request) {
         district.province?.name || "-",
       ]),
     ];
-
     const districtsWorksheet = XLSX.utils.aoa_to_sheet(districtsData);
+
+    // ایجاد ورک‌شیت جنسیت‌ها
+    const gendersData = [
+      ["کد جنسیت", "عنوان جنسیت"],
+      ...genders.map((gender) => [gender.genderCode, gender.genderTitle]),
+    ];
+    const gendersWorksheet = XLSX.utils.aoa_to_sheet(gendersData);
+
+    // ایجاد ورک‌شیت دوره‌ها
+    const coursesData = [
+      ["کد دوره", "نام دوره"],
+      ...courses.map((course) => [course.courseCode, course.courseName]),
+    ];
+    const coursesWorksheet = XLSX.utils.aoa_to_sheet(coursesData);
+
+    // ایجاد ورک‌شیت شاخه‌ها
+    const branchesData = [
+      ["کد شاخه", "عنوان شاخه"],
+      ...branches.map((branch) => [branch.branchCode, branch.branchTitle]),
+    ];
+    const branchesWorksheet = XLSX.utils.aoa_to_sheet(branchesData);
+
+    // ایجاد ورک‌شیت انواع واحد سازمانی
+    const orgTypesData = [
+      ["کد نوع واحد", "عنوان نوع واحد"],
+      ...organizationTypes.map((orgType) => [
+        orgType.unitTypeCode,
+        orgType.unitTypeTitle,
+      ]),
+    ];
+    const orgTypesWorksheet = XLSX.utils.aoa_to_sheet(orgTypesData);
 
     // تنظیم عرض ستون‌ها
     const cols = [
@@ -115,10 +171,11 @@ export async function GET(request) {
       { wch: 10 }, // ظرفیت
       { wch: 30 }, // آدرس
       { wch: 15 }, // تلفن
-      { wch: 12 }, // جنسیت
-      { wch: 20 }, // دوره
+      { wch: 15 }, // کد جنسیت
+      { wch: 15 }, // کد دوره
+      { wch: 15 }, // کد شاخه
       { wch: 15 }, // تعداد دانش آموز
-      { wch: 18 }, // نوع واحد سازمانی
+      { wch: 20 }, // کد نوع واحد سازمانی
     ];
 
     const districtsCols = [
@@ -128,12 +185,40 @@ export async function GET(request) {
       { wch: 20 }, // استان
     ];
 
+    const gendersCols = [
+      { wch: 15 }, // کد جنسیت
+      { wch: 25 }, // عنوان جنسیت
+    ];
+
+    const coursesCols = [
+      { wch: 15 }, // کد دوره
+      { wch: 25 }, // نام دوره
+    ];
+
+    const branchesCols = [
+      { wch: 15 }, // کد شاخه
+      { wch: 25 }, // عنوان شاخه
+    ];
+
+    const orgTypesCols = [
+      { wch: 20 }, // کد نوع واحد
+      { wch: 30 }, // عنوان نوع واحد
+    ];
+
     worksheet["!cols"] = cols;
     districtsWorksheet["!cols"] = districtsCols;
+    gendersWorksheet["!cols"] = gendersCols;
+    coursesWorksheet["!cols"] = coursesCols;
+    branchesWorksheet["!cols"] = branchesCols;
+    orgTypesWorksheet["!cols"] = orgTypesCols;
 
     // اضافه کردن ورک‌شیت‌ها به کتاب
     XLSX.utils.book_append_sheet(workbook, worksheet, "واحدهای سازمانی");
     XLSX.utils.book_append_sheet(workbook, districtsWorksheet, "مناطق");
+    XLSX.utils.book_append_sheet(workbook, gendersWorksheet, "جنسیت‌ها");
+    XLSX.utils.book_append_sheet(workbook, coursesWorksheet, "دوره‌ها");
+    XLSX.utils.book_append_sheet(workbook, branchesWorksheet, "شاخه‌ها");
+    XLSX.utils.book_append_sheet(workbook, orgTypesWorksheet, "انواع واحد");
 
     // تبدیل به بافر
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });

@@ -98,24 +98,43 @@ export default function ImportExamCentersPage() {
           <ol className="list-decimal list-inside mt-2 space-y-2 text-gray-600 pr-4">
             <li>فایل نمونه اکسل را دانلود کنید</li>
             <li>
-              اطلاعات واحدهای سازمانی را در فایل وارد کنید (شامل فیلدهای جدید:
-              جنسیت، دوره، تعداد دانش آموز، نوع واحد سازمانی)
+              اطلاعات واحدهای سازمانی را در فایل وارد کنید با استفاده از کدها
+              (نه عناوین)
             </li>
             <li>فایل تکمیل شده را آپلود کنید</li>
           </ol>
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <p className="text-blue-700 text-sm">
-              <strong>توجه:</strong> فیلدهای جدید اضافه شده شامل:
+              <strong>توجه مهم:</strong> در هنگام افزودن گروهی، باید کدها وارد
+              شوند نه عناوین:
             </p>
             <ul className="text-blue-600 text-sm mt-1 pr-4">
-              <li>• جنسیت: دختر، پسر، مختلط</li>
-              <li>
-                • دوره: ابتدایی، متوسطه اول، متوسطه دوم فنی، متوسطه دوم کاردانش،
-                متوسطه دوم نظری
-              </li>
+              <li>• کد جنسیت: از جدول جنسیت‌ها (مثل: FEMALE, MALE, MIXED)</li>
+              <li>• کد دوره: از جدول دوره-پایه (مثل: PRIMARY, SECONDARY1)</li>
+              <li>• کد شاخه: از جدول دوره-شاخه-رشته (مثل: SCIENCE, MATH)</li>
               <li>• تعداد دانش آموز: عدد صحیح</li>
-              <li>• نوع واحد سازمانی: دولتی، غیردولتی</li>
+              <li>
+                • کد نوع واحد سازمانی: از جدول نوع واحد (مثل: PUBLIC, PRIVATE)
+              </li>
             </ul>
+          </div>
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+            <p className="text-yellow-700 text-sm">
+              <strong>ساختار فایل اکسل:</strong> ستون‌ها بترتیب:
+            </p>
+            <ol className="text-yellow-600 text-sm mt-1 pr-4">
+              <li>1. نام واحد سازمانی</li>
+              <li>2. کد واحد سازمانی</li>
+              <li>3. شناسه منطقه</li>
+              <li>4. ظرفیت</li>
+              <li>5. آدرس</li>
+              <li>6. تلفن</li>
+              <li>7. کد جنسیت</li>
+              <li>8. کد دوره</li>
+              <li>9. کد شاخه</li>
+              <li>10. تعداد دانش آموز</li>
+              <li>11. کد نوع واحد سازمانی</li>
+            </ol>
           </div>
           <div className="mt-4">
             <button

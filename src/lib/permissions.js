@@ -228,6 +228,15 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
     menuItems.push(formsMenuItem);
   }
 
+  // منوی اطلاعات دانش آموزی - برای مدیران واحد سازمانی
+  if (role === ROLES.EXAM_CENTER_MANAGER) {
+    menuItems.push({
+      label: "اطلاعات دانش آموزی",
+      path: "/dashboard/student-info",
+      icon: "studentInfo",
+    });
+  }
+
   // منوی گزارش‌های ارسالی - برای کاربران که می‌توانند فرم ارسال کنند
   if (
     role === ROLES.DISTRICT_EDUCATION_EXPERT ||
@@ -301,6 +310,22 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
         {
           label: "واحدهای سازمانی",
           path: "/dashboard/exam-centers",
+        },
+        {
+          label: "دوره-شاخه-رشته",
+          path: "/dashboard/course-branch-fields",
+        },
+        {
+          label: "دوره-پایه",
+          path: "/dashboard/course-grades",
+        },
+        {
+          label: "جنسیت",
+          path: "/dashboard/genders",
+        },
+        {
+          label: "نوع واحد سازمانی",
+          path: "/dashboard/organizational-unit-types",
         },
       ],
     });

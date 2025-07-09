@@ -3,12 +3,16 @@ import { auth } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import ExamCenter from "@/models/ExamCenter";
 import User from "@/models/User";
+import District from "@/models/District";
+import Gender from "@/models/Gender";
+import CourseGrade from "@/models/CourseGrade";
+import CourseBranchField from "@/models/CourseBranchField";
+import OrganizationalUnitType from "@/models/OrganizationalUnitType";
 import { ROLES, getRolePermissions } from "@/lib/permissions";
 import mongoose from "mongoose";
 import dbConnect from "@/lib/dbConnect";
 
 import jwt from "jsonwebtoken";
-import District from "@/models/District";
 import { authService } from "@/lib/auth/authService";
 
 // GET /api/exam-centers - Retrieve exam centers
@@ -159,9 +163,13 @@ export async function GET(request) {
         },
       })
       .populate("manager", "fullName")
+      .populate("gender", "genderCode genderTitle")
+      .populate("course", "courseCode courseName")
+      .populate("branch", "branchCode branchTitle")
+      .populate("organizationType", "unitTypeCode unitTypeTitle")
       .sort({ name: 1 })
       .select(
-        "name code district manager capacity address phone gender period studentCount organizationType createdAt"
+        "name code district manager capacity address phone gender course branch studentCount organizationType createdAt"
       );
 
     console.log(`Found ${examCenters.length} exam centers`);
@@ -214,57 +222,68 @@ export async function POST(request) {
       address,
       phone,
       gender,
-      period,
+      course,
+      branch,
       studentCount,
       organizationType,
     } = await request.json();
 
     // Validate required fields
-    if (!name?.trim() || !code?.trim() || !districtId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "نام، کد و منطقه واحد سازمانی الزامی است",
-        },
-        { status: 400 }
-      );
-    }
-
-    // Validate enum fields if provided
-    if (gender && !["دختر", "پسر", "مختلط"].includes(gender)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "جنسیت باید یکی از مقادیر دختر، پسر یا مختلط باشد",
-        },
-        { status: 400 }
-      );
-    }
-
     if (
-      period &&
-      ![
-        "ابتدایی",
-        "متوسطه اول",
-        "متوسطه دوم فنی",
-        "متوسطه دوم کاردانش",
-        "متوسطه دوم نظری",
-      ].includes(period)
+      !name?.trim() ||
+      !code?.trim() ||
+      !districtId ||
+      !gender ||
+      !course ||
+      !branch ||
+      !organizationType
     ) {
       return NextResponse.json(
         {
           success: false,
-          error: "دوره باید یکی از مقادیر مجاز باشد",
+          error:
+            "نام، کد، منطقه، جنسیت، دوره، شاخه و نوع واحد سازمانی الزامی است",
         },
         { status: 400 }
       );
     }
 
-    if (organizationType && !["دولتی", "غیردولتی"].includes(organizationType)) {
+    // Validate ObjectId fields
+    if (!mongoose.Types.ObjectId.isValid(gender)) {
       return NextResponse.json(
         {
           success: false,
-          error: "نوع واحد سازمانی باید دولتی یا غیردولتی باشد",
+          error: "شناسه جنسیت نامعتبر است",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(course)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "شناسه دوره نامعتبر است",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(branch)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "شناسه شاخه نامعتبر است",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(organizationType)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "شناسه نوع واحد سازمانی نامعتبر است",
         },
         { status: 400 }
       );
@@ -320,10 +339,11 @@ export async function POST(request) {
       capacity: capacity ? Number(capacity) : undefined,
       address: address || undefined,
       phone: phone || undefined,
-      gender: gender || undefined,
-      period: period || undefined,
+      gender: gender,
+      course: course,
+      branch: branch,
       studentCount: studentCount ? Number(studentCount) : undefined,
-      organizationType: organizationType || undefined,
+      organizationType: organizationType,
       createdAt: new Date(),
       createdBy: user.id,
     });
@@ -334,6 +354,10 @@ export async function POST(request) {
     await examCenter.populate([
       { path: "district", select: "name" },
       { path: "manager", select: "name" },
+      { path: "gender", select: "genderCode genderTitle" },
+      { path: "course", select: "courseCode courseName" },
+      { path: "branch", select: "branchCode branchTitle" },
+      { path: "organizationType", select: "unitTypeCode unitTypeTitle" },
     ]);
 
     return NextResponse.json({
@@ -392,55 +416,67 @@ export async function PUT(request, { params }) {
       address,
       phone,
       gender,
-      period,
+      course,
+      branch,
       studentCount,
       organizationType,
     } = await request.json();
-    if (!name?.trim() || !code?.trim() || !districtId || !capacity) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "نام، کد، منطقه و ظرفیت واحد سازمانی الزامی است",
-        },
-        { status: 400 }
-      );
-    }
-
-    // Validate enum fields if provided
-    if (gender && !["دختر", "پسر", "مختلط"].includes(gender)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "جنسیت باید یکی از مقادیر دختر، پسر یا مختلط باشد",
-        },
-        { status: 400 }
-      );
-    }
-
     if (
-      period &&
-      ![
-        "ابتدایی",
-        "متوسطه اول",
-        "متوسطه دوم فنی",
-        "متوسطه دوم کاردانش",
-        "متوسطه دوم نظری",
-      ].includes(period)
+      !name?.trim() ||
+      !code?.trim() ||
+      !districtId ||
+      !capacity ||
+      !gender ||
+      !course ||
+      !branch ||
+      !organizationType
     ) {
       return NextResponse.json(
         {
           success: false,
-          error: "دوره باید یکی از مقادیر مجاز باشد",
+          error:
+            "نام، کد، منطقه، ظرفیت، جنسیت، دوره، شاخه و نوع واحد سازمانی الزامی است",
         },
         { status: 400 }
       );
     }
 
-    if (organizationType && !["دولتی", "غیردولتی"].includes(organizationType)) {
+    // Validate ObjectId fields
+    if (!mongoose.Types.ObjectId.isValid(gender)) {
       return NextResponse.json(
         {
           success: false,
-          error: "نوع واحد سازمانی باید دولتی یا غیردولتی باشد",
+          error: "شناسه جنسیت نامعتبر است",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(course)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "شناسه دوره نامعتبر است",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(branch)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "شناسه شاخه نامعتبر است",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(organizationType)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "شناسه نوع واحد سازمانی نامعتبر است",
         },
         { status: 400 }
       );
@@ -505,18 +541,25 @@ export async function PUT(request, { params }) {
     examCenter.capacity = Number(capacity);
     examCenter.address = address || undefined;
     examCenter.phone = phone || undefined;
-    examCenter.gender = gender || undefined;
-    examCenter.period = period || undefined;
+    examCenter.gender = gender;
+    examCenter.course = course;
+    examCenter.branch = branch;
     examCenter.studentCount = studentCount ? Number(studentCount) : undefined;
-    examCenter.organizationType = organizationType || undefined;
+    examCenter.organizationType = organizationType;
     examCenter.updatedAt = new Date();
     examCenter.updatedBy = user.id;
 
     await examCenter.save();
 
     // Populate the response
-    await examCenter.populate("district", "name");
-    await examCenter.populate("manager", "fullName");
+    await examCenter.populate([
+      { path: "district", select: "name" },
+      { path: "manager", select: "fullName" },
+      { path: "gender", select: "genderCode genderTitle" },
+      { path: "course", select: "courseCode courseName" },
+      { path: "branch", select: "branchCode branchTitle" },
+      { path: "organizationType", select: "unitTypeCode unitTypeTitle" },
+    ]);
 
     return NextResponse.json({
       success: true,

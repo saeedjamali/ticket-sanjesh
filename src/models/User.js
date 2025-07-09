@@ -42,6 +42,11 @@ const UserSchema = new mongoose.Schema({
       "provinceEducationExpert", // کارشناس سنجش استان
       "provinceTechExpert", // کارشناس فناوری استان
       "provinceEvalExpert", // کارشناس ارزیابی استان
+      "provinceEbt1Expert", // کارشناس ارزیابی استان
+      "provinceMot1Expert", // کارشناس ارزیابی استان
+      "provinceMot2FExpert", // کارشناس ارزیابی استان
+      "provinceMot2NExpert", // کارشناس ارزیابی استان
+      "provinceMot2KExpert", // کارشناس ارزیابی استان
       "districtEducationExpert", // کارشناس سنجش منطقه
       "districtTechExpert", // کارشناس فناوری منطقه
       "districtEvalExpert", // کارشناس ارزیابی منطقه

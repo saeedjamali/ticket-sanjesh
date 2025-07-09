@@ -1,4 +1,8 @@
 import mongoose from "mongoose";
+import "./Gender";
+import "./CourseGrade";
+import "./CourseBranchField";
+import "./OrganizationalUnitType";
 
 const examCenterSchema = new mongoose.Schema(
   {
@@ -35,38 +39,28 @@ const examCenterSchema = new mongoose.Schema(
       trim: true,
     },
     gender: {
-      type: String,
-      enum: {
-        values: ["دختر", "پسر", "مختلط"],
-        message: "جنسیت باید یکی از مقادیر دختر، پسر یا مختلط باشد",
-      },
-      trim: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Gender",
+      required: [true, "جنسیت الزامی است"],
     },
-    period: {
-      type: String,
-      enum: {
-        values: [
-          "ابتدایی",
-          "متوسطه اول",
-          "متوسطه دوم فنی",
-          "متوسطه دوم کاردانش",
-          "متوسطه دوم نظری",
-        ],
-        message: "دوره باید یکی از مقادیر مجاز باشد",
-      },
-      trim: true,
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CourseGrade",
+      required: [true, "دوره الزامی است"],
+    },
+    branch: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CourseBranchField",
+      required: [true, "شاخه الزامی است"],
     },
     studentCount: {
       type: Number,
       min: [0, "تعداد دانش آموز نمی‌تواند منفی باشد"],
     },
     organizationType: {
-      type: String,
-      enum: {
-        values: ["دولتی", "غیردولتی"],
-        message: "نوع واحد سازمانی باید دولتی یا غیردولتی باشد",
-      },
-      trim: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "OrganizationalUnitType",
+      required: [true, "نوع واحد سازمانی الزامی است"],
     },
     isActive: {
       type: Boolean,

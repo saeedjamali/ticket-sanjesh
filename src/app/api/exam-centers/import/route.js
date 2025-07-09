@@ -6,6 +6,10 @@ import { authService } from "@/lib/auth/authService";
 import { ROLES } from "@/lib/permissions";
 import ExamCenter from "@/models/ExamCenter";
 import District from "@/models/District";
+import Gender from "@/models/Gender";
+import CourseGrade from "@/models/CourseGrade";
+import CourseBranchField from "@/models/CourseBranchField";
+import OrganizationalUnitType from "@/models/OrganizationalUnitType";
 import connectDB from "@/lib/db";
 
 export async function POST(request) {
@@ -93,12 +97,13 @@ export async function POST(request) {
           : undefined;
         const address = row[4]?.toString().trim();
         const phone = row[5]?.toString().trim();
-        const gender = row[6]?.toString().trim();
-        const period = row[7]?.toString().trim();
-        const studentCount = row[8]
-          ? parseInt(row[8].toString().trim(), 10)
+        const genderCode = row[6]?.toString().trim();
+        const courseCode = row[7]?.toString().trim();
+        const branchCode = row[8]?.toString().trim();
+        const studentCount = row[9]
+          ? parseInt(row[9].toString().trim(), 10)
           : undefined;
-        const organizationType = row[9]?.toString().trim();
+        const organizationTypeCode = row[10]?.toString().trim();
 
         // بررسی مقادیر الزامی
         if (!name) {
@@ -123,29 +128,57 @@ export async function POST(request) {
           throw new Error("تعداد دانش آموز باید عدد صحیح باشد");
         }
 
-        // اعتبارسنجی فیلدهای enum
-        if (gender && !["دختر", "پسر", "مختلط"].includes(gender)) {
-          throw new Error("جنسیت باید یکی از مقادیر دختر، پسر یا مختلط باشد");
+        // تبدیل کدها به ObjectId
+        let genderId = undefined;
+        let courseId = undefined;
+        let branchId = undefined;
+        let organizationTypeId = undefined;
+
+        // اعتبارسنجی و دریافت جنسیت
+        if (genderCode) {
+          const gender = await Gender.findOne({ genderCode, isActive: true });
+          if (!gender) {
+            throw new Error(`جنسیت با کد '${genderCode}' یافت نشد`);
+          }
+          genderId = gender._id;
         }
 
-        if (
-          period &&
-          ![
-            "ابتدایی",
-            "متوسطه اول",
-            "متوسطه دوم فنی",
-            "متوسطه دوم کاردانش",
-            "متوسطه دوم نظری",
-          ].includes(period)
-        ) {
-          throw new Error("دوره باید یکی از مقادیر مجاز باشد");
+        // اعتبارسنجی و دریافت دوره
+        if (courseCode) {
+          const course = await CourseGrade.findOne({
+            courseCode,
+            isActive: true,
+          });
+          if (!course) {
+            throw new Error(`دوره با کد '${courseCode}' یافت نشد`);
+          }
+          courseId = course._id;
         }
 
-        if (
-          organizationType &&
-          !["دولتی", "غیردولتی"].includes(organizationType)
-        ) {
-          throw new Error("نوع واحد سازمانی باید دولتی یا غیردولتی باشد");
+        // اعتبارسنجی و دریافت شاخه
+        if (branchCode) {
+          const branch = await CourseBranchField.findOne({
+            branchCode,
+            isActive: true,
+          });
+          if (!branch) {
+            throw new Error(`شاخه با کد '${branchCode}' یافت نشد`);
+          }
+          branchId = branch._id;
+        }
+
+        // اعتبارسنجی و دریافت نوع سازمان
+        if (organizationTypeCode) {
+          const organizationType = await OrganizationalUnitType.findOne({
+            unitTypeCode: organizationTypeCode,
+            isActive: true,
+          });
+          if (!organizationType) {
+            throw new Error(
+              `نوع واحد سازمانی با کد '${organizationTypeCode}' یافت نشد`
+            );
+          }
+          organizationTypeId = organizationType._id;
         }
 
         // بررسی تکراری نبودن کد واحد سازمانی
@@ -170,10 +203,11 @@ export async function POST(request) {
           capacity: capacity || 0,
           address: address || undefined,
           phone: phone || undefined,
-          gender: gender || undefined,
-          period: period || undefined,
+          gender: genderId || undefined,
+          course: courseId || undefined,
+          branch: branchId || undefined,
           studentCount: studentCount || undefined,
-          organizationType: organizationType || undefined,
+          organizationType: organizationTypeId || undefined,
           createdBy: user.id,
           isActive: true,
         });
