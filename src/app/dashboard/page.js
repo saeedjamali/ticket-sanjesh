@@ -6,6 +6,7 @@ import { getRoleName } from "@/lib/permissions";
 import TicketStats from "@/components/dashboard/TicketStats";
 import DistrictsGrid from "@/components/dashboard/DistrictsGrid";
 import ProvinceExamCenters from "@/components/dashboard/ProvinceExamCenters";
+import EventsList from "@/components/dashboard/EventsList";
 import { useUserContext } from "@/context/UserContext";
 import { ROLES } from "@/lib/permissions";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const [showStats, setShowStats] = useState(true);
   const [showDistrictsGrid, setShowDistrictsGrid] = useState(true);
   const [showExamCenters, setShowExamCenters] = useState(false);
+  const [showEvents, setShowEvents] = useState(true);
   const [pageLoading, setPageLoading] = useState(true);
 
   const checkDatabaseConnection = async () => {
@@ -157,6 +159,61 @@ export default function DashboardPage() {
       {/* بنر راهنمای امنیت حساب کاربری */}
       <div className="mt-4 sm:mt-6">
         <PasswordGuideModal />
+      </div>
+
+      {/* بخش رویدادها */}
+      <div className="mt-4 sm:mt-8">
+        <div className="flex justify-between items-center mb-3 sm:mb-4">
+          <h2 className="heading-3">رویدادهای جاری</h2>
+          <button
+            onClick={() => setShowEvents(!showEvents)}
+            className="btn-icon-responsive bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md"
+          >
+            {showEvents ? (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+                <span className="btn-text">مخفی کردن</span>
+              </>
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                  />
+                </svg>
+                <span className="btn-text">نمایش</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        {showEvents && (
+          <div className="bg-white shadow-sm rounded-lg p-3 sm:p-6">
+            <EventsList />
+          </div>
+        )}
       </div>
       {/* بخش کاشی‌های مناطق استان - فقط برای مدیران کل و کارشناسان استان */}
       {isProvinceUser && (

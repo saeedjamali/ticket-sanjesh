@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FaArrowLeft } from "react-icons/fa";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 
 export default function CreateStudentPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const yearFilter = searchParams.get("yearFilter") || "current";
   const [loading, setLoading] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
 
@@ -141,7 +143,7 @@ export default function CreateStudentPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/students", {
+      const response = await fetch(`/api/students?yearFilter=${yearFilter}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -155,7 +157,7 @@ export default function CreateStudentPage() {
       if (response.ok) {
         setSubmitMessage("دانش‌آموز با موفقیت ایجاد شد");
         setTimeout(() => {
-          router.push("/dashboard/students");
+          router.push(`/dashboard/students/${yearFilter}`);
         }, 2000);
       } else {
         setSubmitMessage(data.error || "خطا در ایجاد دانش‌آموز");

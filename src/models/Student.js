@@ -89,6 +89,10 @@ const studentSchema = new mongoose.Schema(
       required: [true, "کد منطقه الزامی است"],
       trim: true,
     },
+    provinceCode: {
+      type: String,
+      trim: true,
+    },
     organizationalUnitCode: {
       type: String,
       required: [true, "کد واحد سازمانی الزامی است"],
@@ -128,6 +132,8 @@ studentSchema.index({ nationalId: 1, academicYear: 1 }, { unique: true });
 
 // Index برای جستجو و فیلتر
 studentSchema.index({ organizationalUnitCode: 1 });
+studentSchema.index({ districtCode: 1 });
+studentSchema.index({ provinceCode: 1 });
 studentSchema.index({ firstName: 1 });
 studentSchema.index({ lastName: 1 });
 studentSchema.index({ gradeCode: 1 });

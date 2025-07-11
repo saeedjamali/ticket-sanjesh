@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import Student from "@/models/Student";
 import User from "@/models/User";
+import District from "@/models/District";
 import AcademicYear from "@/models/AcademicYear";
 import CourseGrade from "@/models/CourseGrade";
 import CourseBranchField from "@/models/CourseBranchField";
@@ -36,6 +37,7 @@ export async function GET(request) {
       searchParams.get("field") || searchParams.get("fieldCode") || "";
     const gender = searchParams.get("gender") || "";
     const academicYear = searchParams.get("academicYear") || "";
+    const yearFilter = searchParams.get("yearFilter") || ""; // "current" or "previous"
 
     // ساخت فیلتر
     const filter = {
@@ -62,8 +64,37 @@ export async function GET(request) {
       filter.gender = gender;
     }
 
+    // اگر سال تحصیلی مشخص شده باشد، از آن استفاده کن
     if (academicYear) {
       filter.academicYear = academicYear;
+    }
+    // در غیر این صورت، اگر فیلتر سال جاری یا قبل درخواست شده باشد
+    else if (yearFilter) {
+      // دریافت سال تحصیلی فعال
+      const activeYear = await AcademicYear.findOne({ isActive: true });
+      if (!activeYear) {
+        return NextResponse.json(
+          { error: "سال تحصیلی فعالی یافت نشد" },
+          { status: 400 }
+        );
+      }
+
+      if (yearFilter === "current") {
+        filter.academicYear = activeYear.name;
+      } else if (yearFilter === "previous") {
+        // دریافت سال تحصیلی قبلی
+        const previousYear = await AcademicYear.findOne({
+          name: { $lt: activeYear.name },
+        }).sort({ name: -1 });
+
+        if (!previousYear) {
+          return NextResponse.json(
+            { error: "سال تحصیلی قبلی یافت نشد" },
+            { status: 400 }
+          );
+        }
+        filter.academicYear = previousYear.name;
+      }
     }
 
     const skip = (page - 1) * limit;
@@ -183,6 +214,10 @@ export async function POST(request) {
       );
     }
 
+    // دریافت سال تحصیلی از URL
+    const { searchParams } = new URL(request.url);
+    const yearFilter = searchParams.get("yearFilter") || "current"; // "current" or "previous"
+
     // دریافت سال تحصیلی فعال
     const activeAcademicYear = await AcademicYear.findOne({ isActive: true });
     if (!activeAcademicYear) {
@@ -192,18 +227,41 @@ export async function POST(request) {
       );
     }
 
+    let targetAcademicYear = activeAcademicYear;
+    if (yearFilter === "previous") {
+      // دریافت سال تحصیلی قبلی
+      targetAcademicYear = await AcademicYear.findOne({
+        name: { $lt: activeAcademicYear.name },
+      }).sort({ name: -1 });
+
+      if (!targetAcademicYear) {
+        return NextResponse.json(
+          { error: "سال تحصیلی قبلی یافت نشد" },
+          { status: 400 }
+        );
+      }
+    }
+
     // بررسی تکراری بودن کد ملی در همان سال تحصیلی
     const existingStudent = await Student.findOne({
       nationalId: data.nationalId,
-      academicYear: activeAcademicYear.name,
+      academicYear: targetAcademicYear.name,
     });
 
     if (existingStudent) {
       return NextResponse.json(
-        { error: "دانش‌آموزی با این کد ملی در سال تحصیلی جاری وجود دارد" },
+        {
+          error: `دانش‌آموزی با این کد ملی در سال تحصیلی ${targetAcademicYear.name} وجود دارد`,
+        },
         { status: 400 }
       );
     }
+
+    // دریافت کد استان از روی منطقه
+    const district = await District.findById(user.district._id).populate(
+      "province"
+    );
+    const provinceCode = district?.province?.code || "";
 
     // ایجاد دانش‌آموز جدید
     const studentData = {
@@ -221,8 +279,9 @@ export async function POST(request) {
       fieldCode: data.fieldCode,
       studentType: data.studentType || "normal",
       districtCode: user.district.code,
+      provinceCode: provinceCode,
       organizationalUnitCode: user.examCenter.code,
-      academicYear: activeAcademicYear.name,
+      academicYear: targetAcademicYear.name,
       createdBy: user._id,
     };
 

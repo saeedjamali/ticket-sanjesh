@@ -10,9 +10,15 @@ import {
   FaTrash,
   FaEye,
   FaFileImport,
+  FaFileExcel,
 } from "react-icons/fa";
 
-export default function StudentsPage() {
+export default function StudentsPage({
+  defaultAcademicYear,
+  hideAcademicYearFilter = false,
+  maxStudents,
+  currentStudentCount,
+}) {
   const router = useRouter();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,6 +42,30 @@ export default function StudentsPage() {
   useEffect(() => {
     fetchHelpers();
   }, []);
+
+  // تنظیم فیلتر سال تحصیلی بر اساس prop
+  useEffect(() => {
+    if (helpers.activeAcademicYear && helpers.academicYears?.length > 0) {
+      if (defaultAcademicYear === "current") {
+        const activeYear = helpers.academicYears.find((year) => year.isActive);
+        if (activeYear) {
+          setAcademicYearFilter(activeYear.name);
+        }
+      } else if (defaultAcademicYear === "previous") {
+        const activeYearIndex = helpers.academicYears.findIndex(
+          (year) => year.isActive
+        );
+        if (
+          activeYearIndex >= 0 &&
+          activeYearIndex < helpers.academicYears.length - 1
+        ) {
+          setAcademicYearFilter(
+            helpers.academicYears[activeYearIndex + 1].name
+          );
+        }
+      }
+    }
+  }, [helpers.academicYears, defaultAcademicYear]);
 
   // دریافت فهرست دانش‌آموزان
   useEffect(() => {
@@ -70,8 +100,19 @@ export default function StudentsPage() {
         ...(searchTerm && { search: searchTerm }),
         ...(gradeFilter && { gradeCode: gradeFilter }),
         ...(fieldFilter && { fieldCode: fieldFilter }),
-        ...(academicYearFilter && { academicYear: academicYearFilter }),
       });
+
+      // اگر سال تحصیلی انتخاب شده باشد، از آن استفاده کن
+      if (academicYearFilter) {
+        params.append("academicYear", academicYearFilter);
+      }
+      // در غیر این صورت، اگر defaultAcademicYear تنظیم شده باشد
+      else if (
+        defaultAcademicYear === "current" ||
+        defaultAcademicYear === "previous"
+      ) {
+        params.append("yearFilter", defaultAcademicYear);
+      }
 
       const response = await fetch(`/api/students?${params}`, {
         headers: {
@@ -134,6 +175,61 @@ export default function StudentsPage() {
     }
   };
 
+  const handleExcelExport = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const params = new URLSearchParams({
+        ...(searchTerm && { search: searchTerm }),
+        ...(gradeFilter && { gradeCode: gradeFilter }),
+        ...(fieldFilter && { fieldCode: fieldFilter }),
+        ...(academicYearFilter && { academicYear: academicYearFilter }),
+      });
+
+      const response = await fetch(`/api/students/export?${params}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // تبدیل response به blob
+        const blob = await response.blob();
+
+        // ایجاد URL موقت برای دانلود
+        const url = window.URL.createObjectURL(blob);
+
+        // ایجاد المنت a برای دانلود
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+
+        // استخراج نام فایل از header
+        const contentDisposition = response.headers.get("Content-Disposition");
+        let filename = "students.xlsx";
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+          if (filenameMatch) {
+            filename = filenameMatch[1];
+          }
+        }
+
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+
+        // پاک کردن URL موقت
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || "خطا در دانلود فایل Excel");
+      }
+    } catch (error) {
+      console.error("Error exporting Excel:", error);
+      alert("خطا در دانلود فایل Excel");
+    }
+  };
+
   const getAllGrades = () => {
     return helpers.grades || [];
   };
@@ -152,11 +248,15 @@ export default function StudentsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            مدیریت دانش‌آموزان
+            {defaultAcademicYear === "current"
+              ? "لیست دانش‌آموزان سال جاری"
+              : defaultAcademicYear === "previous"
+              ? "لیست دانش‌آموزان سال گذشته"
+              : "مدیریت دانش‌آموزان"}
           </h1>
-          {helpers.activeAcademicYear && (
+          {academicYearFilter && (
             <p className="text-sm text-gray-600 mt-1">
-              سال تحصیلی: {helpers.activeAcademicYear}
+              سال تحصیلی: {academicYearFilter}
             </p>
           )}
           {helpers.examCenterInfo && (
@@ -171,15 +271,43 @@ export default function StudentsPage() {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => router.push("/dashboard/students/import")}
+            onClick={handleExcelExport}
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            title="دانلود Excel"
+          >
+            <FaFileExcel />
+            دانلود Excel
+          </button>
+          <button
+            onClick={() =>
+              router.push(
+                `/dashboard/students/import?yearFilter=${defaultAcademicYear}`
+              )
+            }
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            disabled={maxStudents && currentStudentCount >= maxStudents}
+            title={
+              maxStudents && currentStudentCount >= maxStudents
+                ? "تعداد دانش‌آموزان به حداکثر مجاز رسیده است"
+                : ""
+            }
           >
             <FaFileImport />
             بارگذاری گروهی
           </button>
           <button
-            onClick={() => router.push("/dashboard/students/create")}
+            onClick={() =>
+              router.push(
+                `/dashboard/students/create?yearFilter=${defaultAcademicYear}`
+              )
+            }
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            disabled={maxStudents && currentStudentCount >= maxStudents}
+            title={
+              maxStudents && currentStudentCount >= maxStudents
+                ? "تعداد دانش‌آموزان به حداکثر مجاز رسیده است"
+                : ""
+            }
           >
             <FaPlus />
             دانش‌آموز جدید
@@ -187,11 +315,21 @@ export default function StudentsPage() {
         </div>
       </div>
 
+      {maxStudents && (
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-blue-600">
+            تعداد دانش‌آموزان ثبت شده: {currentStudentCount} از {maxStudents}
+          </p>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow mb-6">
         <form
           onSubmit={handleSearch}
-          className="grid grid-cols-1 md:grid-cols-5 gap-4"
+          className={`grid grid-cols-1 ${
+            hideAcademicYearFilter ? "md:grid-cols-3" : "md:grid-cols-4"
+          } gap-4`}
         >
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -251,26 +389,28 @@ export default function StudentsPage() {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              سال تحصیلی
-            </label>
-            <select
-              value={academicYearFilter}
-              onChange={(e) => {
-                setAcademicYearFilter(e.target.value);
-                handleFilterChange();
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">همه سال‌ها</option>
-              {(helpers.academicYears || []).map((year) => (
-                <option key={year.name} value={year.name}>
-                  {year.name} {year.isActive && "(فعال)"}
-                </option>
-              ))}
-            </select>
-          </div>
+          {!hideAcademicYearFilter && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                سال تحصیلی
+              </label>
+              <select
+                value={academicYearFilter}
+                onChange={(e) => {
+                  setAcademicYearFilter(e.target.value);
+                  handleFilterChange();
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">همه سال‌ها</option>
+                {(helpers.academicYears || []).map((year) => (
+                  <option key={year.name} value={year.name}>
+                    {year.name} {year.isActive && "(فعال)"}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex items-end">
             <button

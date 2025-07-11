@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/ui/LoadingSpinner.jsx";
-import PasswordGuideBanner from "./PasswordGuideBanner";
 
 export default function LoginForm() {
   const [nationalId, setNationalId] = useState("");
@@ -168,18 +167,29 @@ export default function LoginForm() {
           </div>
 
           <p className="text-gray-600 mb-4 text-sm">
-            لطفاً کد ملی خود را وارد کنید. رمز عبور جدید به شماره موبایل تأیید
-            شده شما ارسال خواهد شد.
+            کد ملی خود را وارد کنید. رمز عبور جدید به موبایل شما ارسال می‌شود.
           </p>
 
           {/* راهنمای شماره موبایل */}
           <div className="mb-4">
-            <PasswordGuideBanner
-              type="warning"
-              message="توجه: فرایند بازیابی رمز عبور نیاز به شماره موبایل تأیید شده دارد. اگر شماره موبایل خود را تأیید نکرده‌اید، پس از ورود به سیستم، در قسمت پروفایل این کار را انجام دهید."
-              // buttonText="اطلاعات بیشتر"
-              // buttonLink="/dashboard/profile"
-            />
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="flex items-center">
+                <svg
+                  className="h-4 w-4 text-amber-600 ml-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-amber-800 text-sm">
+                  نیاز به شماره موبایل تأیید شده دارید
+                </span>
+              </div>
+            </div>
           </div>
 
           {resetPasswordError && (
@@ -220,32 +230,9 @@ export default function LoginForm() {
                 <div>
                   <p className="font-medium">{resetPasswordSuccess}</p>
                   {resetPasswordSuccess.includes("****") && (
-                    <div className="mt-2 bg-green-100 p-3 rounded-md text-sm">
-                      <p className="flex items-center mb-1">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 ml-1 text-green-600"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        <span className="font-semibold">راهنما:</span>
-                      </p>
-                      <ul className="list-disc list-inside mr-5 text-green-800 space-y-1">
-                        <li>
-                          رمز عبور جدید به صورت پیامک به موبایل شما ارسال شد.
-                        </li>
-                        <li>پس از ورود، حتماً رمز عبور خود را تغییر دهید.</li>
-                        <li>برای تغییر رمز عبور به بخش پروفایل مراجعه کنید.</li>
-                      </ul>
-                    </div>
+                    <p className="mt-2 text-green-700 text-sm">
+                      پس از ورود، رمز عبور خود را در بخش پروفایل تغییر دهید.
+                    </p>
                   )}
                 </div>
               </div>

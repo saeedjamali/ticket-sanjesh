@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { toast } from "react-toastify";
 import {
   FaArrowLeft,
   FaUpload,
@@ -28,8 +29,13 @@ export default function ImportStudentsPage() {
         "text/csv",
       ];
 
-      if (!allowedTypes.includes(file.type)) {
-        alert("لطفاً فایل Excel یا CSV انتخاب کنید");
+      const fileExt = file.name.split(".").pop().toLowerCase();
+      if (
+        !allowedTypes.includes(file.type) &&
+        !["xlsx", "xls", "csv"].includes(fileExt)
+      ) {
+        toast.error("لطفاً فایل Excel یا CSV انتخاب کنید");
+        event.target.value = null;
         return;
       }
 
@@ -41,7 +47,7 @@ export default function ImportStudentsPage() {
 
   const handleImport = async () => {
     if (!selectedFile) {
-      alert("لطفاً فایل را انتخاب کنید");
+      toast.error("لطفاً فایل را انتخاب کنید");
       return;
     }
 
@@ -53,28 +59,39 @@ export default function ImportStudentsPage() {
       const formData = new FormData();
       formData.append("file", selectedFile);
 
+      // Get year filter from URL if exists
+      const urlParams = new URLSearchParams(window.location.search);
+      const yearFilter = urlParams.get("yearFilter");
+
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/students/import", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      const response = await fetch(
+        `/api/students/import${yearFilter ? `?yearFilter=${yearFilter}` : ""}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+          credentials: "include",
+        }
+      );
 
       const data = await response.json();
 
-      if (response.ok) {
-        setResults(data);
-        if (data.errors && data.errors.length > 0) {
-          setErrors(data.errors);
-        }
+      if (!response.ok) {
+        throw new Error(data.message || data.error || "خطا در بارگذاری فایل");
+      }
+
+      setResults(data);
+      if (data.errors && data.errors.length > 0) {
+        setErrors(data.errors);
+        toast.warning(`${data.errors.length} خطا در پردازش فایل رخ داد`);
       } else {
-        alert(data.error || "خطا در بارگذاری فایل");
+        toast.success("فایل با موفقیت پردازش شد");
       }
     } catch (error) {
       console.error("Error importing students:", error);
-      alert("خطا در بارگذاری فایل");
+      toast.error(error.message || "خطا در بارگذاری فایل");
     } finally {
       setLoading(false);
     }
@@ -87,25 +104,29 @@ export default function ImportStudentsPage() {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        credentials: "include",
       });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.style.display = "none";
-        a.href = url;
-        a.download = "students-template.xlsx";
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } else {
-        alert("خطا در دانلود فایل نمونه");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(
+          error.message || error.error || "خطا در دانلود فایل نمونه"
+        );
       }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = "students-template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
       console.error("Error downloading template:", error);
-      alert("خطا در دانلود فایل نمونه");
+      toast.error(error.message || "خطا در دانلود فایل نمونه");
     }
   };
 

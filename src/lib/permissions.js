@@ -174,85 +174,62 @@ export function getRoleName(role) {
 }
 
 export function getMenuItemsByRole(role, pendingFormsCount = 0) {
-  const menuItems = [];
+  const activeMenuItems = [];
+  const disabledMenuItems = [];
 
   // داشبورد برای همه کاربران قابل دسترس است
-  menuItems.push({
+  activeMenuItems.push({
     label: "داشبورد",
     path: "/dashboard",
     icon: "dashboard",
   });
 
-  // منوی تیکت‌ها - برای همه کاربران
-  menuItems.push({
-    label: "تیکت‌ها",
-    path: "/dashboard/tickets",
-    icon: "tickets",
-  });
-
   // منوی اطلاعیه‌ها - برای همه کاربران
-  menuItems.push({
+  activeMenuItems.push({
     label: "اطلاعیه‌ها",
     path: "/dashboard/announcements",
     icon: "announcements",
   });
 
-  // منوی فرم‌ها - برای کاربران مجاز
-  if (
-    role === ROLES.SYSTEM_ADMIN ||
-    role === ROLES.GENERAL_MANAGER ||
-    role === ROLES.PROVINCE_EDUCATION_EXPERT ||
-    role === ROLES.PROVINCE_TECH_EXPERT ||
-    role === ROLES.PROVINCE_EVAL_EXPERT ||
-    role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-    role === ROLES.DISTRICT_TECH_EXPERT ||
-    role === ROLES.DISTRICT_EVAL_EXPERT ||
-    role === ROLES.EXAM_CENTER_MANAGER
-  ) {
-    const formsMenuItem = {
-      label: "فرم‌ها",
-      path: "/dashboard/forms",
-      icon: "forms",
-    };
-
-    // Add badge count for users who can submit forms (not managers)
-    if (
-      role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-      role === ROLES.DISTRICT_TECH_EXPERT ||
-      role === ROLES.DISTRICT_EVAL_EXPERT ||
-      role === ROLES.EXAM_CENTER_MANAGER
-    ) {
-      formsMenuItem.badge = pendingFormsCount;
-    }
-
-    menuItems.push(formsMenuItem);
-  }
-
   // منوی دانش‌آموزان - برای مدیران واحد سازمانی
   if (role === ROLES.EXAM_CENTER_MANAGER) {
-    menuItems.push({
+    activeMenuItems.push({
       label: "لیست دانش آموزان",
       path: "/dashboard/students",
       icon: "studentInfo",
+      submenu: [
+        {
+          label: "لیست دانش آموزان سال جاری",
+          path: "/dashboard/students/current",
+        },
+        {
+          label: "لیست دانش آموزان سال گذشته",
+          path: "/dashboard/students/previous",
+        },
+      ],
     });
   }
 
-  // منوی گزارش‌های ارسالی - برای کاربران که می‌توانند فرم ارسال کنند
-  if (
-    role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-    role === ROLES.DISTRICT_TECH_EXPERT ||
-    role === ROLES.DISTRICT_EVAL_EXPERT ||
-    role === ROLES.EXAM_CENTER_MANAGER
-  ) {
-    menuItems.push({
-      label: "گزارش‌های ارسالی",
-      path: "/dashboard/submissions",
-      icon: "reports",
+  // منوی گزارش ثبت نام دانش آموزی - فقط برای مدیر کل
+  if (role === ROLES.GENERAL_MANAGER || role === ROLES.SYSTEM_ADMIN) {
+    activeMenuItems.push({
+      label: "گزارش ثبت نام دانش آموزی",
+      path: "/dashboard/student-registration-reports",
+      icon: "studentReports",
+    });
+  }
+
+  // منوی رویدادها - فقط برای مدیر سیستم
+  if (role === ROLES.SYSTEM_ADMIN) {
+    activeMenuItems.push({
+      label: "مدیریت رویدادها",
+      path: "/dashboard/events",
+      icon: "events",
     });
   }
 
   // منوی پروفایل کاربری - برای همه کاربران
-  menuItems.push({
+  activeMenuItems.push({
     label: "پروفایل ",
     path: "/dashboard/profile",
     icon: "profile",
@@ -265,32 +242,16 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
     role === ROLES.PROVINCE_TECH_EXPERT ||
     role === ROLES.DISTRICT_TECH_EXPERT
   ) {
-    menuItems.push({
+    activeMenuItems.push({
       label: "کاربران",
       path: "/dashboard/users",
       icon: "users",
     });
   }
 
-  // // منوی گزارش‌ها - برای مدیران و کارشناسان
-  // if (
-  //   role === ROLES.SYSTEM_ADMIN ||
-  //   role === ROLES.GENERAL_MANAGER ||
-  //   role === ROLES.PROVINCE_EDUCATION_EXPERT ||
-  //   role === ROLES.PROVINCE_TECH_EXPERT ||
-  //   role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-  //   role === ROLES.DISTRICT_TECH_EXPERT
-  // ) {
-  //   menuItems.push({
-  //     label: "گزارش‌ها",
-  //     path: "/dashboard/reports",
-  //     icon: "reports",
-  //   });
-  // }
-
   // منوی تنظیمات - فقط برای مدیران سیستم
   if (role === ROLES.SYSTEM_ADMIN) {
-    menuItems.push({
+    activeMenuItems.push({
       label: "تنظیمات",
       path: "/dashboard/settings",
       icon: "settings",
@@ -327,11 +288,89 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
           label: "نوع واحد سازمانی",
           path: "/dashboard/organizational-unit-types",
         },
+        {
+          label: "آمار واحد سازمانی",
+          path: "/dashboard/settings/exam-center-stats",
+        },
       ],
     });
   }
 
-  return menuItems;
+  // منوی تیکت‌ها - برای همه کاربران
+  if (role === ROLES.EXAM_CENTER_MANAGER) {
+    disabledMenuItems.push({
+      label: "تیکت‌ها",
+      path: "/dashboard/tickets",
+      icon: "tickets",
+      disabled: true,
+    });
+  } else {
+    activeMenuItems.push({
+      label: "تیکت‌ها",
+      path: "/dashboard/tickets",
+      icon: "tickets",
+    });
+  }
+
+  // منوی فرم‌ها - برای کاربران مجاز
+  if (
+    role === ROLES.SYSTEM_ADMIN ||
+    role === ROLES.GENERAL_MANAGER ||
+    role === ROLES.PROVINCE_EDUCATION_EXPERT ||
+    role === ROLES.PROVINCE_TECH_EXPERT ||
+    role === ROLES.PROVINCE_EVAL_EXPERT ||
+    role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+    role === ROLES.DISTRICT_TECH_EXPERT ||
+    role === ROLES.DISTRICT_EVAL_EXPERT ||
+    role === ROLES.EXAM_CENTER_MANAGER
+  ) {
+    const formsMenuItem = {
+      label: "فرم‌ها",
+      path: "/dashboard/forms",
+      icon: "forms",
+      disabled: role === ROLES.EXAM_CENTER_MANAGER,
+    };
+
+    // Add badge count for users who can submit forms (not managers)
+    if (
+      role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+      role === ROLES.DISTRICT_TECH_EXPERT ||
+      role === ROLES.DISTRICT_EVAL_EXPERT ||
+      role === ROLES.EXAM_CENTER_MANAGER
+    ) {
+      formsMenuItem.badge = pendingFormsCount;
+    }
+
+    if (role === ROLES.EXAM_CENTER_MANAGER) {
+      disabledMenuItems.push(formsMenuItem);
+    } else {
+      activeMenuItems.push(formsMenuItem);
+    }
+  }
+
+  // منوی گزارش‌های ارسالی - برای کاربران که می‌توانند فرم ارسال کنند
+  if (
+    role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+    role === ROLES.DISTRICT_TECH_EXPERT ||
+    role === ROLES.DISTRICT_EVAL_EXPERT ||
+    role === ROLES.EXAM_CENTER_MANAGER
+  ) {
+    const submissionsMenuItem = {
+      label: "گزارش‌های ارسالی",
+      path: "/dashboard/submissions",
+      icon: "reports",
+      disabled: role === ROLES.EXAM_CENTER_MANAGER,
+    };
+
+    if (role === ROLES.EXAM_CENTER_MANAGER) {
+      disabledMenuItems.push(submissionsMenuItem);
+    } else {
+      activeMenuItems.push(submissionsMenuItem);
+    }
+  }
+
+  // ترکیب منوهای فعال و غیرفعال (غیرفعال‌ها در انتها)
+  return [...activeMenuItems, ...disabledMenuItems];
 }
 
 export const getStatusText = (status) => {

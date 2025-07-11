@@ -22,6 +22,8 @@ import {
   FaGraduationCap,
   FaVenusMars,
   FaSitemap,
+  FaClipboardList,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -37,6 +39,8 @@ const icons = {
   studentInfo: <FaGraduationCap className="h-5 w-5" />,
   gender: <FaVenusMars className="h-5 w-5" />,
   organizationalUnit: <FaSitemap className="h-5 w-5" />,
+  studentReports: <FaClipboardList className="h-5 w-5" />,
+  events: <FaCalendarAlt className="h-5 w-5" />,
 };
 
 export default function Sidebar({ user, children }) {
@@ -139,6 +143,26 @@ export default function Sidebar({ user, children }) {
                         ))}
                       </ul>
                     )}
+                  </div>
+                ) : item.disabled ? (
+                  <div
+                    className={`flex items-center justify-between p-3 rounded-lg cursor-not-allowed opacity-50 bg-gray-700/50`}
+                    title="این بخش فعلاً در دسترس نیست"
+                  >
+                    <div className="flex items-center">
+                      <span className="ml-3">{icons[item.icon]}</span>
+                      <span>{item.label}</span>
+                    </div>
+                    <div className="flex items-center">
+                      {item.badge && item.badge > 0 && (
+                        <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-gray-400 bg-gray-600 rounded-full ml-2">
+                          {item.badge}
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
+                        غیرفعال
+                      </span>
+                    </div>
                   </div>
                 ) : (
                   <Link href={item.path}>
