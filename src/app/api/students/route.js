@@ -6,8 +6,89 @@ import District from "@/models/District";
 import AcademicYear from "@/models/AcademicYear";
 import CourseGrade from "@/models/CourseGrade";
 import CourseBranchField from "@/models/CourseBranchField";
+import ExamCenterStats from "@/models/ExamCenterStats";
 import { verifyJWT } from "@/lib/auth/tokenService";
 import { authService } from "@/lib/auth/authService";
+
+// Helper function to update ExamCenterStats for current year
+async function updateExamCenterStats(
+  organizationalUnitCode,
+  academicYear,
+  userId
+) {
+  try {
+    // فقط برای سال جاری به‌روزرسانی کن
+    const activeAcademicYear = await AcademicYear.findOne({ isActive: true });
+    if (!activeAcademicYear || academicYear !== activeAcademicYear.name) {
+      return; // اگر سال جاری نیست، هیچ کاری نکن
+    }
+
+    // شمارش تعداد دانش‌آموزان ثبت شده در سال جاری
+    const [totalStudents, maleStudents, femaleStudents] = await Promise.all([
+      Student.countDocuments({
+        organizationalUnitCode,
+        academicYear,
+      }),
+      Student.countDocuments({
+        organizationalUnitCode,
+        academicYear,
+        gender: "male",
+      }),
+      Student.countDocuments({
+        organizationalUnitCode,
+        academicYear,
+        gender: "female",
+      }),
+    ]);
+
+    // بررسی وجود رکورد آماری
+    let stats = await ExamCenterStats.findOne({
+      organizationalUnitCode,
+      academicYear,
+    });
+
+    if (!stats) {
+      // اگر رکورد وجود ندارد، آن را ایجاد کن
+      console.log("Creating new ExamCenterStats with data:", {
+        organizationalUnitCode,
+        academicYear,
+        totalStudents,
+        maleStudents,
+        femaleStudents,
+        classifiedStudents: 0,
+        totalClasses: 0,
+        createdBy: userId,
+      });
+
+      stats = new ExamCenterStats({
+        organizationalUnitCode,
+        academicYear,
+        totalStudents,
+        maleStudents,
+        femaleStudents,
+        classifiedStudents: 0,
+        totalClasses: 0,
+        createdBy: userId,
+      });
+      await stats.save();
+      console.log(
+        `Created new ExamCenterStats for ${organizationalUnitCode} - ${academicYear}: ${totalStudents} students (${maleStudents} male, ${femaleStudents} female)`
+      );
+    } else {
+      // اگر رکورد وجود دارد، آمار دانش‌آموزان را به‌روزرسانی کن
+      stats.totalStudents = totalStudents;
+      stats.maleStudents = maleStudents;
+      stats.femaleStudents = femaleStudents;
+      stats.updatedBy = userId;
+      await stats.save();
+      console.log(
+        `Updated ExamCenterStats for ${organizationalUnitCode} - ${academicYear}: ${totalStudents} students (${maleStudents} male, ${femaleStudents} female)`
+      );
+    }
+  } catch (error) {
+    console.error("Error updating ExamCenterStats:", error);
+  }
+}
 
 // GET - دریافت فهرست دانش‌آموزان
 export async function GET(request) {
@@ -288,6 +369,13 @@ export async function POST(request) {
     const student = new Student(studentData);
     await student.save();
 
+    // به‌روزرسانی آمار واحد سازمانی برای سال جاری
+    await updateExamCenterStats(
+      user.examCenter.code,
+      targetAcademicYear.name,
+      user._id
+    );
+
     return NextResponse.json(
       { message: "دانش‌آموز با موفقیت ایجاد شد", student },
       { status: 201 }
@@ -352,6 +440,13 @@ export async function DELETE(request) {
 
     // حذف دانش‌آموز
     await Student.findByIdAndDelete(studentId);
+
+    // به‌روزرسانی آمار واحد سازمانی برای سال جاری
+    await updateExamCenterStats(
+      user.examCenter.code,
+      student.academicYear,
+      user._id
+    );
 
     return NextResponse.json({
       message: "دانش‌آموز با موفقیت حذف شد",

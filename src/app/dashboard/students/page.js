@@ -11,6 +11,7 @@ import {
   FaEye,
   FaFileImport,
   FaFileExcel,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 
 export default function StudentsPage({
@@ -18,6 +19,7 @@ export default function StudentsPage({
   hideAcademicYearFilter = false,
   maxStudents,
   currentStudentCount,
+  disableCapacityControl = false,
 }) {
   const router = useRouter();
   const [students, setStudents] = useState([]);
@@ -28,6 +30,10 @@ export default function StudentsPage({
   const [academicYearFilter, setAcademicYearFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [stats, setStats] = useState({
+    maxStudents: maxStudents || null,
+    currentStudentCount: currentStudentCount || null,
+  });
   const [helpers, setHelpers] = useState({
     examCenterInfo: null,
     grades: [],
@@ -38,9 +44,21 @@ export default function StudentsPage({
     academicYears: [],
   });
 
+  // به‌روزرسانی آمار وقتی props تغییر کرد
+  useEffect(() => {
+    setStats({
+      maxStudents: maxStudents || null,
+      currentStudentCount: currentStudentCount || null,
+    });
+  }, [maxStudents, currentStudentCount]);
+
   // دریافت اطلاعات کمکی
   useEffect(() => {
     fetchHelpers();
+    // اگر آمار از props پاس نشده، آن را دریافت کن
+    if (!maxStudents && !currentStudentCount) {
+      fetchStats();
+    }
   }, []);
 
   // تنظیم فیلتر سال تحصیلی بر اساس prop
@@ -71,6 +89,32 @@ export default function StudentsPage({
   useEffect(() => {
     fetchStudents();
   }, [currentPage, searchTerm, gradeFilter, fieldFilter, academicYearFilter]);
+
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/students/check-stats", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const targetStats =
+          defaultAcademicYear === "previous"
+            ? data.data.previousYear
+            : data.data.currentYear;
+
+        setStats({
+          maxStudents: targetStats.totalStudents,
+          currentStudentCount: targetStats.registeredStudents,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
 
   const fetchHelpers = async () => {
     try {
@@ -268,6 +312,19 @@ export default function StudentsPage({
               </p>
             </div>
           )}
+          {stats.maxStudents &&
+            stats.currentStudentCount > stats.maxStudents && (
+              <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <FaExclamationTriangle className="text-red-500 ml-2" />
+                  <p className="text-red-700">
+                    هشدار: تعداد دانش‌آموزان ثبت نام شده (
+                    {stats.currentStudentCount} نفر) از حد مجاز (
+                    {stats.maxStudents} نفر) بیشتر است!
+                  </p>
+                </div>
+              </div>
+            )}
         </div>
         <div className="flex gap-3">
           <button
@@ -278,48 +335,137 @@ export default function StudentsPage({
             <FaFileExcel />
             دانلود Excel
           </button>
-          <button
-            onClick={() =>
-              router.push(
-                `/dashboard/students/import?yearFilter=${defaultAcademicYear}`
-              )
-            }
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-            disabled={maxStudents && currentStudentCount >= maxStudents}
-            title={
-              maxStudents && currentStudentCount >= maxStudents
-                ? "تعداد دانش‌آموزان به حداکثر مجاز رسیده است"
-                : ""
-            }
-          >
-            <FaFileImport />
-            بارگذاری گروهی
-          </button>
-          <button
-            onClick={() =>
-              router.push(
-                `/dashboard/students/create?yearFilter=${defaultAcademicYear}`
-              )
-            }
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-            disabled={maxStudents && currentStudentCount >= maxStudents}
-            title={
-              maxStudents && currentStudentCount >= maxStudents
-                ? "تعداد دانش‌آموزان به حداکثر مجاز رسیده است"
-                : ""
-            }
-          >
-            <FaPlus />
-            دانش‌آموز جدید
-          </button>
+          {defaultAcademicYear && (
+            <>
+              <button
+                onClick={() =>
+                  router.push(
+                    `/dashboard/students/import?yearFilter=${defaultAcademicYear}`
+                  )
+                }
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                disabled={
+                  !disableCapacityControl &&
+                  maxStudents &&
+                  stats.maxStudents &&
+                  stats.currentStudentCount >= stats.maxStudents
+                }
+                title={
+                  !disableCapacityControl &&
+                  maxStudents &&
+                  stats.maxStudents &&
+                  stats.currentStudentCount >= stats.maxStudents
+                    ? "تعداد دانش‌آموزان به حداکثر مجاز رسیده است"
+                    : ""
+                }
+              >
+                <FaFileImport />
+                بارگذاری گروهی
+              </button>
+              <button
+                onClick={() =>
+                  router.push(
+                    `/dashboard/students/create?yearFilter=${defaultAcademicYear}`
+                  )
+                }
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                disabled={
+                  !disableCapacityControl &&
+                  maxStudents &&
+                  stats.maxStudents &&
+                  stats.currentStudentCount >= stats.maxStudents
+                }
+                title={
+                  !disableCapacityControl &&
+                  maxStudents &&
+                  stats.maxStudents &&
+                  stats.currentStudentCount >= stats.maxStudents
+                    ? "تعداد دانش‌آموزان به حداکثر مجاز رسیده است"
+                    : ""
+                }
+              >
+                <FaPlus />
+                دانش‌آموز جدید
+              </button>
+            </>
+          )}
         </div>
       </div>
 
-      {maxStudents && (
+      {stats.maxStudents && (
         <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-blue-600">
-            تعداد دانش‌آموزان ثبت شده: {currentStudentCount} از {maxStudents}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">
+                {defaultAcademicYear === "current"
+                  ? "آمار ثبت نام دانش‌آموزان (در حال ثبت)"
+                  : "آمار ثبت نام دانش‌آموزان"}
+              </h3>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">تعداد ثبت شده:</span>
+                  <span className="font-bold text-blue-600 mr-2">
+                    {stats.currentStudentCount?.toLocaleString("fa-IR") || 0}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">ظرفیت کل:</span>
+                  <span className="font-bold text-blue-600 mr-2">
+                    {stats.maxStudents?.toLocaleString("fa-IR") || 0}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-600">
+                    {defaultAcademicYear === "current"
+                      ? "ظرفیت باقی مانده:"
+                      : "باقی مانده:"}
+                  </span>
+                  <span className="font-bold text-blue-600 mr-2">
+                    {(
+                      stats.maxStudents - stats.currentStudentCount
+                    )?.toLocaleString("fa-IR") || 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-bold text-blue-600">
+                {stats.currentStudentCount && stats.maxStudents
+                  ? `${Math.round(
+                      (stats.currentStudentCount / stats.maxStudents) * 100
+                    )}%`
+                  : "0%"}
+              </div>
+              <div className="text-sm text-gray-600">
+                {defaultAcademicYear === "current"
+                  ? "در حال ثبت"
+                  : "درصد تکمیل"}
+              </div>
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="bg-gray-200 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  defaultAcademicYear === "current"
+                    ? stats.currentStudentCount > stats.maxStudents
+                      ? "bg-red-500"
+                      : "bg-blue-500"
+                    : stats.currentStudentCount > stats.maxStudents
+                    ? "bg-red-500"
+                    : stats.currentStudentCount / stats.maxStudents > 0.9
+                    ? "bg-yellow-500"
+                    : "bg-green-500"
+                }`}
+                style={{
+                  width: `${Math.min(
+                    (stats.currentStudentCount / stats.maxStudents) * 100,
+                    100
+                  )}%`,
+                }}
+              ></div>
+            </div>
+          </div>
         </div>
       )}
 

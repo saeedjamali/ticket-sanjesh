@@ -58,8 +58,8 @@ export async function GET(request) {
       "پایه",
       "کد رشته",
       "رشته",
-      "جنسیت",
       "نوع (normal/adult)",
+      "جنسیت",
       "ملیت",
       "موبایل",
       "آدرس",
@@ -75,8 +75,8 @@ export async function GET(request) {
       grades[0]?.gradeName || "ششم ابتدایی",
       fields[0]?.fieldCode || "1",
       fields[0]?.fieldTitle || "عمومی",
-      "male",
       "normal",
+      "male",
       "ایرانی",
       "09123456789",
       "تهران، خیابان آزادی",
@@ -110,8 +110,8 @@ export async function GET(request) {
 
     guideData.push([]);
     guideData.push(["نوع دانش‌آموز:"]);
-    guideData.push(["normal: عادی"]);
-    guideData.push(["adult: بزرگسال"]);
+    guideData.push(["normal یا عادی: دانش‌آموز عادی"]);
+    guideData.push(["adult یا بزرگسال: دانش‌آموز بزرگسال"]);
 
     guideData.push([]);
     guideData.push(["نکات مهم:"]);

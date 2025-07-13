@@ -176,7 +176,7 @@ export async function POST(request) {
             femaleStudents,
             maleStudents,
           },
-          user._id
+          userValid.id
         );
 
         results.success.push({

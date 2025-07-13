@@ -125,20 +125,33 @@ export default function Sidebar({ user, children }) {
                       <ul className="mt-2 mr-4 space-y-2">
                         {item.submenu.map((subItem) => (
                           <li key={subItem.path}>
-                            <Link href={subItem.path}>
+                            {subItem.disabled ? (
                               <div
-                                className={`flex items-center p-2 rounded-lg ${
-                                  pathname === subItem.path
-                                    ? "bg-blue-600"
-                                    : "hover:bg-gray-700"
-                                }`}
-                                onClick={() => {
-                                  if (window.innerWidth < 1024) toggleSidebar();
-                                }}
+                                className="flex items-center justify-between p-2 rounded-lg cursor-not-allowed opacity-50 bg-gray-700/50"
+                                title="این بخش فعلاً در دسترس نیست"
                               >
                                 <span className="mr-2">{subItem.label}</span>
+                                <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
+                                  غیرفعال
+                                </span>
                               </div>
-                            </Link>
+                            ) : (
+                              <Link href={subItem.path}>
+                                <div
+                                  className={`flex items-center p-2 rounded-lg ${
+                                    pathname === subItem.path
+                                      ? "bg-blue-600"
+                                      : "hover:bg-gray-700"
+                                  }`}
+                                  onClick={() => {
+                                    if (window.innerWidth < 1024)
+                                      toggleSidebar();
+                                  }}
+                                >
+                                  <span className="mr-2">{subItem.label}</span>
+                                </div>
+                              </Link>
+                            )}
                           </li>
                         ))}
                       </ul>

@@ -13,44 +13,35 @@ export default function Footer() {
 
     const fetchActiveAcademicYear = async () => {
         try {
+            const token = localStorage.getItem("token");
+            const response = await fetch("/api/academic-years/active", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                credentials: "include",
+            });
 
-            let response = await fetch("/api/academic-years/active");
+            if (!response.ok) {
+                throw new Error("خطا در دریافت اطلاعات سال تحصیلی");
+            }
 
-            if (response.ok) {
-                const data = await response.json();
-                console.log("Footer - API response data:", data);
-                if (data.activeAcademicYear) {
-                    setActiveAcademicYear(data.activeAcademicYear);
-                    console.log("Footer - Academic year set:", data.activeAcademicYear);
-                    return;
-                }
+            const data = await response.json();
+            console.log("Footer - API response data:", data);
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            if (data.name) {
+                setActiveAcademicYear(data.name);
+                console.log("Footer - Academic year set:", data.name);
             } else {
-                console.log("Footer - API failed, trying with token");
-
-                // اگر موفق نبود، با token تلاش کن
-                const token = localStorage.getItem("token");
-                if (token) {
-                    response = await fetch("/api/students/helpers", {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        console.log("Footer - Helpers API response:", data);
-                        if (data.activeAcademicYear) {
-                            setActiveAcademicYear(data.activeAcademicYear);
-                            console.log("Footer - Academic year set from helpers:", data.activeAcademicYear);
-                        }
-                    }
-                }
+                throw new Error("سال تحصیلی یافت نشد");
             }
         } catch (error) {
             console.error("Footer - Error fetching active academic year:", error);
         } finally {
             setLoading(false);
-            console.log("Footer - Loading finished, activeAcademicYear:", activeAcademicYear);
         }
     };
 
@@ -61,8 +52,6 @@ export default function Footer() {
                     <p className="text-caption text-gray-500">
                         {currentYear} &copy; اداره کل آموزش و پرورش خراسان رضوی، تمامی حقوق محفوظ است.
                     </p>
-                    {/* Debug info - حذف کنید بعد از حل مشکل */}
-
 
                     {!loading && activeAcademicYear && (
                         <div className="flex items-center justify-center sm:justify-start mt-2">
@@ -89,14 +78,6 @@ export default function Footer() {
                     >
                         اداره فناوری اطلاعات
                     </a>
-                    {/* <a
-                        href="https://sabzlearn.ir/contact"
-                        className="text-gray-400 hover:text-gray-500 mr-6"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        تماس با ما
-                    </a> */}
                 </div>
             </div>
         </footer>

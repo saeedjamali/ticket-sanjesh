@@ -113,8 +113,12 @@ export async function POST(request) {
           throw new Error("کد ملی الزامی است");
         }
 
-        if (nationalId.length !== 10 || !/^\d+$/.test(nationalId)) {
-          throw new Error("کد ملی باید ۱۰ رقم باشد");
+        if (
+          nationalId.length > 11 ||
+          nationalId.length < 8 ||
+          !/^\d+$/.test(nationalId)
+        ) {
+          throw new Error("کد ملی باید 8 تا 10 رقم باشد");
         }
 
         if (!password || password.length < 6) {

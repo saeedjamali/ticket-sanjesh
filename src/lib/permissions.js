@@ -206,6 +206,11 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
           label: "لیست دانش آموزان سال گذشته",
           path: "/dashboard/students/previous",
         },
+        {
+          label: "بازمانده از تحصیل",
+          path: "/dashboard/students/dropouts",
+          disabled: false,
+        },
       ],
     });
   }
@@ -291,6 +296,10 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
         {
           label: "آمار واحد سازمانی",
           path: "/dashboard/settings/exam-center-stats",
+        },
+        {
+          label: "علت‌های بازمانده از تحصیل",
+          path: "/dashboard/settings/dropout-reasons",
         },
       ],
     });

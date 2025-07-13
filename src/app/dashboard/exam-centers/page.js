@@ -453,19 +453,24 @@ export default function ExamCentersPage() {
 
   // Edit exam center
   const handleEdit = (center) => {
+    console.log("Editing center:", center);
+
     setEditingCenter({
       ...center,
-      province: center.district?.province?._id || "",
-      district: center.district?._id || "",
-      gender: center.gender?._id || "",
-      course: center.course?._id || "",
-      branch: center.branch?._id || "",
-      organizationType: center.organizationType?._id || "",
+      province:
+        center.district?.province?._id || center.district?.province || "",
+      district: center.district?._id || center.district || "",
+      gender: center.gender?._id || center.gender || "",
+      course: center.course?._id || center.course || "",
+      branch: center.branch?._id || center.branch || "",
+      organizationType:
+        center.organizationType?._id || center.organizationType || "",
     });
 
     // Fetch branches for the selected course
-    if (center.course?._id) {
-      fetchBranchesForCourse(center.course._id);
+    const courseId = center.course?._id || center.course;
+    if (courseId) {
+      fetchBranchesForCourse(courseId);
     }
 
     setIsEditModalOpen(true);
@@ -514,18 +519,10 @@ export default function ExamCentersPage() {
         throw new Error(updatedCenter.error || "خطا در ویرایش واحد سازمانی");
       }
 
-      // Update state
+      // Update state with the populated data from server
       setExamCenters((prev) =>
         prev.map((center) =>
-          center._id === editingCenter._id
-            ? {
-                ...updatedCenter.examCenter,
-                district: {
-                  ...center.district,
-                  _id: editingCenter.district,
-                },
-              }
-            : center
+          center._id === editingCenter._id ? updatedCenter.examCenter : center
         )
       );
 
@@ -550,7 +547,11 @@ export default function ExamCentersPage() {
     // Reset branch when course changes and fetch new branches
     if (name === "course") {
       setEditingCenter((prev) => ({ ...prev, branch: "" }));
-      fetchBranchesForCourse(value);
+      if (value) {
+        fetchBranchesForCourse(value);
+      } else {
+        setBranches([]);
+      }
     }
   };
 

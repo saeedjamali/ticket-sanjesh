@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { toast } from "react-toastify";
@@ -9,7 +9,11 @@ import {
   FaUpload,
   FaDownload,
   FaInfoCircle,
+  FaEye,
+  FaCheck,
+  FaTimes,
 } from "react-icons/fa";
+import * as XLSX from "xlsx";
 
 export default function ImportStudentsPage() {
   const router = useRouter();
@@ -18,11 +22,74 @@ export default function ImportStudentsPage() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState([]);
+  const [yearFilter, setYearFilter] = useState("current");
+  const [previewData, setPreviewData] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [academicYearTitle, setAcademicYearTitle] = useState("");
 
-  const handleFileSelect = (event) => {
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const yearParam = urlParams.get("yearFilter");
+    if (yearParam) {
+      setYearFilter(yearParam);
+    }
+
+    // دریافت عنوان سال تحصیلی
+    const fetchAcademicYear = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        console.log("Fetching academic year with params:", { yearParam });
+        const response = await fetch(
+          `/api/academic-years/active${
+            yearParam === "previous" ? "?previous=true" : ""
+          }`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("خطا در دریافت اطلاعات سال تحصیلی");
+        }
+
+        const data = await response.json();
+        console.log("Academic year data received:", data);
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        if (data.name) {
+          setAcademicYearTitle(data.name);
+          console.log("Setting academic year title to:", data.name);
+        } else {
+          console.error("Academic year name not found in response:", data);
+          toast.error("خطا در دریافت عنوان سال تحصیلی");
+        }
+      } catch (error) {
+        console.error("Error fetching academic year:", error);
+        toast.error("خطا در دریافت اطلاعات سال تحصیلی");
+      }
+    };
+
+    fetchAcademicYear();
+  }, [yearFilter]);
+
+  // اضافه کردن useEffect برای نمایش مقدار academicYearTitle
+  useEffect(() => {
+    console.log("Current academicYearTitle:", academicYearTitle);
+  }, [academicYearTitle]);
+
+  const getBackUrl = () => {
+    return `/dashboard/students/${
+      yearFilter === "previous" ? "previous" : "current"
+    }`;
+  };
+
+  const handleFileSelect = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      // بررسی نوع فایل
       const allowedTypes = [
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "application/vnd.ms-excel",
@@ -42,6 +109,28 @@ export default function ImportStudentsPage() {
       setSelectedFile(file);
       setResults(null);
       setErrors([]);
+
+      // خواندن فایل برای پیش‌نمایش
+      try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+          // نمایش 5 ردیف اول برای پیش‌نمایش
+          setPreviewData({
+            total: jsonData.length,
+            sample: jsonData.slice(0, 5),
+          });
+          setShowPreview(true);
+        };
+        reader.readAsArrayBuffer(file);
+      } catch (error) {
+        console.error("Error reading file:", error);
+        toast.error("خطا در خواندن فایل");
+      }
     }
   };
 
@@ -58,10 +147,6 @@ export default function ImportStudentsPage() {
     try {
       const formData = new FormData();
       formData.append("file", selectedFile);
-
-      // Get year filter from URL if exists
-      const urlParams = new URLSearchParams(window.location.search);
-      const yearFilter = urlParams.get("yearFilter");
 
       const token = localStorage.getItem("token");
       const response = await fetch(
@@ -83,6 +168,7 @@ export default function ImportStudentsPage() {
       }
 
       setResults(data);
+      setShowPreview(false);
       if (data.errors && data.errors.length > 0) {
         setErrors(data.errors);
         toast.warning(`${data.errors.length} خطا در پردازش فایل رخ داد`);
@@ -130,13 +216,46 @@ export default function ImportStudentsPage() {
     }
   };
 
+  const cancelPreview = () => {
+    setSelectedFile(null);
+    setPreviewData(null);
+    setShowPreview(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = null;
+    }
+  };
+
+  // تابع کمکی برای فارسی‌سازی پیام‌های خطا
+  const getPersianErrorMessage = (error) => {
+    if (error.includes("duplicate key error") && error.includes("nationalId")) {
+      const matches = error.match(/nationalId: "(\d+)", academicYear: "(.+?)"/);
+      if (matches) {
+        return `دانش‌آموزی با کد ملی ${matches[1]} قبلاً در سال تحصیلی ${matches[2]} ثبت شده است`;
+      }
+    }
+
+    // سایر پیام‌های خطای رایج
+    const errorMessages = {
+      "Student validation failed: academicCourse: دوره تحصیلی الزامی است":
+        "دوره تحصیلی مشخص نشده است",
+      "Student validation failed: organizationalUnitCode: کد واحد سازمانی الزامی است":
+        "کد واحد سازمانی مشخص نشده است",
+      "Student validation failed: districtCode: کد منطقه الزامی است":
+        "کد منطقه مشخص نشده است",
+      "Invalid national ID format": "فرمت کد ملی نامعتبر است",
+      "Invalid date format": "فرمت تاریخ نامعتبر است",
+    };
+
+    return errorMessages[error] || error;
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push("/dashboard/students")}
+            onClick={() => router.push(getBackUrl())}
             className="text-gray-600 hover:text-gray-800"
           >
             <FaArrowLeft className="h-6 w-6" />
@@ -146,7 +265,13 @@ export default function ImportStudentsPage() {
               بارگذاری گروهی دانش‌آموزان
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              امکان ثبت دسته‌جمعی اطلاعات دانش‌آموزان از طریق فایل Excel
+              {yearFilter === "previous"
+                ? `بارگذاری اطلاعات دانش‌آموزان سال تحصیلی ${
+                    academicYearTitle || "گذشته"
+                  }`
+                : `بارگذاری اطلاعات دانش‌آموزان سال تحصیلی ${
+                    academicYearTitle || "جاری"
+                  }`}
             </p>
           </div>
         </div>
@@ -229,71 +354,130 @@ export default function ImportStudentsPage() {
               بارگذاری فایل
             </h3>
 
-            {/* انتخاب فایل */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-
-              {selectedFile ? (
-                <div className="space-y-4">
-                  <div className="text-green-600">
-                    <FaUpload className="h-12 w-12 mx-auto mb-2" />
-                    <p className="text-lg font-medium">فایل انتخاب شده:</p>
-                    <p className="text-sm">{selectedFile.name}</p>
-                    <p className="text-xs text-gray-500">
-                      حجم: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-
-                  <div className="flex gap-4 justify-center">
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
-                    >
-                      انتخاب فایل دیگر
-                    </button>
-                    <button
-                      onClick={handleImport}
-                      disabled={loading}
-                      className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {loading ? (
-                        <>
-                          <LoadingSpinner />
-                          در حال پردازش...
-                        </>
-                      ) : (
-                        <>
-                          <FaUpload />
-                          شروع بارگذاری
-                        </>
-                      )}
-                    </button>
-                  </div>
+            {showPreview && previewData ? (
+              <div className="space-y-4">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+                    <FaInfoCircle />
+                    تأیید اطلاعات
+                  </h4>
+                  <p className="text-yellow-700">
+                    شما در حال بارگذاری {previewData.total} دانش‌آموز برای سال
+                    تحصیلی{" "}
+                    <span className="font-bold">{academicYearTitle}</span>{" "}
+                    هستید. لطفاً اطلاعات زیر را بررسی و تأیید کنید.
+                  </p>
                 </div>
-              ) : (
-                <div>
-                  <FaUpload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-lg font-medium text-gray-700 mb-2">
-                    فایل خود را اینجا بکشید یا کلیک کنید
+
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-right">ردیف</th>
+                        <th className="px-4 py-2 text-right">کد ملی</th>
+                        <th className="px-4 py-2 text-right">نام</th>
+                        <th className="px-4 py-2 text-right">نام خانوادگی</th>
+                        <th className="px-4 py-2 text-right">پایه</th>
+                        <th className="px-4 py-2 text-right">رشته</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {previewData.sample.map((row, index) => (
+                        <tr key={index} className="border-t">
+                          <td className="px-4 py-2">{index + 1}</td>
+                          <td className="px-4 py-2">{row["کد ملی"]}</td>
+                          <td className="px-4 py-2">{row["نام"]}</td>
+                          <td className="px-4 py-2">{row["نام خانوادگی"]}</td>
+                          <td className="px-4 py-2">{row["پایه"]}</td>
+                          <td className="px-4 py-2">{row["رشته"]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {previewData.total > 5 && (
+                  <p className="text-gray-500 text-sm">
+                    و {previewData.total - 5} رکورد دیگر...
                   </p>
-                  <p className="text-sm text-gray-500 mb-4">
-                    فرمت‌های پشتیبانی شده: Excel (.xlsx, .xls), CSV
-                  </p>
+                )}
+
+                <div className="flex justify-end gap-4 mt-4">
                   <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    onClick={cancelPreview}
+                    className="px-4 py-2 text-red-600 border border-red-200 rounded-md hover:bg-red-50 flex items-center gap-2"
                   >
-                    انتخاب فایل
+                    <FaTimes />
+                    انصراف
+                  </button>
+                  <button
+                    onClick={handleImport}
+                    disabled={loading}
+                    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <LoadingSpinner />
+                        در حال پردازش...
+                      </>
+                    ) : (
+                      <>
+                        <FaCheck />
+                        تأیید و شروع بارگذاری
+                      </>
+                    )}
                   </button>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                {selectedFile ? (
+                  <div className="space-y-4">
+                    <div className="text-green-600">
+                      <FaUpload className="h-12 w-12 mx-auto mb-2" />
+                      <p className="text-lg font-medium">فایل انتخاب شده:</p>
+                      <p className="text-sm">{selectedFile.name}</p>
+                      <p className="text-xs text-gray-500">
+                        حجم: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+
+                    <div className="flex gap-4 justify-center">
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                      >
+                        انتخاب فایل دیگر
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <FaUpload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-lg font-medium text-gray-700 mb-2">
+                      فایل خود را اینجا بکشید یا کلیک کنید
+                    </p>
+                    <p className="text-sm text-gray-500 mb-4">
+                      فرمت‌های پشتیبانی شده: Excel (.xlsx, .xls), CSV
+                    </p>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      انتخاب فایل
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* نتایج */}
             {results && (
@@ -329,7 +513,7 @@ export default function ImportStudentsPage() {
                                 {error.nationalId || "-"}
                               </td>
                               <td className="py-2 text-red-600">
-                                {error.message}
+                                {getPersianErrorMessage(error.message)}
                               </td>
                             </tr>
                           ))}
@@ -341,7 +525,7 @@ export default function ImportStudentsPage() {
 
                 <div className="flex justify-end">
                   <button
-                    onClick={() => router.push("/dashboard/students")}
+                    onClick={() => router.push(getBackUrl())}
                     className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                   >
                     بازگشت به فهرست دانش‌آموزان

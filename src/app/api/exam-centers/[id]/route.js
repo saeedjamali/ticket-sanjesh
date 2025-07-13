@@ -264,7 +264,8 @@ export async function PUT(request, { params }) {
       address,
       phone,
       gender,
-      period,
+      course,
+      branch,
       studentCount,
       organizationType,
     } = await request.json();
@@ -328,7 +329,8 @@ export async function PUT(request, { params }) {
     examCenter.address = address || undefined;
     examCenter.phone = phone || undefined;
     examCenter.gender = gender || undefined;
-    examCenter.period = period || undefined;
+    examCenter.course = course || undefined;
+    examCenter.branch = branch || undefined;
     examCenter.studentCount = studentCount ? Number(studentCount) : undefined;
     examCenter.organizationType = organizationType || undefined;
     examCenter.updatedAt = new Date();
@@ -337,8 +339,21 @@ export async function PUT(request, { params }) {
     await examCenter.save();
 
     // Populate the response
-    await examCenter.populate("district", "name");
-    await examCenter.populate("manager", "fullName");
+    await examCenter.populate([
+      {
+        path: "district",
+        select: "name province",
+        populate: {
+          path: "province",
+          select: "name code",
+        },
+      },
+      { path: "manager", select: "fullName" },
+      { path: "gender", select: "genderCode genderTitle" },
+      { path: "course", select: "courseCode courseName" },
+      { path: "branch", select: "branchCode branchTitle" },
+      { path: "organizationType", select: "unitTypeCode unitTypeTitle" },
+    ]);
 
     return NextResponse.json({
       success: true,

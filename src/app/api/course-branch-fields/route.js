@@ -9,9 +9,13 @@ import CourseBranchField from "@/models/CourseBranchField";
 export async function GET(request) {
   try {
     // احراز هویت
-    const cookieStore = await cookies();
-    const authToken = cookieStore?.get("refresh-token");
-    const { user } = await authService.refreshToken(authToken?.value);
+    const user = await authService.validateToken(request);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "لطفا وارد حساب کاربری خود شوید" },
+        { status: 401 }
+      );
+    }
 
     if (!user || user.role !== ROLES.SYSTEM_ADMIN) {
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
@@ -79,9 +83,13 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     // احراز هویت
-    const cookieStore = await cookies();
-    const authToken = cookieStore?.get("refresh-token");
-    const { user } = await authService.refreshToken(authToken?.value);
+    const user = await authService.validateToken(request);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "لطفا وارد حساب کاربری خود شوید" },
+        { status: 401 }
+      );
+    }
 
     if (!user || user.role !== ROLES.SYSTEM_ADMIN) {
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
@@ -136,7 +144,7 @@ export async function POST(request) {
       branchTitle: branchTitle.trim(),
       fieldCode: fieldCode.trim(),
       fieldTitle: fieldTitle.trim(),
-      createdBy: user._id,
+      createdBy: user.id,
     });
 
     await newItem.save();

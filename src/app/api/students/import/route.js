@@ -7,9 +7,90 @@ import District from "@/models/District";
 import AcademicYear from "@/models/AcademicYear";
 import CourseGrade from "@/models/CourseGrade";
 import CourseBranchField from "@/models/CourseBranchField";
+import ExamCenterStats from "@/models/ExamCenterStats";
 
 import { verifyJWT } from "@/lib/auth/tokenService";
 import { authService } from "@/lib/auth/authService";
+
+// Helper function to update ExamCenterStats for current year
+async function updateExamCenterStats(
+  organizationalUnitCode,
+  academicYear,
+  userId
+) {
+  try {
+    // فقط برای سال جاری به‌روزرسانی کن
+    const activeAcademicYear = await AcademicYear.findOne({ isActive: true });
+    if (!activeAcademicYear || academicYear !== activeAcademicYear.name) {
+      return; // اگر سال جاری نیست، هیچ کاری نکن
+    }
+
+    // شمارش تعداد دانش‌آموزان ثبت شده در سال جاری
+    const [totalStudents, maleStudents, femaleStudents] = await Promise.all([
+      Student.countDocuments({
+        organizationalUnitCode,
+        academicYear,
+      }),
+      Student.countDocuments({
+        organizationalUnitCode,
+        academicYear,
+        gender: "male",
+      }),
+      Student.countDocuments({
+        organizationalUnitCode,
+        academicYear,
+        gender: "female",
+      }),
+    ]);
+
+    // بررسی وجود رکورد آماری
+    let stats = await ExamCenterStats.findOne({
+      organizationalUnitCode,
+      academicYear,
+    });
+
+    if (!stats) {
+      // اگر رکورد وجود ندارد، آن را ایجاد کن
+      console.log("Creating new ExamCenterStats with data:", {
+        organizationalUnitCode,
+        academicYear,
+        totalStudents,
+        maleStudents,
+        femaleStudents,
+        classifiedStudents: 0,
+        totalClasses: 0,
+        createdBy: userId,
+      });
+
+      stats = new ExamCenterStats({
+        organizationalUnitCode,
+        academicYear,
+        totalStudents,
+        maleStudents,
+        femaleStudents,
+        classifiedStudents: 0,
+        totalClasses: 0,
+        createdBy: userId,
+      });
+      await stats.save();
+      console.log(
+        `Created new ExamCenterStats for ${organizationalUnitCode} - ${academicYear}: ${totalStudents} students (${maleStudents} male, ${femaleStudents} female)`
+      );
+    } else {
+      // اگر رکورد وجود دارد، آمار دانش‌آموزان را به‌روزرسانی کن
+      stats.totalStudents = totalStudents;
+      stats.maleStudents = maleStudents;
+      stats.femaleStudents = femaleStudents;
+      stats.updatedBy = userId;
+      await stats.save();
+      console.log(
+        `Updated ExamCenterStats for ${organizationalUnitCode} - ${academicYear}: ${totalStudents} students (${maleStudents} male, ${femaleStudents} female)`
+      );
+    }
+  } catch (error) {
+    console.error("Error updating ExamCenterStats:", error);
+  }
+}
 
 // POST - بارگذاری و پردازش فایل Excel دانش‌آموزان
 export async function POST(request) {
@@ -51,6 +132,7 @@ export async function POST(request) {
       courseCode: user.examCenter?.course?.courseCode,
       courseName: user.examCenter?.course?.courseName,
       branchCode: user.examCenter?.branch?.branchCode,
+      branchTitle: user.examCenter?.branch?.branchTitle,
     });
 
     // بررسی دسترسی - فقط مدیران واحد سازمانی
@@ -109,6 +191,15 @@ export async function POST(request) {
       CourseBranchField.find({ isActive: true }).lean(),
     ]);
 
+    console.log(
+      "Available fields for this course and branch:",
+      fields.filter(
+        (f) =>
+          f.courseCode === user.examCenter.course.courseCode &&
+          f.branchCode === user.examCenter.branch.branchCode
+      )
+    );
+
     if (!activeAcademicYear) {
       return NextResponse.json(
         { error: "سال تحصیلی فعال یافت نشد" },
@@ -160,6 +251,12 @@ export async function POST(request) {
       const worksheet = workbook.Sheets[firstSheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
 
+      // Debug: نمایش header های خوانده شده
+      if (data.length > 0) {
+        console.log("Headers found in Excel file:", Object.keys(data[0]));
+        console.log("Sample row data:", data[0]);
+      }
+
       // بررسی وجود داده
       if (!data || data.length === 0) {
         return NextResponse.json(
@@ -185,7 +282,7 @@ export async function POST(request) {
 
         try {
           // استخراج داده‌ها
-          const nationalId = String(row["کد ملی"] || "").trim();
+          let nationalId = String(row["کد ملی"] || "").trim();
           const firstName = String(row["نام"] || "").trim();
           const lastName = String(row["نام خانوادگی"] || "").trim();
           const fatherName = String(row["نام پدر"] || "").trim();
@@ -199,6 +296,7 @@ export async function POST(request) {
           const studentType = String(
             row["نوع (normal/adult)"] || "normal"
           ).trim();
+
           const nationality = String(row["ملیت"] || "").trim();
           const mobile = String(row["موبایل"] || "").trim();
           const address = String(row["آدرس"] || "").trim();
@@ -214,11 +312,18 @@ export async function POST(request) {
             continue;
           }
 
+          // تصحیح کد ملی - اگر 8 یا 9 رقمی بود، صفر به ابتدا اضافه کن
+          if (/^\d{8}$/.test(nationalId)) {
+            nationalId = "00" + nationalId;
+          } else if (/^\d{9}$/.test(nationalId)) {
+            nationalId = "0" + nationalId;
+          }
+
           if (!/^\d{10}$/.test(nationalId)) {
             results.errors.push({
               row: rowNumber,
               nationalId,
-              message: "کد ملی باید 10 رقم باشد",
+              message: "کد ملی باید 8، 9 یا 10 رقم باشد",
             });
             results.errorCount++;
             continue;
@@ -234,11 +339,20 @@ export async function POST(request) {
             continue;
           }
 
-          // بررسی پایه براساس عنوان
+          // بررسی پایه براساس عنوان با مقایسه رشته‌ای انعطاف‌پذیر
+          console.log(
+            `جستجو برای پایه "${gradeTitle}" در میان پایه‌های موجود:`,
+            grades
+              .filter((g) => g.courseCode === user.examCenter.course.courseCode)
+              .map((g) => g.gradeName)
+          );
+
           let grade = grades.find(
             (g) =>
-              g.gradeName === gradeTitle &&
-              g.courseCode === user.examCenter.course.courseCode
+              g.courseCode === user.examCenter.course.courseCode &&
+              (g.gradeName === gradeTitle ||
+                g.gradeName.toLowerCase().includes(gradeTitle.toLowerCase()) ||
+                gradeTitle.toLowerCase().includes(g.gradeName.toLowerCase()))
           );
 
           let gradeCode;
@@ -250,26 +364,68 @@ export async function POST(request) {
             description = `پایه اصلی: ${gradeTitle}`;
 
             // بررسی وجود پایه با کد 501
-            const otherGrade = grades.find(
+            let otherGrade = grades.find(
               (g) =>
                 g.gradeCode === "501" &&
                 g.courseCode === user.examCenter.course.courseCode
             );
 
             if (!otherGrade) {
-              results.errors.push({
-                row: rowNumber,
-                nationalId,
-                message: `پایه "${gradeTitle}" یافت نشد و پایه "سایر" (کد 501) در سیستم موجود نیست`,
-              });
-              results.errorCount++;
-              continue;
+              // ایجاد پایه سایر با کد 501
+              try {
+                const newGrade = new CourseGrade({
+                  courseCode: user.examCenter.course.courseCode,
+                  courseName: user.examCenter.course.courseName,
+                  gradeCode: "501",
+                  gradeName: "سایر",
+                  isActive: true,
+                  createdBy: user._id,
+                });
+
+                await newGrade.save();
+
+                // اضافه کردن پایه جدید به لیست grades
+                grades.push({
+                  courseCode: user.examCenter.course.courseCode,
+                  courseName: user.examCenter.course.courseName,
+                  gradeCode: "501",
+                  gradeName: "سایر",
+                  isActive: true,
+                });
+
+                console.log(
+                  `پایه "سایر" با کد 501 برای دوره ${user.examCenter.course.courseCode} ایجاد شد`
+                );
+              } catch (gradeError) {
+                console.error("خطا در ایجاد پایه سایر:", gradeError);
+                results.errors.push({
+                  row: rowNumber,
+                  nationalId,
+                  message: `پایه "${gradeTitle}" یافت نشد و خطا در ایجاد پایه "سایر"`,
+                });
+                results.errorCount++;
+                continue;
+              }
             }
           } else {
             gradeCode = grade.gradeCode;
           }
 
-          // بررسی رشته براساس کد رشته
+          // بررسی رشته براساس کد رشته (مقایسه با fieldCode)
+          console.log(
+            `جستجو برای کد رشته "${fieldCode}" در میان رشته‌های موجود:`,
+            fields
+              .filter(
+                (f) =>
+                  f.courseCode === user.examCenter.course.courseCode &&
+                  f.branchCode === user.examCenter.branch.branchCode
+              )
+              .map((f) => ({
+                fieldCode: f.fieldCode,
+                fieldTitle: f.fieldTitle,
+              }))
+          );
+
           const field = fields.find(
             (f) =>
               f.fieldCode === fieldCode &&
@@ -281,7 +437,7 @@ export async function POST(request) {
             results.errors.push({
               row: rowNumber,
               nationalId,
-              message: `کد رشته "${fieldCode}" یافت نشد یا متعلق به دوره و شاخه شما نیست`,
+              message: `کد رشته "${fieldCode}" یافت نشد یا متعلق به دوره "${user.examCenter.course.courseCode}" و شاخه "${user.examCenter.branch.branchCode}" شما نیست`,
             });
             results.errorCount++;
             continue;
@@ -302,23 +458,45 @@ export async function POST(request) {
             continue;
           }
 
+          // تبدیل نوع دانش‌آموز به فرمت استاندارد
+          let normalizedStudentType = studentType.toLowerCase();
+          if (normalizedStudentType === "عادی")
+            normalizedStudentType = "normal";
+          if (normalizedStudentType === "بزرگسال")
+            normalizedStudentType = "adult";
+
+          // Debug: نمایش مقادیر جنسیت و نوع
+          console.log(
+            `Row ${rowNumber}: Gender="${genderInput}", Type="${studentType}" -> Normalized: "${normalizedStudentType}"`
+          );
+
           // بررسی نوع دانش‌آموز
-          if (!["normal", "adult"].includes(studentType)) {
+          if (!["normal", "adult"].includes(normalizedStudentType)) {
             results.errors.push({
               row: rowNumber,
               nationalId,
-              message: "نوع دانش‌آموز باید normal یا adult باشد",
+              message: "نوع دانش‌آموز باید normal/عادی یا adult/بزرگسال باشد",
             });
             results.errorCount++;
             continue;
           }
 
+          // تبدیل شماره موبایل - اگر 10 رقمی بود صفر اضافه کن
+          let normalizedMobile = mobile;
+          if (mobile && /^9\d{9}$/.test(mobile)) {
+            normalizedMobile = "0" + mobile;
+            console.log(
+              `Row ${rowNumber}: Mobile "${mobile}" -> Normalized: "${normalizedMobile}"`
+            );
+          }
+
           // بررسی موبایل
-          if (mobile && !/^09\d{9}$/.test(mobile)) {
+          if (normalizedMobile && !/^09\d{9}$/.test(normalizedMobile)) {
             results.errors.push({
               row: rowNumber,
               nationalId,
-              message: "شماره موبایل نامعتبر است",
+              message:
+                "شماره موبایل نامعتبر است (باید 11 رقمی و با 09 شروع شود)",
             });
             results.errorCount++;
             continue;
@@ -327,7 +505,7 @@ export async function POST(request) {
           // بررسی تکراری نبودن کد ملی در سال تحصیلی مورد نظر
           const existingStudent = await Student.findOne({
             nationalId,
-            academicYear: targetAcademicYear._id,
+            academicYear: targetAcademicYear.name,
           });
 
           if (existingStudent) {
@@ -348,14 +526,14 @@ export async function POST(request) {
             fatherName,
             birthDate,
             gender,
-            studentType: studentType || "normal",
+            studentType: normalizedStudentType || "normal",
             nationality: nationality || "IR",
-            mobile,
+            mobile: normalizedMobile,
             address,
             gradeCode,
             gradeName: gradeTitle,
             fieldCode: field.fieldCode,
-            fieldName: field.fieldName,
+            fieldName: field.fieldTitle,
             description,
             // اطلاعات سال تحصیلی و دوره تحصیلی - ذخیره عناوین به جای شناسه‌ها
             academicYear: targetAcademicYear.name,
@@ -390,6 +568,15 @@ export async function POST(request) {
             message: error.message || "خطا در پردازش رکورد",
           });
         }
+      }
+
+      // به‌روزرسانی آمار واحد سازمانی برای سال جاری
+      if (results.successCount > 0) {
+        await updateExamCenterStats(
+          user.examCenter.code,
+          targetAcademicYear.name,
+          user._id
+        );
       }
 
       return NextResponse.json(results);

@@ -9,6 +9,7 @@ export default function CurrentStudentsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     checkAccess();
@@ -35,6 +36,9 @@ export default function CurrentStudentsPage() {
         setError(
           `برای دسترسی به لیست دانش‌آموزان سال تحصیلی ${data.data.currentYear.name}، باید اطلاعات تمام ${data.data.previousYear.totalStudents} دانش‌آموز سال تحصیلی ${data.data.previousYear.name} را ثبت کرده باشید. تا کنون اطلاعات ${data.data.previousYear.registeredStudents} دانش‌آموز ثبت شده است.`
         );
+      } else {
+        // ذخیره آمار سال جاری
+        setStats(data.data.currentYear);
       }
 
       setLoading(false);
@@ -76,6 +80,12 @@ export default function CurrentStudentsPage() {
   }
 
   return (
-    <StudentsPage defaultAcademicYear="current" hideAcademicYearFilter={true} />
+    <StudentsPage
+      defaultAcademicYear="current"
+      hideAcademicYearFilter={true}
+      maxStudents={stats?.totalStudents}
+      currentStudentCount={stats?.registeredStudents}
+      disableCapacityControl={true}
+    />
   );
 }
