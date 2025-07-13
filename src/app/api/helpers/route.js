@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
+import connectDB from "@/lib/db";
 import AcademicYear from "@/models/AcademicYear";
 import Province from "@/models/Province";
 import District from "@/models/District";
@@ -11,7 +11,7 @@ import { authService } from "@/lib/auth/authService";
 export async function GET(request) {
   try {
     // Authentication check
-    const user = await authService.getCurrentUser(request);
+    const user = await authService.validateToken(request);
     if (!user) {
       return NextResponse.json(
         { success: false, message: "غیر مجاز" },
@@ -32,12 +32,10 @@ export async function GET(request) {
           {},
           {
             _id: 1,
-            title: 1,
-            startDate: 1,
-            endDate: 1,
+            name: 1,
             isActive: 1,
           }
-        ).sort({ isActive: -1, startDate: -1 });
+        ).sort({ isActive: -1, name: -1 });
         break;
 
       case "provinces":
@@ -52,11 +50,19 @@ export async function GET(request) {
 
       case "districts": {
         const provinceCode = searchParams.get("province");
-        const filter = provinceCode ? { provinceCode } : {};
+        let filter = {};
+
+        if (provinceCode) {
+          // Find province by code first
+          const province = await Province.findOne({ code: provinceCode });
+          if (province) {
+            filter.province = province._id;
+          }
+        }
+
         data = await District.find(filter, {
           code: 1,
           name: 1,
-          provinceCode: 1,
         }).sort({ name: 1 });
         break;
       }
@@ -112,6 +118,34 @@ export async function GET(request) {
           }
         ).sort({ code: 1 });
         break;
+
+      case "branches": {
+        const courseCode = searchParams.get("course");
+        let filter = { isActive: true };
+
+        if (courseCode) {
+          filter.courseCode = courseCode;
+        }
+
+        // گروه‌بندی بر اساس شاخه و حذف تکراری
+        const branches = await CourseBranchField.aggregate([
+          { $match: filter },
+          {
+            $group: {
+              _id: "$branchCode",
+              code: { $first: "$branchCode" },
+              title: { $first: "$branchTitle" },
+            },
+          },
+          { $sort: { code: 1 } },
+        ]);
+
+        data = branches.map(branch => ({
+          code: branch.code,
+          title: branch.title,
+        }));
+        break;
+      }
 
       default:
         return NextResponse.json(

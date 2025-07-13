@@ -252,9 +252,11 @@ export default function UsersPage() {
       provinceEducationExpert: "کارشناس سنجش استان",
       provinceTechExpert: "کارشناس فناوری استان",
       provinceEvalExpert: "کارشناس ارزیابی استان",
+      provinceRegistrationExpert: "کارشناس ثبت نام استان",
       districtEducationExpert: "کارشناس سنجش منطقه",
       districtTechExpert: "کارشناس فناوری منطقه",
       districtEvalExpert: "کارشناس ارزیابی منطقه",
+      districtRegistrationExpert: "کارشناس ثبت نام منطقه",
       examCenterManager: "مدیر واحد سازمانی",
     };
 
@@ -695,11 +697,16 @@ export default function UsersPage() {
       "provinceTechExpert",
       "districtEducationExpert",
       "districtTechExpert",
+      "districtEvalExpert",
+      "provinceEvalExpert",
+      "provinceRegistrationExpert",
+      "districtRegistrationExpert",
       "examCenterManager",
     ];
     const requiresDistrict = [
       "districtEducationExpert",
       "districtTechExpert",
+      "districtEvalExpert",
       "examCenterManager",
     ];
     const requiresExamCenter = ["examCenterManager"];
@@ -924,15 +931,17 @@ export default function UsersPage() {
                 کارشناس سنجش استان
               </option>
               <option value="provinceTechExpert">کارشناس فناوری استان</option>
-              <option value="provinceEvalExpert">
-                کارشناس ارزیابی استان
+              <option value="provinceEvalExpert">کارشناس ارزیابی استان</option>
+              <option value="provinceRegistrationExpert">
+                کارشناس ثبت نام استان
               </option>
               <option value="districtEducationExpert">
                 کارشناس سنجش منطقه
               </option>
               <option value="districtTechExpert">کارشناس فناوری منطقه</option>
-                <option value="districtEvalExpert">
-                کارشناس ارزیابی منطقه
+              <option value="districtEvalExpert">کارشناس ارزیابی منطقه</option>
+              <option value="districtRegistrationExpert">
+                کارشناس ثبت نام منطقه
               </option>
               <option value="examCenterManager">مدیر واحد سازمانی</option>
             </select>
@@ -1244,14 +1253,20 @@ export default function UsersPage() {
                     <option value="provinceEvalExpert">
                       کارشناس ارزیابی استان
                     </option>
+                    <option value="provinceRegistrationExpert">
+                      کارشناس ثبت نام استان
+                    </option>
                     <option value="districtEducationExpert">
                       کارشناس سنجش منطقه
                     </option>
-                    <option value="districtTechExpert">
-                      کارشناس فناوری منطقه
-                    </option>
                     <option value="districtEvalExpert">
                       کارشناس ارزیابی منطقه
+                    </option>
+                    <option value="districtRegistrationExpert">
+                      کارشناس ثبت نام منطقه
+                    </option>
+                    <option value="districtTechExpert">
+                      کارشناس فناوری منطقه
                     </option>
                     <option value="examCenterManager">مدیر واحد سازمانی</option>
                   </select>
@@ -1264,9 +1279,11 @@ export default function UsersPage() {
                 "provinceEducationExpert",
                 "provinceTechExpert",
                 "provinceEvalExpert",
+                "provinceRegistrationExpert",
                 "districtEducationExpert",
                 "districtTechExpert",
                 "districtEvalExpert",
+                "districtRegistrationExpert",
                 "examCenterManager",
               ].includes(newUser.role) && (
                 <div>
@@ -1298,6 +1315,7 @@ export default function UsersPage() {
                 "districtEducationExpert",
                 "districtTechExpert",
                 "districtEvalExpert",
+                "districtRegistrationExpert",
                 "examCenterManager",
               ].includes(newUser.role) &&
                 newUser.province && (
@@ -1445,11 +1463,17 @@ export default function UsersPage() {
                     <option value="provinceEvalExpert">
                       کارشناس ارزیابی استان
                     </option>
+                    <option value="provinceRegistrationExpert">
+                      کارشناس ثبت نام استان
+                    </option>
                     <option value="districtEducationExpert">
                       کارشناس سنجش منطقه
                     </option>
                     <option value="districtEvalExpert">
                       کارشناس ارزیابی منطقه
+                    </option>
+                    <option value="districtRegistrationExpert">
+                      کارشناس ثبت نام منطقه
                     </option>
                     <option value="districtTechExpert">
                       کارشناس فناوری منطقه
@@ -1468,6 +1492,8 @@ export default function UsersPage() {
                 "districtTechExpert",
                 "districtEvalExpert",
                 "provinceEvalExpert",
+                "provinceRegistrationExpert",
+                "districtRegistrationExpert",
                 "examCenterManager",
               ].includes(editingUser.role) && (
                 <div>
@@ -1499,6 +1525,7 @@ export default function UsersPage() {
                 "districtEducationExpert",
                 "districtTechExpert",
                 "districtEvalExpert",
+                "districtRegistrationExpert",
                 "examCenterManager",
               ].includes(editingUser.role) &&
                 editingUser.province && (

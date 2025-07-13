@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db";
 import ExamCenterStats from "@/models/ExamCenterStats";
 import ExamCenter from "@/models/ExamCenter";
 import AcademicYear from "@/models/AcademicYear";
+import Province from "@/models/Province";
+import District from "@/models/District";
 import { authService } from "@/lib/auth/authService";
 import { ROLES } from "@/lib/permissions";
 import dbConnect from "@/lib/dbConnect";
@@ -34,6 +36,7 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get("limit")) || 10;
     const search = searchParams.get("search") || "";
     const academicYear = searchParams.get("academicYear") || "";
+    const course = searchParams.get("course") || "";
 
     // ساخت فیلتر
     const filter = {};
@@ -44,6 +47,10 @@ export async function GET(request) {
 
     if (academicYear) {
       filter.academicYear = academicYear;
+    }
+
+    if (course) {
+      filter.courseCode = course;
     }
 
     const skip = (page - 1) * limit;
@@ -58,49 +65,40 @@ export async function GET(request) {
       ExamCenterStats.countDocuments(filter),
     ]);
 
-    // دریافت اطلاعات واحدهای سازمانی
-    const examCenterCodes = stats.map((stat) => stat.organizationalUnitCode);
-    const examCenters = await ExamCenter.find({
-      code: { $in: examCenterCodes },
-    })
-      .select("code name")
-      .lean();
+    // اضافه کردن نام واحد سازمانی
+    const statsWithNames = await Promise.all(
+      stats.map(async (stat) => {
+        const examCenter = await ExamCenter.findOne({
+          code: stat.organizationalUnitCode,
+        }).lean();
 
-    // ایجاد نقشه برای جستجوی سریع
-    const examCenterMap = examCenters.reduce((acc, center) => {
-      acc[center.code] = center.name;
-      return acc;
-    }, {});
-
-    // اضافه کردن نام واحد سازمانی به آمار
-    const statsWithNames = stats.map((stat) => ({
-      ...stat,
-      organizationalUnitName:
-        examCenterMap[stat.organizationalUnitCode] || "نامشخص",
-    }));
+        return {
+          ...stat,
+          organizationalUnitName: examCenter?.name || "نامشخص",
+        };
+      })
+    );
 
     return NextResponse.json({
       success: true,
-      data: {
-        stats: statsWithNames,
-        pagination: {
-          currentPage: page,
-          totalPages: Math.ceil(total / limit),
-          totalItems: total,
-          itemsPerPage: limit,
-        },
+      stats: statsWithNames,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: limit,
       },
     });
   } catch (error) {
     console.error("Error fetching exam center stats:", error);
     return NextResponse.json(
-      { success: false, message: "خطا در دریافت آمار واحدهای سازمانی" },
+      { success: false, error: "خطا در دریافت آمار واحدهای سازمانی" },
       { status: 500 }
     );
   }
 }
 
-// POST - ثبت آمار جدید
+// POST - ایجاد آمار جدید
 export async function POST(request) {
   try {
     // بررسی احراز هویت
@@ -122,45 +120,108 @@ export async function POST(request) {
 
     await dbConnect();
 
-    const data = await request.json();
+    const {
+      organizationalUnitCode,
+      academicYear,
+      courseCode,
+      courseName,
+      totalStudents,
+      classifiedStudents,
+      totalClasses,
+      femaleStudents,
+      maleStudents,
+      provinceCode,
+      districtCode,
+    } = await request.json();
+
+    // اعتبارسنجی فیلدهای الزامی
+    if (
+      !organizationalUnitCode ||
+      !academicYear ||
+      !courseCode ||
+      !courseName
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "کد واحد سازمانی، سال تحصیلی و دوره تحصیلی الزامی است",
+        },
+        { status: 400 }
+      );
+    }
 
     // بررسی وجود واحد سازمانی
     const examCenter = await ExamCenter.findOne({
-      code: data.organizationalUnitCode,
+      code: organizationalUnitCode,
+    }).populate({
+      path: "district",
+      populate: { path: "province" },
     });
+
     if (!examCenter) {
       return NextResponse.json(
-        { success: false, message: "واحد سازمانی یافت نشد" },
-        { status: 400 }
+        { success: false, error: "واحد سازمانی با این کد یافت نشد" },
+        { status: 404 }
       );
     }
 
     // بررسی وجود سال تحصیلی
-    const academicYear = await AcademicYear.findOne({
-      name: data.academicYear,
+    const academicYearExists = await AcademicYear.findOne({
+      name: academicYear,
     });
-    if (!academicYear) {
+
+    if (!academicYearExists) {
       return NextResponse.json(
-        { success: false, message: "سال تحصیلی یافت نشد" },
+        { success: false, error: "سال تحصیلی معتبر نیست" },
         { status: 400 }
       );
     }
 
-    // ایجاد یا به‌روزرسانی آمار
-    const stats = await ExamCenterStats.upsertStats(data, userValid.id);
+    // بررسی تکراری نبودن آمار
+    const existingStats = await ExamCenterStats.findOne({
+      organizationalUnitCode,
+      academicYear,
+      courseCode,
+    });
+
+    if (existingStats) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "آمار این واحد سازمانی برای این سال تحصیلی و دوره قبلاً ثبت شده است",
+        },
+        { status: 400 }
+      );
+    }
+
+    // ایجاد آمار جدید
+    const newStats = new ExamCenterStats({
+      organizationalUnitCode,
+      academicYear,
+      courseCode,
+      courseName,
+      totalStudents,
+      classifiedStudents,
+      totalClasses,
+      femaleStudents,
+      maleStudents,
+      provinceCode: provinceCode || examCenter.district.province.code,
+      districtCode: districtCode || examCenter.district.code,
+      createdBy: userValid.id,
+    });
+
+    await newStats.save();
 
     return NextResponse.json({
       success: true,
       message: "آمار واحد سازمانی با موفقیت ثبت شد",
-      data: stats,
+      data: newStats,
     });
   } catch (error) {
     console.error("Error creating exam center stats:", error);
     return NextResponse.json(
-      {
-        success: false,
-        message: error.message || "خطا در ثبت آمار واحد سازمانی",
-      },
+      { success: false, error: "خطا در ثبت آمار واحد سازمانی" },
       { status: 500 }
     );
   }

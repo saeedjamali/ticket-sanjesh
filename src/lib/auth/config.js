@@ -37,9 +37,11 @@ export const ROLES = {
   PROVINCE_EDUCATION_EXPERT: "provinceEducationExpert",
   PROVINCE_TECH_EXPERT: "provinceTechExpert",
   PROVINCE_EVAL_EXPERT: "provinceEvalExpert",
+  PROVINCE_REGISTRATION_EXPERT: "provinceRegistrationExpert",
   DISTRICT_EDUCATION_EXPERT: "districtEducationExpert",
   DISTRICT_TECH_EXPERT: "districtTechExpert",
   DISTRICT_EVAL_EXPERT: "districtEvalExpert",
+  DISTRICT_REGISTRATION_EXPERT: "districtRegistrationExpert",
   EXAM_CENTER_MANAGER: "examCenterManager",
 };
 

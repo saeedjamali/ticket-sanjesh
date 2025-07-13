@@ -7,6 +7,9 @@ import AcademicYear from "@/models/AcademicYear";
 import { authService } from "@/lib/auth/authService";
 import { ROLES } from "@/lib/permissions";
 import dbConnect from "@/lib/dbConnect";
+import Province from "@/models/Province";
+import District from "@/models/District";
+import mongoose from "mongoose";
 
 export async function POST(request) {
   try {
@@ -26,6 +29,7 @@ export async function POST(request) {
         { status: 403 }
       );
     }
+
     await dbConnect();
     const formData = await request.formData();
     const file = formData.get("file");
@@ -42,7 +46,6 @@ export async function POST(request) {
     const workbook = XLSX.read(buffer, { type: "buffer" });
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(worksheet);
-
     // بررسی ساختار فایل
     if (data.length === 0) {
       return NextResponse.json(
@@ -51,165 +54,210 @@ export async function POST(request) {
       );
     }
 
-    const requiredColumns = [
-      "کد واحد سازمانی",
-      "سال تحصیلی",
-      "تعداد کل دانش‌آموزان",
-      "تعداد دانش‌آموزان کلاس‌بندی شده",
-      "تعداد کلاس‌ها",
-      "تعداد دانش‌آموزان دختر",
-      "تعداد دانش‌آموزان پسر",
-    ];
-
-    const missingColumns = requiredColumns.filter(
-      (col) => !Object.keys(data[0]).includes(col)
-    );
-
-    if (missingColumns.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `ستون‌های زیر در فایل یافت نشد: ${missingColumns.join(
-            ", "
-          )}`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // دریافت لیست واحدهای سازمانی و سال‌های تحصیلی موجود
-    const examCenterCodes = [
-      ...new Set(data.map((row) => row["کد واحد سازمانی"])),
-    ];
-    const academicYears = [...new Set(data.map((row) => row["سال تحصیلی"]))];
-
-    const [examCenters, years] = await Promise.all([
-      ExamCenter.find({ code: { $in: examCenterCodes } })
-        .select("code")
-        .lean(),
-      AcademicYear.find({ name: { $in: academicYears } })
-        .select("name")
-        .lean(),
-    ]);
-
-    const validExamCenterCodes = examCenters.map((ec) => ec.code);
-    const validAcademicYears = years.map((y) => y.name);
-
-    const results = {
-      success: [],
-      errors: [],
+    // لیست دوره‌های تحصیلی معتبر
+    const validCourses = {
+      100: "پیش دبستانی",
+      200: "ابتدایی",
+      300: "متوسطه اول",
+      400: "متوسطه دوم",
+      500: "سایر",
     };
 
-    // پردازش و ذخیره داده‌ها
-    for (const [index, row] of data.entries()) {
+    const results = [];
+    const errors = [];
+
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowNumber = i + 2; // شماره ردیف در اکسل (شروع از 2)
+
       try {
-        const organizationalUnitCode = row["کد واحد سازمانی"].toString();
-        const academicYear = row["سال تحصیلی"].toString();
+        // استخراج داده‌ها از ردیف
+        const organizationalUnitCode = row["کد واحد سازمانی"]
+          ?.toString()
+          .trim();
+        const academicYear = row["سال تحصیلی"]?.toString().trim();
+        const courseCode = row["کد دوره"]?.toString().trim();
+        const totalStudents = parseInt(row["تعداد کل دانش‌آموزان"]) || 0;
+        const classifiedStudents = parseInt(row["تعداد کلاس‌بندی شده"]) || 0;
+        const totalClasses = parseInt(row["تعداد کلاس‌ها"]) || 0;
+        const femaleStudents = parseInt(row["تعداد دانش‌آموزان دختر"]) || 0;
+        const maleStudents = parseInt(row["تعداد دانش‌آموزان پسر"]) || 0;
+        const provinceCode = row["کد استان"]?.toString().trim();
+        const districtCode = row["کد منطقه"]?.toString().trim();
+        const branchCode = row["کد شاخه"]?.toString().trim();
 
-        // بررسی اعتبار داده‌ها
-        if (!validExamCenterCodes.includes(organizationalUnitCode)) {
-          results.errors.push({
-            row: index + 2,
-            message: `کد واحد سازمانی ${organizationalUnitCode} معتبر نیست`,
-          });
+        // اعتبارسنجی فیلدهای الزامی
+        if (!organizationalUnitCode) {
+          errors.push(`ردیف ${rowNumber}: کد واحد سازمانی الزامی است`);
           continue;
         }
 
-        if (!validAcademicYears.includes(academicYear)) {
-          results.errors.push({
-            row: index + 2,
-            message: `سال تحصیلی ${academicYear} معتبر نیست`,
-          });
+        if (!academicYear) {
+          errors.push(`ردیف ${rowNumber}: سال تحصیلی الزامی است`);
           continue;
         }
 
-        const totalStudents = parseInt(row["تعداد کل دانش‌آموزان"]);
-        const classifiedStudents = parseInt(
-          row["تعداد دانش‌آموزان کلاس‌بندی شده"]
-        );
-        const totalClasses = parseInt(row["تعداد کلاس‌ها"]);
-        const femaleStudents = parseInt(row["تعداد دانش‌آموزان دختر"]);
-        const maleStudents = parseInt(row["تعداد دانش‌آموزان پسر"]);
+        if (!courseCode) {
+          errors.push(`ردیف ${rowNumber}: کد دوره تحصیلی الزامی است`);
+          continue;
+        }
 
-        // بررسی اعتبار اعداد
+        if (!branchCode) {
+          errors.push(`ردیف ${rowNumber}: کد شاخه الزامی است`);
+          continue;
+        }
+
+        if (!validCourses[courseCode]) {
+          errors.push(
+            `ردیف ${rowNumber}: کد دوره تحصیلی معتبر نیست. کدهای معتبر: 100, 200, 300, 400, 500`
+          );
+          continue;
+        }
+
+        const courseName = validCourses[courseCode];
+
+        // بررسی وجود شاخه برای دوره انتخاب شده
+        const CourseBranchField = mongoose.model("CourseBranchField");
+        const branch = await CourseBranchField.findOne({
+          courseCode: courseCode,
+          branchCode: branchCode,
+          isActive: true,
+        });
+
+        if (!branch) {
+          errors.push(
+            `ردیف ${rowNumber}: کد شاخه ${branchCode} برای دوره ${courseCode} معتبر نیست`
+          );
+          continue;
+        }
+
+        const branchTitle = branch.branchTitle;
+
+        // بررسی وجود واحد سازمانی
+        const examCenter = await ExamCenter.findOne({
+          code: organizationalUnitCode,
+        }).populate({
+          path: "district",
+          populate: { path: "province" },
+        });
+
+        if (!examCenter) {
+          errors.push(
+            `ردیف ${rowNumber}: واحد سازمانی با کد ${organizationalUnitCode} یافت نشد`
+          );
+          continue;
+        }
+
+        // بررسی وجود سال تحصیلی
+        const academicYearExists = await AcademicYear.findOne({
+          name: academicYear,
+        });
+
+        if (!academicYearExists) {
+          errors.push(
+            `ردیف ${rowNumber}: سال تحصیلی ${academicYear} معتبر نیست`
+          );
+          continue;
+        }
+         // اعتبارسنجی منطقی داده‌ها
+        if (Number(classifiedStudents) > Number(totalStudents)) {
+          errors.push(
+            `ردیف ${rowNumber}: تعداد کلاس‌بندی شده نمی‌تواند از کل دانش‌آموزان بیشتر باشد`
+          );
+          continue;
+        }
+
+        console.log("femaleStudents-------->", femaleStudents);
+        console.log("maleStudents-------->", maleStudents);
+        console.log("totalStudents-------->", totalStudents); 
         if (
-          isNaN(totalStudents) ||
-          isNaN(classifiedStudents) ||
-          isNaN(totalClasses) ||
-          isNaN(femaleStudents) ||
-          isNaN(maleStudents)
+          Number(femaleStudents) + Number(maleStudents) !==
+          Number(totalStudents)
         ) {
-          results.errors.push({
-            row: index + 2,
-            message: "مقادیر عددی نامعتبر هستند",
-          });
+          errors.push(
+            `ردیف ${rowNumber}: مجموع دانش‌آموزان دختر و پسر باید برابر کل دانش‌آموزان باشد`
+          );
           continue;
         }
 
-        // بررسی منطقی بودن داده‌ها
-        if (classifiedStudents > totalStudents) {
-          results.errors.push({
-            row: index + 2,
-            message:
-              "تعداد دانش‌آموزان کلاس‌بندی شده نمی‌تواند از کل دانش‌آموزان بیشتر باشد",
-          });
-          continue;
-        }
+        // بررسی تکراری نبودن
+        const existingStats = await ExamCenterStats.findOne({
+          organizationalUnitCode,
+          academicYear,
+          courseCode,
+        });
 
-        if (femaleStudents + maleStudents !== totalStudents) {
-          results.errors.push({
-            row: index + 2,
-            message:
-              "مجموع دانش‌آموزان دختر و پسر باید برابر با کل دانش‌آموزان باشد",
-          });
-          continue;
-        }
+        if (existingStats) {
+          // بروزرسانی آمار موجود
+          existingStats.courseName = courseName;
+          existingStats.totalStudents = totalStudents;
+          existingStats.classifiedStudents = classifiedStudents;
+          existingStats.totalClasses = totalClasses;
+          existingStats.femaleStudents = femaleStudents;
+          existingStats.maleStudents = maleStudents;
+          existingStats.provinceCode =
+            provinceCode || examCenter.district.province.code;
+          existingStats.districtCode = districtCode || examCenter.district.code;
+          existingStats.updatedBy = userValid.id;
 
-        // ذخیره آمار
-        await ExamCenterStats.upsertStats(
-          {
+          await existingStats.save();
+          results.push({
+            row: rowNumber,
+            action: "updated",
             organizationalUnitCode,
             academicYear,
+            courseCode,
+            courseName,
+          });
+        } else {
+          // ایجاد آمار جدید
+          const newStats = new ExamCenterStats({
+            organizationalUnitCode,
+            academicYear,
+            courseCode,
+            courseName,
+            branchCode,
+            branchTitle,
             totalStudents,
             classifiedStudents,
             totalClasses,
             femaleStudents,
             maleStudents,
-          },
-          userValid.id
-        );
+            provinceCode: provinceCode || examCenter.district.province.code,
+            districtCode: districtCode || examCenter.district.code,
+            createdBy: userValid.id,
+          });
 
-        results.success.push({
-          row: index + 2,
-          organizationalUnitCode,
-          academicYear,
-        });
+          await newStats.save();
+          results.push({
+            row: rowNumber,
+            action: "created",
+            organizationalUnitCode,
+            academicYear,
+            courseCode,
+            courseName,
+          });
+        }
       } catch (error) {
-        results.errors.push({
-          row: index + 2,
-          message: error.message || "خطای ناشناخته",
-        });
+        console.error(`Error processing row ${rowNumber}:`, error);
+        errors.push(`ردیف ${rowNumber}: خطا در پردازش - ${error.message}`);
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: "پردازش فایل با موفقیت انجام شد",
+      message: `پردازش کامل شد. ${results.length} ردیف موفق، ${errors.length} خطا`,
       data: {
-        totalRows: data.length,
-        successCount: results.success.length,
-        errorCount: results.errors.length,
-        successItems: results.success,
-        errors: results.errors,
+        processed: results.length,
+        errorCount: errors.length,
+        results,
+        errors,
       },
     });
   } catch (error) {
     console.error("Error importing exam center stats:", error);
     return NextResponse.json(
-      {
-        success: false,
-        message: error.message || "خطا در بارگذاری فایل",
-      },
+      { success: false, error: "خطا در بارگذاری فایل" },
       { status: 500 }
     );
   }

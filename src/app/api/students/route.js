@@ -14,7 +14,9 @@ import { authService } from "@/lib/auth/authService";
 async function updateExamCenterStats(
   organizationalUnitCode,
   academicYear,
-  userId
+  userId,
+  districtCode = null,
+  provinceCode = null
 ) {
   try {
     // فقط برای سال جاری به‌روزرسانی کن
@@ -48,9 +50,24 @@ async function updateExamCenterStats(
     });
 
     if (!stats) {
+      // اگر کدهای استان و منطقه ارسال نشده، از روی دانش‌آموزان موجود دریافت کن
+      if (!districtCode || !provinceCode) {
+        const sampleStudent = await Student.findOne({
+          organizationalUnitCode,
+          academicYear,
+        }).select("districtCode provinceCode");
+
+        if (sampleStudent) {
+          districtCode = districtCode || sampleStudent.districtCode;
+          provinceCode = provinceCode || sampleStudent.provinceCode;
+        }
+      }
+
       // اگر رکورد وجود ندارد، آن را ایجاد کن
       console.log("Creating new ExamCenterStats with data:", {
         organizationalUnitCode,
+        provinceCode,
+        districtCode,
         academicYear,
         totalStudents,
         maleStudents,
@@ -62,6 +79,8 @@ async function updateExamCenterStats(
 
       stats = new ExamCenterStats({
         organizationalUnitCode,
+        provinceCode,
+        districtCode,
         academicYear,
         totalStudents,
         maleStudents,
@@ -373,7 +392,9 @@ export async function POST(request) {
     await updateExamCenterStats(
       user.examCenter.code,
       targetAcademicYear.name,
-      user._id
+      user._id,
+      user.district.code,
+      district?.province?.code
     );
 
     return NextResponse.json(
@@ -445,7 +466,9 @@ export async function DELETE(request) {
     await updateExamCenterStats(
       user.examCenter.code,
       student.academicYear,
-      user._id
+      user._id,
+      student.districtCode,
+      student.provinceCode
     );
 
     return NextResponse.json({

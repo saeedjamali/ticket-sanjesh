@@ -3,6 +3,9 @@ import { auth } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
 import ExamCenter from "@/models/ExamCenter";
+import Province from "@/models/Province";
+import District from "@/models/District";
+import AcademicYear from "@/models/AcademicYear";
 import { ROLES } from "@/lib/permissions";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
@@ -174,6 +177,7 @@ export async function POST(request) {
           ROLES.PROVINCE_EDUCATION_EXPERT,
           ROLES.PROVINCE_TECH_EXPERT,
           ROLES.PROVINCE_EVAL_EXPERT,
+          ROLES.PROVINCE_REGISTRATION_EXPERT,
         ].includes(data.role)
       ) {
         hasPermission = true;
@@ -185,6 +189,7 @@ export async function POST(request) {
           ROLES.DISTRICT_EDUCATION_EXPERT,
           ROLES.DISTRICT_TECH_EXPERT,
           ROLES.DISTRICT_EVAL_EXPERT,
+          ROLES.DISTRICT_REGISTRATION_EXPERT,
         ].includes(data.role)
       ) {
         hasPermission = true;
@@ -219,9 +224,11 @@ export async function POST(request) {
       ROLES.PROVINCE_EDUCATION_EXPERT,
       ROLES.PROVINCE_TECH_EXPERT,
       ROLES.PROVINCE_EVAL_EXPERT,
+      ROLES.PROVINCE_REGISTRATION_EXPERT,
       ROLES.DISTRICT_EDUCATION_EXPERT,
       ROLES.DISTRICT_TECH_EXPERT,
       ROLES.DISTRICT_EVAL_EXPERT,
+      ROLES.DISTRICT_REGISTRATION_EXPERT,
       ROLES.EXAM_CENTER_MANAGER,
     ];
 
@@ -229,6 +236,7 @@ export async function POST(request) {
       ROLES.DISTRICT_EDUCATION_EXPERT,
       ROLES.DISTRICT_TECH_EXPERT,
       ROLES.DISTRICT_EVAL_EXPERT,
+      ROLES.DISTRICT_REGISTRATION_EXPERT,
       ROLES.EXAM_CENTER_MANAGER,
     ];
 

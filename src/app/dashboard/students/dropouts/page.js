@@ -60,12 +60,14 @@ export default function DropoutStudentsPage() {
 
       if (response.ok) {
         const data = await response.json();
+
         setStudents(data.data || []);
         setSummary(data.summary || {});
       } else {
         const errorData = await response.json();
         alert(errorData.error || "خطا در دریافت دانش‌آموزان بازمانده از تحصیل");
       }
+      console.log("students-------->", students);
     } catch (error) {
       console.error("Error fetching dropout students:", error);
       alert("خطا در برقراری ارتباط با سرور");
@@ -301,10 +303,10 @@ export default function DropoutStudentsPage() {
                       {student.fatherName}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {student.previousGrade}
+                      {student.previousGradeTitle}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                      {student.previousField}
+                      {student.previousFieldTitle}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900 text-center">
                       {editingStudent === student._id ? (

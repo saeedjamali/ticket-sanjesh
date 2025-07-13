@@ -4,6 +4,8 @@ import Student from "@/models/Student";
 import StudentDropout from "@/models/StudentDropout";
 import AcademicYear from "@/models/AcademicYear";
 import { authService } from "@/lib/auth/authService";
+import CourseGrade from "@/models/CourseGrade";
+import CourseBranchField from "@/models/CourseBranchField";
 
 // GET - دریافت لیست دانش‌آموزان بازمانده از تحصیل
 export async function GET(request) {
@@ -127,6 +129,30 @@ export async function GET(request) {
       };
     });
 
+    // دریافت عناوین پایه و رشته
+    const gradeCodes = [...new Set(dropoutStudents.map((s) => s.gradeCode))];
+    const fieldCodes = [...new Set(dropoutStudents.map((s) => s.fieldCode))];
+
+    const [grades, fields] = await Promise.all([
+      CourseGrade.find({ gradeCode: { $in: gradeCodes } })
+        .select("gradeCode gradeName")
+        .lean(),
+      CourseBranchField.find({ fieldCode: { $in: fieldCodes } })
+        .select("fieldCode fieldTitle")
+        .lean(),
+    ]);
+
+    // ایجاد نقشه برای دسترسی سریع به عناوین
+    const gradeMap = grades.reduce((acc, grade) => {
+      acc[grade.gradeCode] = grade.gradeName;
+      return acc;
+    }, {});
+
+    const fieldMap = fields.reduce((acc, field) => {
+      acc[field.fieldCode] = field.fieldTitle;
+      return acc;
+    }, {});
+
     // تبدیل به فرمت مناسب برای نمایش
     const result = dropoutStudents.map((student) => ({
       _id: student._id.toString(),
@@ -134,8 +160,10 @@ export async function GET(request) {
       firstName: student.firstName,
       lastName: student.lastName,
       fatherName: student.fatherName,
-      previousGrade: student.gradeCode || student.grade || "نامشخص",
-      previousField: student.field || "نامشخص",
+      previousGrade: student.gradeCode || "نامشخص",
+      previousGradeTitle: gradeMap[student.gradeCode] || "نامشخص",
+      previousField: student.fieldCode || "نامشخص",
+      previousFieldTitle: fieldMap[student.fieldCode] || "نامشخص",
       previousAcademicYear: student.academicYear,
       dropoutInfo: dropoutReasonsMap[student._id.toString()] || null,
     }));
@@ -269,8 +297,8 @@ export async function POST(request) {
         fatherName: student.fatherName,
         previousAcademicYear: previousAcademicYear.name,
         previousExamCenter: student.examCenter || userValid.examCenter,
-        previousGrade: student.gradeCode || student.grade || "نامشخص",
-        previousField: student.field || "نامشخص",
+        previousGrade: student.gradeCode || "نامشخص",
+        previousField: student.fieldCode || "نامشخص",
         dropoutReason: dropoutReasonId,
         description: description || "",
         registeredBy: userValid.id,

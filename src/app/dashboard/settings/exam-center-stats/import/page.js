@@ -11,6 +11,7 @@ export default function ImportExamCenterStatsPage() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [errors, setErrors] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -22,6 +23,7 @@ export default function ImportExamCenterStatsPage() {
       setSelectedFile(file);
       setResults(null);
       setErrors([]);
+      setUploadProgress(0);
     } else {
       alert("لطفاً یک فایل Excel (.xlsx) انتخاب کنید");
       e.target.value = null;
@@ -66,12 +68,22 @@ export default function ImportExamCenterStatsPage() {
     setLoading(true);
     setResults(null);
     setErrors([]);
+    setUploadProgress(0);
 
     try {
       const formData = new FormData();
       formData.append("file", selectedFile);
 
       const token = localStorage.getItem("token");
+
+      // شبیه‌سازی پیشرفت بارگذاری
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev < 90) return prev + 10;
+          return prev;
+        });
+      }, 200);
+
       const response = await fetch("/api/exam-center-stats/import", {
         method: "POST",
         headers: {
@@ -80,26 +92,119 @@ export default function ImportExamCenterStatsPage() {
         body: formData,
       });
 
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
       const data = await response.json();
 
       if (response.ok) {
-        setResults(data.data);
-        if (data.data.errors && data.data.errors.length > 0) {
-          setErrors(data.data.errors);
+        // ساختار پاسخ API: data.data شامل processed, errorCount, results, errors
+        const importData = data.data;
+
+        setResults({
+          totalRows: importData.processed + importData.errorCount,
+          successCount: importData.processed,
+          errorCount: importData.errorCount,
+          results: importData.results || [],
+        });
+
+        if (
+          importData.errors &&
+          Array.isArray(importData.errors) &&
+          importData.errors.length > 0
+        ) {
+          // تبدیل خطاها به فرمت قابل نمایش
+          const formattedErrors = importData.errors.map((error, index) => {
+            if (typeof error === "string") {
+              // اگر خطا string است، سعی کنیم شماره ردیف را استخراج کنیم
+              const rowMatch = error.match(/ردیف (\d+):/);
+              return {
+                row: rowMatch ? rowMatch[1] : index + 1,
+                message: error.replace(/ردیف \d+:\s*/, ""),
+              };
+            } else if (
+              typeof error === "object" &&
+              error.row &&
+              error.message
+            ) {
+              return error;
+            } else {
+              return {
+                row: index + 1,
+                message: error.toString(),
+              };
+            }
+          });
+          setErrors(formattedErrors);
         }
       } else {
-        alert(data.message || "خطا در بارگذاری فایل");
+        // نمایش خطاهای API
+        if (data.errors && Array.isArray(data.errors)) {
+          const formattedErrors = data.errors.map((error, index) => ({
+            row: index + 1,
+            message: error,
+          }));
+          setErrors(formattedErrors);
+        } else if (data.message) {
+          setErrors([
+            {
+              row: 1,
+              message: data.message,
+            },
+          ]);
+        } else {
+          setErrors([
+            {
+              row: 1,
+              message: "خطا در بارگذاری فایل",
+            },
+          ]);
+        }
       }
     } catch (error) {
       console.error("Error importing stats:", error);
-      alert("خطا در بارگذاری فایل");
+      setErrors([
+        {
+          row: 1,
+          message: "خطا در برقراری ارتباط با سرور",
+        },
+      ]);
     } finally {
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex items-center justify-center min-h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <h2 className="text-lg font-semibold text-gray-800 mb-2">
+              در حال پردازش فایل...
+            </h2>
+            <p className="text-gray-600 mb-4">
+              لطفاً صبر کنید، فایل Excel شما در حال پردازش است.
+            </p>
+
+            {/* Progress Bar */}
+            <div className="w-64 mx-auto">
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>پیشرفت</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -165,7 +270,7 @@ export default function ImportExamCenterStatsPage() {
 
       {/* Results */}
       {results && (
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white p-6 rounded-lg shadow mb-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             نتیجه بارگذاری
           </h2>
@@ -189,23 +294,64 @@ export default function ImportExamCenterStatsPage() {
               </p>
             </div>
           </div>
+        </div>
+      )}
 
-          {errors.length > 0 && (
-            <div>
-              <h3 className="text-md font-semibold text-gray-800 mb-2">
-                خطاها
-              </h3>
-              <div className="bg-red-50 p-4 rounded-lg">
-                <ul className="list-disc list-inside text-red-600 space-y-1">
-                  {errors.map((error, index) => (
-                    <li key={index}>
-                      سطر {error.row}: {error.message}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+      {/* Errors */}
+      {errors.length > 0 && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-red-800 mb-4">
+            خطاهای بارگذاری ({errors.length} مورد)
+          </h3>
+          <div className="bg-red-50 p-4 rounded-lg max-h-96 overflow-y-auto">
+            <ul className="space-y-2">
+              {errors.map((error, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="inline-flex items-center justify-center w-6 h-6 bg-red-100 text-red-800 text-xs font-medium rounded-full flex-shrink-0">
+                    {error.row}
+                  </span>
+                  <span className="text-red-700 text-sm">{error.message}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>راهنما:</strong> لطفاً خطاهای بالا را بررسی کرده و فایل
+              Excel را اصلاح نمایید.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Success message when no errors */}
+      {results && errors.length === 0 && results.errorCount === 0 && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <svg
+                className="w-5 h-5 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
             </div>
-          )}
+            <div>
+              <h3 className="text-lg font-semibold text-green-800">
+                بارگذاری با موفقیت انجام شد!
+              </h3>
+              <p className="text-sm text-green-600">
+                تمامی {results.successCount} رکورد با موفقیت پردازش شدند.
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>
