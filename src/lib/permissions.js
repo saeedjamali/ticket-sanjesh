@@ -437,6 +437,18 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
     }
   }
 
+  // منوی درخواست‌های اصلاح آمار - برای کارشناسان ثبت نام منطقه و استان
+  if (
+    role === ROLES.DISTRICT_REGISTRATION_EXPERT ||
+    role === ROLES.PROVINCE_REGISTRATION_EXPERT
+  ) {
+    activeMenuItems.push({
+      label: "درخواست‌های اصلاح آمار",
+      path: "/dashboard/correction-requests",
+      icon: "edit",
+    });
+  }
+
   // ترکیب منوهای فعال و غیرفعال (غیرفعال‌ها در انتها)
   return [...activeMenuItems, ...disabledMenuItems];
 }

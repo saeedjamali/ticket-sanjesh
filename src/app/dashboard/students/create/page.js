@@ -176,7 +176,7 @@ export default function CreateStudentPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push("/dashboard/students")}
+            onClick={() => router.push(`/dashboard/students/${yearFilter}`)}
             className="text-gray-600 hover:text-gray-800"
           >
             <FaArrowLeft className="h-6 w-6" />

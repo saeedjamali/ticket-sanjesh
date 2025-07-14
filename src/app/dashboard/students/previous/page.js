@@ -46,6 +46,7 @@ export default function PreviousStudentsPage() {
       hideAcademicYearFilter={true}
       maxStudents={stats?.totalStudents}
       currentStudentCount={stats?.registeredStudents}
+      modalStudentCount={stats?.totalStudents}
     />
   );
 }

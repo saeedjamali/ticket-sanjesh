@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import CorrectionRequestModal from "@/components/students/CorrectionRequestModal";
+import CorrectionRequestWorkflow from "@/components/students/CorrectionRequestWorkflow";
 import {
   FaPlus,
   FaSearch,
@@ -19,6 +21,7 @@ export default function StudentsPage({
   hideAcademicYearFilter = false,
   maxStudents,
   currentStudentCount,
+  modalStudentCount,
   disableCapacityControl = false,
 }) {
   const router = useRouter();
@@ -30,6 +33,7 @@ export default function StudentsPage({
   const [academicYearFilter, setAcademicYearFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showCorrectionModal, setShowCorrectionModal] = useState(false);
   const [stats, setStats] = useState({
     maxStudents: maxStudents || null,
     currentStudentCount: currentStudentCount || null,
@@ -327,14 +331,26 @@ export default function StudentsPage({
             )}
         </div>
         <div className="flex gap-3">
-          <button
+          {/* دکمه درخواست اصلاح آمار - فقط برای سال قبل و مدیران واحد سازمانی */}
+          {defaultAcademicYear === "previous" && helpers.examCenterInfo && (
+            <button
+              onClick={() => setShowCorrectionModal(true)}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              title="درخواست اصلاح آمار سال گذشته"
+            >
+              <FaEdit />
+              درخواست اصلاح آمار
+            </button>
+          )}
+          {/* <button
             onClick={handleExcelExport}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            className="bg-green-800 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 disabled:cursor-not-allowed"
             title="دانلود Excel"
+            disabled={true}
           >
             <FaFileExcel />
             دانلود Excel
-          </button>
+          </button> */}
           {defaultAcademicYear && (
             <>
               <button
@@ -469,8 +485,13 @@ export default function StudentsPage({
         </div>
       )}
 
+      {/* گردش کار درخواست‌های اصلاح آمار - فقط برای مدیران واحد سازمانی و سال گذشته */}
+      {defaultAcademicYear === "previous" && helpers.examCenterInfo && (
+        <CorrectionRequestWorkflow />
+      )}
+
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
+      <div className="bg-white p-4 rounded-lg shadow mb-6 mt-2">
         <form
           onSubmit={handleSearch}
           className={`grid grid-cols-1 ${
@@ -639,7 +660,11 @@ export default function StudentsPage({
                     <div className="flex gap-2">
                       <button
                         onClick={() =>
-                          router.push(`/dashboard/students/${student._id}`)
+                          router.push(
+                            `/dashboard/students/${student._id}?yearFilter=${
+                              defaultAcademicYear || "current"
+                            }`
+                          )
                         }
                         className="text-blue-600 hover:text-blue-900"
                         title="مشاهده جزئیات"
@@ -648,7 +673,13 @@ export default function StudentsPage({
                       </button>
                       <button
                         onClick={() =>
-                          router.push(`/dashboard/students/${student._id}/edit`)
+                          router.push(
+                            `/dashboard/students/${
+                              student._id
+                            }/edit?yearFilter=${
+                              defaultAcademicYear || "current"
+                            }`
+                          )
                         }
                         className="text-green-600 hover:text-green-900"
                         title="ویرایش"
@@ -726,6 +757,15 @@ export default function StudentsPage({
           </div>
         )}
       </div>
+
+      {/* Modal درخواست اصلاح آمار */}
+      <CorrectionRequestModal
+        isOpen={showCorrectionModal}
+        onClose={() => setShowCorrectionModal(false)}
+        currentCount={modalStudentCount || stats.currentStudentCount}
+        academicYear={academicYearFilter}
+        examCenterInfo={helpers.examCenterInfo}
+      />
     </div>
   );
 }

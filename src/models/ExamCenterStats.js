@@ -146,42 +146,42 @@ examCenterStatsSchema.index(
   { unique: true }
 );
 
-// میدل‌ور برای اعتبارسنجی منطقی داده‌ها
-examCenterStatsSchema.pre("save", function (next) {
-  const errors = [];
+// // میدل‌ور برای اعتبارسنجی منطقی داده‌ها
+// examCenterStatsSchema.pre("save", function (next) {
+//   const errors = [];
 
-  // بررسی اینکه تعداد دانش‌آموزان کلاس‌بندی شده از کل دانش‌آموزان بیشتر نباشد
-  if (this.classifiedStudents > this.totalStudents) {
-    errors.push(
-      "تعداد دانش‌آموزان کلاس‌بندی شده نمی‌تواند از کل دانش‌آموزان بیشتر باشد"
-    );
-  }
+//   // بررسی اینکه تعداد دانش‌آموزان کلاس‌بندی شده از کل دانش‌آموزان بیشتر نباشد
+//   // if (this.classifiedStudents > this.totalStudents) {
+//   //   errors.push(
+//   //     "تعداد دانش‌آموزان کلاس‌بندی شده نمی‌تواند از کل دانش‌آموزان بیشتر باشد"
+//   //   );
+//   // }
 
-  // بررسی اینکه تعداد دانش‌آموزان دختر از کل دانش‌آموزان بیشتر نباشد
-  if (this.femaleStudents > this.totalStudents) {
-    errors.push(
-      "تعداد دانش‌آموزان دختر نمی‌تواند از کل دانش‌آموزان بیشتر باشد"
-    );
-  }
+//   // // بررسی اینکه تعداد دانش‌آموزان دختر از کل دانش‌آموزان بیشتر نباشد
+//   // if (this.femaleStudents > this.totalStudents) {
+//   //   errors.push(
+//   //     "تعداد دانش‌آموزان دختر نمی‌تواند از کل دانش‌آموزان بیشتر باشد"
+//   //   );
+//   // }
 
-  // بررسی اینکه تعداد دانش‌آموزان پسر از کل دانش‌آموزان بیشتر نباشد
-  if (this.maleStudents > this.totalStudents) {
-    errors.push("تعداد دانش‌آموزان پسر نمی‌تواند از کل دانش‌آموزان بیشتر باشد");
-  }
+//   // // بررسی اینکه تعداد دانش‌آموزان پسر از کل دانش‌آموزان بیشتر نباشد
+//   // if (this.maleStudents > this.totalStudents) {
+//   //   errors.push("تعداد دانش‌آموزان پسر نمی‌تواند از کل دانش‌آموزان بیشتر باشد");
+//   // }
 
-  // بررسی اینکه مجموع دانش‌آموزان دختر و پسر برابر با کل دانش‌آموزان باشد
-  if (this.maleStudents + this.femaleStudents !== this.totalStudents) {
-    errors.push(
-      "مجموع دانش‌آموزان دختر و پسر باید برابر با کل دانش‌آموزان باشد"
-    );
-  }
+//   // بررسی اینکه مجموع دانش‌آموزان دختر و پسر برابر با کل دانش‌آموزان باشد
+//   // if (this.maleStudents + this.femaleStudents !== this.totalStudents) {
+//   //   errors.push(
+//   //     "مجموع دانش‌آموزان دختر و پسر باید برابر با کل دانش‌آموزان باشد"
+//   //   );
+//   // }
 
-  if (errors.length > 0) {
-    next(new Error(errors.join(", ")));
-  } else {
-    next();
-  }
-});
+//   if (errors.length > 0) {
+//     next(new Error(errors.join(", ")));
+//   } else {
+//     next();
+//   }
+// });
 
 // میدل‌ور برای اعتبارسنجی در زمان به‌روزرسانی
 examCenterStatsSchema.pre("findOneAndUpdate", function (next) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import {
   FaEdit,
@@ -20,7 +20,9 @@ export default function StudentDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const { id } = params;
-
+  const searchParams = useSearchParams();
+  const yearFilter = searchParams.get("yearFilter") || "current";
+  console.log("yearFilter-------->", yearFilter);
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -54,6 +56,16 @@ export default function StudentDetailsPage() {
     }
   };
 
+  const getBackUrl = () => {
+    return `/dashboard/students/${
+      yearFilter === "previous"
+        ? "previous"
+        : yearFilter === "current"
+        ? "current"
+        : ""
+    }`;
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -64,7 +76,7 @@ export default function StudentDetailsPage() {
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-600">{error}</p>
           <button
-            onClick={() => router.push("/dashboard/students")}
+            onClick={() => router.push(getBackUrl())}
             className="mt-4 text-blue-600 hover:text-blue-800"
           >
             ← بازگشت به لیست دانش‌آموزان
@@ -80,7 +92,7 @@ export default function StudentDetailsPage() {
         <div className="text-center py-8">
           <p className="text-gray-500">دانش‌آموز یافت نشد</p>
           <button
-            onClick={() => router.push("/dashboard/students")}
+            onClick={() => router.push(getBackUrl())}
             className="mt-4 text-blue-600 hover:text-blue-800"
           >
             ← بازگشت به لیست دانش‌آموزان
@@ -96,7 +108,7 @@ export default function StudentDetailsPage() {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push("/dashboard/students")}
+            onClick={() => router.push(getBackUrl())}
             className="text-gray-600 hover:text-gray-800"
           >
             <FaArrowRight className="text-xl" />
@@ -111,7 +123,11 @@ export default function StudentDetailsPage() {
           </div>
         </div>
         <button
-          onClick={() => router.push(`/dashboard/students/${id}/edit`)}
+          onClick={() =>
+            router.push(
+              `/dashboard/students/${id}/edit?yearFilter=${yearFilter}`
+            )
+          }
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
         >
           <FaEdit />

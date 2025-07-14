@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { FaSave, FaArrowRight, FaTimes } from "react-icons/fa";
 
@@ -9,7 +9,9 @@ export default function EditStudentPage() {
   const router = useRouter();
   const params = useParams();
   const { id } = params;
-
+  const searchParams = useSearchParams();
+  const yearFilter = searchParams.get("yearFilter") || "current";
+  console.log("yearFilter-------->", yearFilter);
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -111,6 +113,20 @@ export default function EditStudentPage() {
     setSuccess("");
   };
 
+  const getBackUrl = () => {
+    return `/dashboard/students/${
+      yearFilter === "previous"
+        ? "previous"
+        : yearFilter === "current"
+        ? "current"
+        : ""
+    }`;
+  };
+
+  const getDetailUrl = () => {
+    return `/dashboard/students/${id}?yearFilter=${yearFilter}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -133,7 +149,7 @@ export default function EditStudentPage() {
       if (response.ok) {
         setSuccess("اطلاعات دانش‌آموز با موفقیت بروزرسانی شد");
         setTimeout(() => {
-          router.push(`/dashboard/students/${id}`);
+          router.push(getDetailUrl());
         }, 2000);
       } else {
         setError(data.error || "خطا در بروزرسانی اطلاعات");
@@ -156,7 +172,7 @@ export default function EditStudentPage() {
         <div className="text-center py-8">
           <p className="text-red-600">{error || "دانش‌آموز یافت نشد"}</p>
           <button
-            onClick={() => router.push("/dashboard/students")}
+            onClick={() => router.push(getBackUrl())}
             className="mt-4 text-blue-600 hover:text-blue-800"
           >
             ← بازگشت به لیست دانش‌آموزان
@@ -172,7 +188,7 @@ export default function EditStudentPage() {
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push(`/dashboard/students/${id}`)}
+            onClick={() => router.push(getDetailUrl())}
             className="text-gray-600 hover:text-gray-800"
           >
             <FaArrowRight className="text-xl" />
@@ -454,4 +470,3 @@ export default function EditStudentPage() {
     </div>
   );
 }
- 
