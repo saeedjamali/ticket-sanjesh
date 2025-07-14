@@ -428,10 +428,10 @@ export default function Header() {
                                                                         {announcement.title}
                                                                     </h4>
                                                                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${announcement.priority === 'high'
-                                                                            ? 'bg-red-100 text-red-800'
-                                                                            : announcement.priority === 'medium'
-                                                                                ? 'bg-amber-100 text-amber-800'
-                                                                                : 'bg-blue-100 text-blue-800'
+                                                                        ? 'bg-red-100 text-red-800'
+                                                                        : announcement.priority === 'medium'
+                                                                            ? 'bg-amber-100 text-amber-800'
+                                                                            : 'bg-blue-100 text-blue-800'
                                                                         }`}>
                                                                         {getPriorityText(announcement.priority)}
                                                                     </span>

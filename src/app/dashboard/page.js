@@ -146,14 +146,14 @@ export default function DashboardPage() {
 
       {/* بخش خوش‌آمدگویی - در ابتدای صفحه */}
       <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6">
-        <h2 className="heading-3 mb-3 sm:mb-4">به سامانه تیکتینگ خوش آمدید!</h2>
+        <h2 className="heading-3 mb-3 sm:mb-4">به سامانه رصد خوش آمدید!</h2>
         <p className="text-paragraph text-gray-700">
           برای استفاده از امکانات سامانه، از منوی سمت راست گزینه‌های مورد نظر
           خود را انتخاب کنید.
         </p>
         <p className="text-paragraph text-gray-700 mt-2">
           شما به عنوان {renderRoleName(user.role)} وارد شده‌اید و می‌توانید
-          تیکت‌های مرتبط با حوزه خود را مشاهده و مدیریت کنید.
+          گزارش‌های مرتبط با حوزه خود را مشاهده و مدیریت کنید.
         </p>
       </div>
       {/* بنر راهنمای امنیت حساب کاربری */}
