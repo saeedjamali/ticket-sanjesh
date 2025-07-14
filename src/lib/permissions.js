@@ -254,7 +254,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
         {
           label: "بازمانده از تحصیل",
           path: "/dashboard/students/dropouts",
-          disabled: false,
+          disabled: true,
         },
       ],
     });
