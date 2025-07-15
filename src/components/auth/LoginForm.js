@@ -63,7 +63,7 @@ export default function LoginForm() {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     if (!forgotPasswordNationalId.trim()) {
-      setResetPasswordError("لطفاً کد ملی خود را وارد کنید");
+      setResetPasswordError("لطفاً نام کاربری خود را وارد کنید");
       return;
     }
 
@@ -167,7 +167,7 @@ export default function LoginForm() {
           </div>
 
           <p className="text-gray-600 mb-4 text-sm">
-            کد ملی خود را وارد کنید. رمز عبور جدید به موبایل شما ارسال می‌شود.
+            نام ملی خود را وارد کنید. رمز عبور جدید به موبایل شما ارسال می‌شود.
           </p>
 
           {/* راهنمای شماره موبایل */}
@@ -245,7 +245,7 @@ export default function LoginForm() {
                 htmlFor="forgotPasswordNationalId"
                 className="block text-gray-700 mb-2 font-medium"
               >
-                کد ملی
+                نام کاربری
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
@@ -272,7 +272,7 @@ export default function LoginForm() {
                   disabled={resetPasswordLoading}
                   required
                   className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 transition-colors text-right placeholder:text-right"
-                  placeholder="کد ملی خود را وارد کنید"
+                  placeholder="نام کاربری خود را وارد کنید"
                   dir="ltr"
                 />
               </div>
@@ -341,7 +341,7 @@ export default function LoginForm() {
               htmlFor="nationalId"
               className="block text-gray-700 mb-2 font-medium"
             >
-              کد ملی
+              نام کاربری
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
@@ -368,7 +368,7 @@ export default function LoginForm() {
                 disabled={loading}
                 required
                 className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 transition-colors text-right placeholder:text-right"
-                placeholder="کد ملی خود را وارد کنید"
+                placeholder="نام کاربری خود را وارد کنید"
                 dir="ltr"
               />
             </div>
