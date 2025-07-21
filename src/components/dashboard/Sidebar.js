@@ -24,6 +24,7 @@ import {
   FaSitemap,
   FaClipboardList,
   FaCalendarAlt,
+  FaEdit,
 } from "react-icons/fa";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -41,6 +42,9 @@ const icons = {
   organizationalUnit: <FaSitemap className="h-5 w-5" />,
   studentReports: <FaClipboardList className="h-5 w-5" />,
   events: <FaCalendarAlt className="h-5 w-5" />,
+  statusReports: <FaChartLine className="h-5 w-5" />,
+  edit: <FaEdit className="h-5 w-5" />,
+
 };
 
 export default function Sidebar({ user, children }) {
@@ -113,7 +117,7 @@ export default function Sidebar({ user, children }) {
                     >
                       <div className="flex items-center">
                         <span className="ml-3">{icons[item.icon]}</span>
-                        <span>{item.label}</span>
+                        <span className="text-[14px] font-iransans">{item.label}</span>
                       </div>
                       {openSubmenu === item.path ? (
                         <FaChevronUp className="h-4 w-4" />
@@ -130,8 +134,8 @@ export default function Sidebar({ user, children }) {
                                 className="flex items-center justify-between p-2 rounded-lg cursor-not-allowed opacity-50 bg-gray-700/50"
                                 title="این بخش فعلاً در دسترس نیست"
                               >
-                                <span className="mr-2">{subItem.label}</span>
-                                <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
+                                <span className="mr-2 text-[12px] font-iransans">{subItem.label}</span>
+                                <span className="text-md text-gray-400 bg-gray-600 px-2 py-1 rounded">
                                   غیرفعال
                                 </span>
                               </div>
@@ -148,7 +152,7 @@ export default function Sidebar({ user, children }) {
                                       toggleSidebar();
                                   }}
                                 >
-                                  <span className="mr-2">{subItem.label}</span>
+                                  <span className="mr-2 text-[12px] font-iransans">{subItem.label}</span>
                                 </div>
                               </Link>
                             )}
@@ -164,7 +168,7 @@ export default function Sidebar({ user, children }) {
                   >
                     <div className="flex items-center">
                       <span className="ml-3">{icons[item.icon]}</span>
-                      <span>{item.label}</span>
+                      <span className="text-[14px] font-iransans">{item.label}</span>
                     </div>
                     <div className="flex items-center">
                       {item.badge && item.badge > 0 && (
@@ -172,7 +176,7 @@ export default function Sidebar({ user, children }) {
                           {item.badge}
                         </span>
                       )}
-                      <span className="text-xs text-gray-400 bg-gray-600 px-2 py-1 rounded">
+                      <span className="text-md text-gray-400 bg-gray-600 px-2 py-1 rounded">
                         غیرفعال
                       </span>
                     </div>
@@ -191,7 +195,7 @@ export default function Sidebar({ user, children }) {
                     >
                       <div className="flex items-center">
                         <span className="ml-3">{icons[item.icon]}</span>
-                        <span>{item.label}</span>
+                        <span className="text-[14px] font-iransans">{item.label}</span>
                       </div>
                       {item.badge && item.badge > 0 && (
                         <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
