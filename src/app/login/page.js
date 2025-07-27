@@ -49,8 +49,8 @@ export default function LoginPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-gray-800">
-                سامانه پیگیری درخواست ها
+              <h2 className="text-2xl font-bold text-gray-800">
+        سامانه پایش و رصد فرآیندهای آموزشی
               </h2>
               <p className="text-gray-600 mt-4">
                 لطفاً وارد حساب کاربری خود شوید
@@ -112,10 +112,10 @@ export default function LoginPage() {
             </svg>
           </div>
           <h2 className="text-3xl font-bold mb-4">
-            به مرکز پیگیری درخواست ها خوش آمدید
+            به مرکز پایش و رصد فرآیندهای آموزشی خوش آمدید
           </h2>
           <p className="text-blue-100 mb-6">
-            از طریق این سامانه می‌توانید به راحتی درخواست‌های خود را ثبت و
+            از طریق این سامانه می‌توانید به راحتی درخواست‌ها و گزارشات خود را ثبت و
             پیگیری نمایید{" "}
           </p>
           {/* <div className="grid grid-cols-2 gap-4 mt-8">
