@@ -58,6 +58,8 @@ export default function ProfilePage() {
       districtEducationExpert: "کارشناس سنجش منطقه",
       districtTechExpert: "کارشناس فناوری منطقه",
       examCenterManager: "مدیر واحد سازمانی",
+      provinceRegistrationExpert: "کارشناس ثبت نام استان",
+      districtRegistrationExpert: "کارشناس ثبت نام منطقه",
     };
 
     return roleMap[role] || role;
