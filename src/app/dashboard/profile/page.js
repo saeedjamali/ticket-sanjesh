@@ -40,6 +40,7 @@ export default function ProfilePage() {
             setPhone(data.user.phone);
           }
           setLoading(false);
+          console.log("userInfo-------->", data);
         }
       } catch (error) {
         console.error("Error fetching user info:", error);
