@@ -246,7 +246,7 @@ export default function DistrictDetailPage() {
               <select
                 value={filters.course}
                 onChange={(e) => handleCourseChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {courseOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -265,7 +265,7 @@ export default function DistrictDetailPage() {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, branch: e.target.value }))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {branchOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -286,7 +286,7 @@ export default function DistrictDetailPage() {
                   setFilters((prev) => ({ ...prev, search: e.target.value }))
                 }
                 placeholder="نام یا کد مدرسه"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -299,7 +299,7 @@ export default function DistrictDetailPage() {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, sortBy: e.target.value }))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800  focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="registrationPercentage">درصد ثبت‌نام</option>
                 <option value="currentYearStudents">
@@ -332,7 +332,7 @@ export default function DistrictDetailPage() {
           </div>
 
           {/* کنترل مرتب‌سازی */}
-          <div className="flex items-center justify-between pt-4 border-t mt-4">
+          <div className="flex items-center justify-between pt-4 border-t mt-4 text-gray-800">
             <button
               onClick={() =>
                 setFilters((prev) => ({
@@ -353,7 +353,9 @@ export default function DistrictDetailPage() {
       {/* خلاصه آمار */}
       {filteredSchools.length > 0 && (
         <div className="mt-6 bg-white p-4 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold mb-3">خلاصه آمار:</h3>
+          <h3 className="text-lg font-semibold mb-3 text-gray-800">
+            خلاصه آمار:
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
@@ -404,30 +406,30 @@ export default function DistrictDetailPage() {
           </div>
         </div>
       )}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden mt-2">
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
                   مدرسه
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
                   دوره
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
                   جنسیت
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
                   سال جاری
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
                   سال قبل
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
                   درصد جذب
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
                   کلاس‌بندی شده
                 </th>
               </tr>
