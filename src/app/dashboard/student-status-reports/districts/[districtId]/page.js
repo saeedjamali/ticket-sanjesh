@@ -422,7 +422,7 @@ export default function DistrictDetailPage() {
                   سال قبل
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  درصد تغییر
+                  درصد جذب
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   کلاس‌بندی شده
@@ -470,9 +470,10 @@ export default function DistrictDetailPage() {
                       )}`}
                     >
                       {Math.round(
-                        school.currentYearStats.totalStudents /
-                          school.previousYearStats.totalStudents
-                       * 100)}
+                        (school.currentYearStats.totalStudents /
+                          school.previousYearStats.totalStudents) *
+                          100
+                      )}
                       %
                     </span>
                   </td>
