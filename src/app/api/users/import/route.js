@@ -83,6 +83,10 @@ export async function POST(request) {
       "districtEducationExpert",
       "districtTechExpert",
       "examCenterManager",
+      "provinceEvalExpert",
+      "provinceRegistrationExpert",
+      "districtEvalExpert",
+      "districtRegistrationExpert",
     ];
 
     // پردازش هر ردیف داده
@@ -137,12 +141,18 @@ export async function POST(request) {
           "districtEducationExpert",
           "districtTechExpert",
           "examCenterManager",
+          "provinceEvalExpert",
+          "provinceRegistrationExpert",
+          "districtEvalExpert",
+          "districtRegistrationExpert",
         ];
 
         const requiresDistrict = [
           "districtEducationExpert",
           "districtTechExpert",
           "examCenterManager",
+          "districtEvalExpert",
+          "districtRegistrationExpert",
         ];
 
         const requiresExamCenter = ["examCenterManager"];
