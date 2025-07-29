@@ -15,6 +15,7 @@ import {
   FaCalendarAlt,
   FaFilter,
   FaExclamationCircle,
+  FaSearch,
 } from "react-icons/fa";
 
 export default function CorrectionRequestsPage() {
@@ -23,6 +24,8 @@ export default function CorrectionRequestsPage() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredRequests, setFilteredRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [responseAction, setResponseAction] = useState(""); // "approve" or "reject"
@@ -34,6 +37,26 @@ export default function CorrectionRequestsPage() {
       fetchRequests();
     }
   }, [statusFilter, userLoading]);
+
+  // فیلتر کردن درخواست‌ها بر اساس جستجو
+  useEffect(() => {
+    let filtered = requests;
+
+    // فیلتر بر اساس کد واحد سازمانی
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(
+        (request) =>
+          request.examCenterCode
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          request.examCenterName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredRequests(filtered);
+  }, [requests, searchTerm]);
 
   const fetchRequests = async () => {
     try {
@@ -229,40 +252,127 @@ export default function CorrectionRequestsPage() {
 
   return (
     <div className="p-6">
+      {/* هدر صفحه و فیلترها */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          مدیریت درخواست‌های اصلاح آمار
+        </h1>
+
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          {/* جستجو بر اساس کد واحد سازمانی */}
+          <div className="flex-1">
+            <div className="relative">
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <FaSearch className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+                placeholder="جستجو بر اساس کد یا نام واحد سازمانی..."
+              />
+            </div>
+          </div>
+
+          {/* فیلتر وضعیت */}
+          <div className="w-full sm:w-64">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
+            >
+              <option value="">همه درخواست‌ها</option>
+              <option value="pending">در انتظار بررسی منطقه</option>
+              <option value="approved_district">در انتظار تایید استان</option>
+              <option value="approved_province">تایید شده</option>
+              <option value="rejected">رد شده</option>
+            </select>
+          </div>
+        </div>
+
+        {/* نمایش تعداد نتایج */}
+        <div className="text-sm text-gray-600">
+          {searchTerm.trim() ? (
+            <>
+              نمایش {filteredRequests.length} درخواست از {requests.length}{" "}
+              درخواست
+              {searchTerm.trim() && (
+                <span className="mr-2 text-blue-600">
+                  برای &quot;{searchTerm}&quot;
+                </span>
+              )}
+            </>
+          ) : (
+            <>نمایش {requests.length} درخواست</>
+          )}
+        </div>
+      </div>
+
       {/* لیست درخواست‌ها */}
       <div className="bg-white rounded-lg shadow">
-        {requests.length === 0 ? (
+        {filteredRequests.length === 0 ? (
           <div className="p-8 text-center text-gray-500">
             <FaExclamationCircle className="mx-auto text-4xl mb-4" />
-            <p>درخواستی یافت نشد</p>
+            <p>
+              {searchTerm.trim()
+                ? "درخواستی با این مشخصات یافت نشد"
+                : "درخواستی یافت نشد"}
+            </p>
+            {searchTerm.trim() && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="mt-2 text-blue-600 hover:text-blue-800"
+              >
+                پاک کردن جستجو
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50 text-gray-800">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-800   uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-right text-xs font-medium text-slate-800 uppercase tracking-wider"
+                    style={{ color: "#1f2937" }}
+                  >
                     واحد سازمانی
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-right text-xs font-medium text-slate-800 uppercase tracking-wider"
+                    style={{ color: "#1f2937" }}
+                  >
                     درخواست کننده
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-right text-xs font-medium text-slate-800 uppercase tracking-wider"
+                    style={{ color: "#1f2937" }}
+                  >
                     آمار
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-right text-xs font-medium text-slate-800 uppercase tracking-wider"
+                    style={{ color: "#1f2937" }}
+                  >
                     تاریخ درخواست
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-right text-xs font-medium text-slate-800 uppercase tracking-wider"
+                    style={{ color: "#1f2937" }}
+                  >
                     وضعیت
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                  <th
+                    className="px-6 py-3 text-right text-xs font-medium text-slate-800 uppercase tracking-wider"
+                    style={{ color: "#1f2937" }}
+                  >
                     عملیات
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {requests.map((request) => (
+                {filteredRequests.map((request) => (
                   <tr key={request._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div>

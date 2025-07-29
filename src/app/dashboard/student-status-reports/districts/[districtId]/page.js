@@ -411,25 +411,46 @@ export default function DistrictDetailPage() {
           <table className="min-w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                <th
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider"
+                  style={{ color: "#1f2937" }}
+                >
                   مدرسه
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                <th
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider"
+                  style={{ color: "#1f2937" }}
+                >
                   دوره
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                <th
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider"
+                  style={{ color: "#1f2937" }}
+                >
                   جنسیت
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                <th
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider"
+                  style={{ color: "#1f2937" }}
+                >
                   سال جاری
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                <th
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider"
+                  style={{ color: "#1f2937" }}
+                >
                   سال قبل
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                <th
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider"
+                  style={{ color: "#1f2937" }}
+                >
                   درصد جذب
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
+                <th
+                  className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider"
+                  style={{ color: "#1f2937" }}
+                >
                   کلاس‌بندی شده
                 </th>
               </tr>
