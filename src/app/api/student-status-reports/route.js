@@ -240,12 +240,14 @@ export async function GET(request) {
           ? examCentersCountResult[0].totalExamCenters
           : 0;
 
+      // console.log("🔍 currentStats:----->", currentStats);
+      // console.log("🔍 previousStats:----->", previousStats);
+
       // محاسبه درصد ثبت‌نام (کلاس‌بندی شده نسبت به کل)
       const registrationPercentage =
         currentStats.totalStudents > 0
           ? Math.round(
-              (currentStats.classifiedStudents / currentStats.totalStudents) *
-                100
+              (currentStats.totalStudents / previousStats.totalStudents) * 100
             )
           : 0;
 

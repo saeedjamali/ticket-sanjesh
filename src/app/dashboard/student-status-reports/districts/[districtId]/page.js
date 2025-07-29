@@ -469,7 +469,11 @@ export default function DistrictDetailPage() {
                         school.registrationPercentage
                       )}`}
                     >
-                      {school.registrationPercentage}%
+                      {Math.round(
+                        school.currentYearStats.totalStudents /
+                          school.previousYearStats.totalStudents
+                       * 100)}
+                      %
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
