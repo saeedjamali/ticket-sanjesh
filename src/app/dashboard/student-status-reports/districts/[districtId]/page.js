@@ -31,6 +31,7 @@ export default function DistrictDetailPage() {
     fetchFilters();
   }, []);
 
+  console.log("🔍 filters:----->", filters);
   useEffect(() => {
     fetchData();
   }, [filters.course, filters.branch, filters.sortBy, filters.sortOrder]);
@@ -136,6 +137,8 @@ export default function DistrictDetailPage() {
         setSummary(result.data.summary);
         setCurrentYear(result.data.currentYear);
         setPreviousYear(result.data.previousYear);
+
+        console.log("🔍 Schools:----->", result.data);
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "خطا در دریافت داده‌ها");
