@@ -239,7 +239,7 @@ export default function CorrectionRequestsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-slate-50 text-gray-800">
                 <tr>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-800   uppercase tracking-wider">
                     واحد سازمانی
@@ -264,9 +264,9 @@ export default function CorrectionRequestsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {requests.map((request) => (
                   <tr key={request._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 ">
                           {request.examCenterName}
                         </div>
                         <div className="text-sm text-gray-500">
@@ -277,7 +277,7 @@ export default function CorrectionRequestsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center">
                         <FaUser className="text-gray-400 ml-2" />
                         <div>
@@ -290,7 +290,7 @@ export default function CorrectionRequestsPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="text-sm text-gray-900">
                         فعلی:{" "}
                         <span className="font-medium">
@@ -322,13 +322,13 @@ export default function CorrectionRequestsPage() {
                           request.currentStudentCount}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center text-sm text-gray-900">
                         <FaCalendarAlt className="text-gray-400 ml-2" />
                         {formatDate(request.createdAt)}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
                           request.status

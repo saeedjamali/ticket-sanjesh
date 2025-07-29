@@ -409,7 +409,7 @@ export default function DistrictDetailPage() {
       <div className="bg-white rounded-lg shadow-md overflow-hidden mt-2">
         <div className="overflow-x-auto">
           <table className="min-w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-slate-50">
               <tr>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-800 uppercase tracking-wider">
                   مدرسه
