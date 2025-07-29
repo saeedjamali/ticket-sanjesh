@@ -271,7 +271,7 @@ export default function LoginForm() {
                   onChange={(e) => setForgotPasswordNationalId(e.target.value)}
                   disabled={resetPasswordLoading}
                   required
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 transition-colors text-right placeholder:text-right"
+                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800  focus:border-blue-500 disabled:bg-gray-100 transition-colors text-right placeholder:text-right "
                   placeholder="نام کاربری خود را وارد کنید"
                   dir="ltr"
                 />
@@ -391,7 +391,7 @@ export default function LoginForm() {
               </button>
             </div>
             <div className="relative">
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+              <div className="absolute inset-y-0 right-0  pr-3 pointer-events-none text-gray-400 h-full flex items-center justify-center pb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"
@@ -414,13 +414,13 @@ export default function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 required
-                className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 transition-colors text-right placeholder:text-right"
+                className="w-full px-4 py-3 pr-10 border border-gray-300 flex items-center rounded-lg focus:outline-none focus:ring-2  focus:ring-blue-500   focus:border-blue-500 disabled:bg-gray-100 transition-colors text-right placeholder:text-right placeholder:text-gray-400 text-gray-800"
                 placeholder="رمز عبور خود را وارد کنید"
                 dir="ltr"
               />
-              <p className="text-xs text-gray-500 mt-1 flex items-center">
+              <p className="text-xs text-gray-500 mt-1 flex items-center h-full">
                 <svg
-                  className="h-3 w-3 text-gray-400 ml-1"
+                  className="h-3 w-3 text-gray-400 ml-1 flex items-center"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"

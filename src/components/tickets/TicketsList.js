@@ -555,7 +555,7 @@ export default function TicketsList({ user, districtFilter }) {
                       value={ticketNumber}
                       onChange={handleTicketNumberChange}
                       placeholder="جستجو شماره تیکت..."
-                      className="rounded-md border border-gray-300 px-3 py-1 dark:border-gray-600 dark:bg-gray-700 ml-2"
+                      className="rounded-md border border-gray-300 px-3 py-1 dark:border-gray-600 dark:bg-gray-700 ml-2 text-gray-800 placeholder:text-gray-400"
                     />
                     <button
                       type="submit"

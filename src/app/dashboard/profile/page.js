@@ -611,7 +611,7 @@ export default function ProfilePage() {
               {isEditingPhone && (
                 <div className="p-4 pt-0 border-t border-purple-100 mt-3">
                   <div className="flex flex-col space-y-3">
-                    <div className="flex w-full rounded-lg overflow-hidden border border-gray-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 bg-white transition-all duration-200">
+                    <div className="flex w-full rounded-lg overflow-hidden border border-gray-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 bg-white transition-all duration-200 text-gray-800 placeholder:text-gray-400">
                       <input
                         type="tel"
                         value={phone}

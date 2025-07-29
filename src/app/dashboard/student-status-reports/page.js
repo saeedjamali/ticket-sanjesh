@@ -255,14 +255,14 @@ export default function StudentStatusReportsPage() {
 
         {/* فیلترها */}
         <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-          <div className="flex flex-wrap items-center gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4 text-gray-800">
             <label className="text-sm font-medium text-gray-700">
               تعداد نمایش:
             </label>
             <select
               value={gridSize}
               onChange={(e) => setGridSize(Number(e.target.value))}
-              className="text-sm border rounded px-2 py-1"
+              className="text-sm border rounded px-2 py-1 text-gray-800"
             >
               <option value={4}>4</option>
               <option value={8}>8</option>
@@ -286,7 +286,7 @@ export default function StudentStatusReportsPage() {
               <select
                 value={filters.course}
                 onChange={(e) => handleCourseChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {courseOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -305,7 +305,7 @@ export default function StudentStatusReportsPage() {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, branch: e.target.value }))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {branchOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -327,7 +327,7 @@ export default function StudentStatusReportsPage() {
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, search: e.target.value }))
                   }
-                  className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <FaSearch className="absolute left-3 top-3 text-gray-400" />
               </div>
@@ -342,7 +342,7 @@ export default function StudentStatusReportsPage() {
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, sortBy: e.target.value }))
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="registrationPercentage">درصد ثبت‌نام</option>
                 <option value="currentYearStudents">
@@ -412,7 +412,7 @@ export default function StudentStatusReportsPage() {
         </div>
 
         {/* راهنمای رنگ‌ها */}
-        <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+        <div className="bg-white p-4 rounded-lg shadow-md mb-6 text-green-900">
           <h3 className="text-lg font-semibold mb-3">راهنمای رنگ‌ها:</h3>
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center">
@@ -478,7 +478,7 @@ export default function StudentStatusReportsPage() {
               </div>
             </div>
 
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2 text-sm text-gray-800">
               <div className="flex justify-between">
                 <span>سال جاری:</span>
                 <span className="font-semibold">
@@ -508,12 +508,12 @@ export default function StudentStatusReportsPage() {
                   <h4 className="text-xs font-semibold text-gray-700 mb-2">
                     آمار بر اساس دوره:
                   </h4>
-                  <div className="space-y-1">
+                  <div className="space-y-1 ">
                     {Object.entries(districtData.periodBreakdown).map(
                       ([period, stats]) => (
                         <div
                           key={period}
-                          className="flex justify-between text-xs"
+                          className="flex justify-between text-xs text-gray-800"
                         >
                           <span>{period}:</span>
                           <span>{stats.totalStudents.toLocaleString()}</span>
