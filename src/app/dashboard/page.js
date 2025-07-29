@@ -146,7 +146,9 @@ export default function DashboardPage() {
 
       {/* بخش خوش‌آمدگویی - در ابتدای صفحه */}
       <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6">
-        <h2 className="heading-3 mb-3 sm:mb-4">به سامانه رصد خوش آمدید!</h2>
+        <h2 className="heading-3 mb-3 sm:mb-4 text-gray-800">
+          به سامانه رصد خوش آمدید!
+        </h2>
         <p className="text-paragraph text-gray-700">
           برای استفاده از امکانات سامانه، از منوی سمت راست گزینه‌های مورد نظر
           خود را انتخاب کنید.
@@ -164,7 +166,7 @@ export default function DashboardPage() {
       {/* بخش رویدادها */}
       <div className="mt-4 sm:mt-8">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
-          <h2 className="heading-3">رویدادهای جاری</h2>
+          <h2 className="heading-3 text-gray-800">رویدادهای جاری</h2>
           <button
             onClick={() => setShowEvents(!showEvents)}
             className="btn-icon-responsive bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md"
@@ -219,7 +221,7 @@ export default function DashboardPage() {
       {isProvinceUser && (
         <div className="mt-4 sm:mt-8">
           <div className="flex justify-between items-center mb-3 sm:mb-4">
-            <h2 className="heading-3">وضعیت مناطق استان</h2>
+            <h2 className="heading-3 text-gray-800">وضعیت مناطق استان</h2>
             <button
               onClick={() => setShowDistrictsGrid(!showDistrictsGrid)}
               className="btn-icon-responsive bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md"
@@ -275,7 +277,7 @@ export default function DashboardPage() {
       {/* بخش آمار تیکت‌ها */}
       <div className="mt-4 sm:mt-8">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
-          <h2 className="heading-3">گزارش تیکت‌ها</h2>
+          <h2 className="heading-3 text-gray-800">گزارش تیکت‌ها</h2>
           <button
             onClick={() => setShowStats(!showStats)}
             className="btn-icon-responsive bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md"
@@ -331,7 +333,7 @@ export default function DashboardPage() {
       {isProvinceUser && (
         <div className="mt-4 sm:mt-8">
           <div className="flex justify-between items-center mb-3 sm:mb-4">
-            <h2 className="heading-3">مدارس امتحانی استان</h2>
+            <h2 className="heading-3 text-gray-800">مدارس امتحانی استان</h2>
             <button
               onClick={() => setShowExamCenters(!showExamCenters)}
               className="btn-icon-responsive bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md"
@@ -479,10 +481,10 @@ export default function DashboardPage() {
 
       {/* بخش راهنمای سریع */}
       <div className="bg-white shadow-sm rounded-lg p-4 sm:p-6 mt-4 sm:mt-6">
-        <h2 className="heading-3 mb-3 sm:mb-4">راهنمای سریع</h2>
+        <h2 className="heading-3 mb-3 sm:mb-4 text-gray-800">راهنمای سریع</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <div className="p-3 sm:p-4 border rounded-lg bg-gray-50">
-            <h3 className="heading-4 mb-2">مشاهده تیکت‌ها</h3>
+            <h3 className="heading-4 mb-2 text-gray-700">مشاهده تیکت‌ها</h3>
             <p className="text-paragraph text-gray-700">
               از منوی سمت راست گزینه &quot;تیکت‌ها&quot; را انتخاب کنید تا لیست
               تیکت‌های مرتبط با حوزه خود را مشاهده کنید.
@@ -499,7 +501,7 @@ export default function DashboardPage() {
           )}
           {user?.role !== "examCenterManager" && (
             <div className="p-3 sm:p-4 border rounded-lg bg-gray-50">
-              <h3 className="heading-4 mb-2">پاسخ به تیکت‌ها</h3>
+              <h3 className="heading-4 mb-2 text-gray-700">پاسخ به تیکت‌ها</h3>
               <p className="text-paragraph text-gray-700">
                 با مراجعه به صفحه تیکت مورد نظر می‌توانید به تیکت‌های ارسال شده
                 پاسخ دهید.
