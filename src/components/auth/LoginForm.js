@@ -271,7 +271,7 @@ export default function LoginForm() {
                   onChange={(e) => setForgotPasswordNationalId(e.target.value)}
                   disabled={resetPasswordLoading}
                   required
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800  focus:border-blue-500 disabled:bg-gray-100 transition-colors text-right placeholder:text-right "
+                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800  focus:border-blue-500 disabled:bg-gray-100 transition-colors text-right placeholder:text-right placeholder:text-gray-400     "
                   placeholder="نام کاربری خود را وارد کنید"
                   dir="ltr"
                 />
