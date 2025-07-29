@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [dbStatus, setDbStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showStats, setShowStats] = useState(true);
+  const [showStats, setShowStats] = useState(false);
   const [showDistrictsGrid, setShowDistrictsGrid] = useState(true);
   const [showExamCenters, setShowExamCenters] = useState(false);
   const [showEvents, setShowEvents] = useState(true);

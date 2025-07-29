@@ -195,7 +195,7 @@ export async function GET(request) {
       const registrationPercentage =
         currentStats.totalStudents > 0
           ? Math.round(
-              (currentStats.classifiedStudents / currentStats.totalStudents) *
+              (currentStats.totalStudents / previousStats.totalStudents) *
                 100
             )
           : 0;
