@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { FaSync, FaDownload, FaSearch } from "react-icons/fa";
+import RegistrationStatusChart from "@/components/charts/RegistrationStatusChart";
 
 export default function StudentStatusReportsPage() {
   const router = useRouter();
@@ -411,6 +412,13 @@ export default function StudentStatusReportsPage() {
           </div>
         </div>
 
+        {/* نمودار وضعیت ثبت نام */}
+        <RegistrationStatusChart
+          data={filteredDistricts}
+          currentYear={currentYear}
+          previousYear={previousYear}
+          title="گزارش وضعیت ثبت نام مناطق"
+        />
         {/* راهنمای رنگ‌ها */}
         <div className="bg-white p-4 rounded-lg shadow-md mb-6 text-green-900">
           <h3 className="text-lg font-semibold mb-3">راهنمای رنگ‌ها:</h3>

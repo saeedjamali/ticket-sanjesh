@@ -28,29 +28,16 @@ export default function LoginPage() {
           <div className="max-w-md w-full">
             <div className="text-center mb-8">
               <div className="inline-block p-2 bg-blue-100 rounded-full mb-4">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2H5z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 14h14a2 2 0 012 2v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3a2 2 0 012-2z"
-                  />
-                </svg>
+                <Image
+                  src="/logo2.png"
+                  alt="Logo"
+                  width={64}
+                  height={64}
+                  className="text-blue-600"
+                />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800">
-        سامانه پایش و رصد فرآیندهای آموزشی
+              <h2 className="text-2xl font-extrabold text-gray-800 ">
+                سامانه پایش و رصد وضعیت عدالت آموزشی
               </h2>
               <p className="text-gray-600 mt-4">
                 لطفاً وارد حساب کاربری خود شوید
@@ -96,27 +83,20 @@ export default function LoginPage() {
 
         <div className="relative z-10 max-w-md text-white text-center">
           <div className="mb-8 mx-auto">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-24 w-24 mx-auto text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              />
-            </svg>
+            <Image
+              src="/logo.png"
+              alt="Logo 2"
+              width={200}
+              height={200}
+              className="mx-auto text-white"
+            />
           </div>
-          <h2 className="text-3xl font-bold mb-4">
-            به مرکز پایش و رصد فرآیندهای آموزشی خوش آمدید
+          <h2 className="text-3xl font-bold mb-4 leading-14">
+            به مرکز پایش و رصد وضعیت عدالت آموزشی خوش آمدید
           </h2>
           <p className="text-blue-100 mb-6">
-            از طریق این سامانه می‌توانید به راحتی درخواست‌ها و گزارشات خود را ثبت و
-            پیگیری نمایید{" "}
+            از طریق این سامانه می‌توانید به راحتی درخواست‌ها و گزارشات خود را
+            ثبت و پیگیری نمایید{" "}
           </p>
           {/* <div className="grid grid-cols-2 gap-4 mt-8">
             <div className="bg-white bg-opacity-20 p-4 rounded-lg">
