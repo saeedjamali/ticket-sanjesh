@@ -210,15 +210,6 @@ export async function POST(request) {
       CourseBranchField.find({ isActive: true }).lean(),
     ]);
 
-    console.log(
-      "Available fields for this course and branch:",
-      fields.filter(
-        (f) =>
-          f.courseCode === user.examCenter.course.courseCode &&
-          f.branchCode === user.examCenter.branch.branchCode
-      )
-    );
-
     if (!activeAcademicYear) {
       return NextResponse.json(
         { error: "سال تحصیلی فعال یافت نشد" },
@@ -374,11 +365,13 @@ export async function POST(request) {
           let grade = grades.find(
             (g) =>
               g.courseCode === user.examCenter.course.courseCode &&
-              (g.gradeName === gradeTitle ||
-                g.gradeName.toLowerCase().includes(gradeTitle.toLowerCase()) ||
-                gradeTitle.toLowerCase().includes(g.gradeName.toLowerCase()))
+              g.gradeName === gradeTitle
           );
+          // ||
+          //       g.gradeName.toLowerCase().includes(gradeTitle.toLowerCase()) ||
+          //       gradeTitle.toLowerCase().includes(g.gradeName.toLowerCase())
 
+          console.log("grade-------->", grade);
           let gradeCode;
           let description = "";
 

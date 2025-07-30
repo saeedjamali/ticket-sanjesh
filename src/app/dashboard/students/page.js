@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import CorrectionRequestModal from "@/components/students/CorrectionRequestModal";
 import CorrectionRequestWorkflow from "@/components/students/CorrectionRequestWorkflow";
+import GradeStatsDisplay from "@/components/students/GradeStatsDisplay";
 import {
   FaPlus,
   FaSearch,
@@ -26,6 +27,7 @@ export default function StudentsPage({
 }) {
   const router = useRouter();
   const [students, setStudents] = useState([]);
+  const [allStudents, setAllStudents] = useState([]); // برای محاسبه آمار پایه‌ها
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [gradeFilter, setGradeFilter] = useState("");
@@ -93,6 +95,11 @@ export default function StudentsPage({
   useEffect(() => {
     fetchStudents();
   }, [currentPage, searchTerm, gradeFilter, fieldFilter, academicYearFilter]);
+
+  // دریافت تمام دانش‌آموزان برای آمار پایه‌ها (فقط وقتی فیلترها تغییر کنند)
+  useEffect(() => {
+    fetchAllStudentsForStats();
+  }, [searchTerm, gradeFilter, fieldFilter, academicYearFilter]);
 
   const fetchStats = async () => {
     try {
@@ -179,6 +186,45 @@ export default function StudentsPage({
       console.error("Error fetching students:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAllStudentsForStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const params = new URLSearchParams({
+        limit: "1000", // حد بالا برای دریافت همه دانش‌آموزان
+        ...(searchTerm && { search: searchTerm }),
+        ...(gradeFilter && { gradeCode: gradeFilter }),
+        ...(fieldFilter && { fieldCode: fieldFilter }),
+      });
+
+      // اگر سال تحصیلی انتخاب شده باشد، از آن استفاده کن
+      if (academicYearFilter) {
+        params.append("academicYear", academicYearFilter);
+      }
+      // در غیر این صورت، اگر defaultAcademicYear تنظیم شده باشد
+      else if (
+        defaultAcademicYear === "current" ||
+        defaultAcademicYear === "previous"
+      ) {
+        params.append("yearFilter", defaultAcademicYear);
+      }
+
+      const response = await fetch(`/api/students?${params}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAllStudents(data.students);
+      } else {
+        console.error("Error fetching all students for stats");
+      }
+    } catch (error) {
+      console.error("Error fetching all students for stats:", error);
     }
   };
 
@@ -483,6 +529,14 @@ export default function StudentsPage({
             </div>
           </div>
         </div>
+      )}
+
+      {/* آمار به تفکیک پایه */}
+      {allStudents.length > 0 && (
+        <GradeStatsDisplay
+          students={allStudents}
+          title={`آمار به تفکیک پایه (${allStudents.length} دانش‌آموز)`}
+        />
       )}
 
       {/* گردش کار درخواست‌های اصلاح آمار - فقط برای مدیران واحد سازمانی و سال گذشته */}

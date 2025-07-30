@@ -90,8 +90,8 @@ export default function CreateStudentPage() {
 
     if (!formData.nationalId) {
       newErrors.nationalId = "کد ملی الزامی است";
-    } else if (!/^\d{10}$/.test(formData.nationalId)) {
-      newErrors.nationalId = "کد ملی باید 10 رقم باشد";
+    } else if (!/^\d{10}$/.test(formData.nationalId) && !/^\d{11}$/.test(formData.nationalId)) {
+      newErrors.nationalId = "کد ملی میتواند 10 یا 11 رقم باشد";
     }
 
     if (!formData.firstName) {
