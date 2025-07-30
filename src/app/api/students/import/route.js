@@ -338,15 +338,20 @@ export async function POST(request) {
             nationalId = "0" + nationalId;
           }
 
-          if (!/^\d{10}$/.test(nationalId)) {
+          if (!/^\d{10}$/.test(nationalId) && !/^\d{11}$/.test(nationalId)) {
             results.errors.push({
               row: rowNumber,
               nationalId,
-              message: "کد ملی باید 8، 9 یا 10 رقم باشد",
+              message: "کد ملی باید 8، 9، 10 یا 11 رقم باشد",
             });
             results.errorCount++;
             continue;
           }
+
+          // // اگر کد ملی 11 رقمی است، رقم اول را حذف می‌کنیم
+          // if (/^\d{11}$/.test(nationalId)) {
+          //   nationalId = nationalId.substring(1);
+          // }
 
           if (!firstName || !lastName || !fatherName || !birthDate) {
             results.errors.push({

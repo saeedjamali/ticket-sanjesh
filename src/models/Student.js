@@ -8,9 +8,14 @@ const studentSchema = new mongoose.Schema(
       trim: true,
       validate: {
         validator: function (v) {
-          return /^\d{10}$/.test(v);
+          return (
+            /^\d{10}$/.test(v) ||
+            /^\d{11}$/.test(v) ||
+            /^\d{8}$/.test(v) ||
+            /^\d{9}$/.test(v)
+          );
         },
-        message: "کد ملی باید 10 رقم باشد",
+        message: "کد ملی باید 8، 9، 10 یا 11 رقم باشد",
       },
     },
     firstName: {
@@ -126,6 +131,26 @@ const studentSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// میدلور برای استانداردسازی کد ملی قبل از ذخیره
+studentSchema.pre("save", function (next) {
+  let nationalId = this.nationalId;
+
+  // تبدیل کد ملی 8 رقمی به 10 رقمی
+  if (/^\d{8}$/.test(nationalId)) {
+    this.nationalId = "00" + nationalId;
+  }
+  // تبدیل کد ملی 9 رقمی به 10 رقمی
+  else if (/^\d{9}$/.test(nationalId)) {
+    this.nationalId = "0" + nationalId;
+  }
+  // تبدیل کد ملی 11 رقمی به 10 رقمی
+  // else if (/^\d{11}$/.test(nationalId)) {
+  //   this.nationalId = nationalId.substring(1);
+  // }
+
+  next();
+});
 
 // ایجاد index مرکب برای جلوگیری از تکرار کد ملی در یک سال تحصیلی
 studentSchema.index({ nationalId: 1, academicYear: 1 }, { unique: true });
