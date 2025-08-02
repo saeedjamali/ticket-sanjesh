@@ -560,7 +560,7 @@ export async function POST(request) {
             organizationalUnitCode: user.examCenter.code,
             district: user.examCenter.district._id,
             districtCode: user.examCenter.district.code,
-            province: provinceCode,
+            provinceCode: provinceCode,
             createdBy: user._id,
             isActive: true,
           });
@@ -570,6 +570,7 @@ export async function POST(request) {
             nationalId,
             organizationalUnitCode: user.examCenter.code,
             districtCode: user.examCenter.district.code,
+            provinceCode: provinceCode,
             academicYear: targetAcademicYear.name,
             academicCourse: user.examCenter.course.courseName,
           });

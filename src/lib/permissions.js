@@ -234,9 +234,10 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
 
   // منوی دانش‌آموزان - برای مدیران واحد سازمانی و کارشناسان ثبت نام
   if (
-    role === ROLES.EXAM_CENTER_MANAGER ||
-    role === ROLES.PROVINCE_REGISTRATION_EXPERT ||
-    role === ROLES.DISTRICT_REGISTRATION_EXPERT
+    role === ROLES.EXAM_CENTER_MANAGER
+    // ||
+    // role === ROLES.PROVINCE_REGISTRATION_EXPERT ||
+    // role === ROLES.DISTRICT_REGISTRATION_EXPERT
   ) {
     activeMenuItems.push({
       label: "لیست دانش آموزان",
@@ -293,11 +294,6 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
   }
 
   // منوی پروفایل کاربری - برای همه کاربران
-  activeMenuItems.push({
-    label: "پروفایل ",
-    path: "/dashboard/profile",
-    icon: "profile",
-  });
 
   // منوی کاربران - فقط برای مدیران ارشد
   if (
@@ -365,7 +361,11 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
   }
 
   // منوی تیکت‌ها - برای همه کاربران
-  if (role === ROLES.EXAM_CENTER_MANAGER || role===ROLES.PROVINCE_REGISTRATION_EXPERT || role===ROLES.DISTRICT_REGISTRATION_EXPERT) {
+  if (
+    role === ROLES.EXAM_CENTER_MANAGER ||
+    role === ROLES.PROVINCE_REGISTRATION_EXPERT ||
+    role === ROLES.DISTRICT_REGISTRATION_EXPERT
+  ) {
     disabledMenuItems.push({
       label: "تیکت‌ها",
       path: "/dashboard/tickets",
@@ -448,7 +448,11 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       icon: "edit",
     });
   }
-
+  activeMenuItems.push({
+    label: "پروفایل ",
+    path: "/dashboard/profile",
+    icon: "profile",
+  });
   // ترکیب منوهای فعال و غیرفعال (غیرفعال‌ها در انتها)
   return [...activeMenuItems, ...disabledMenuItems];
 }

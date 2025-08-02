@@ -3,8 +3,20 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { FaSync, FaDownload, FaSearch } from "react-icons/fa";
+import {
+  FaSync,
+  FaDownload,
+  FaSearch,
+  FaChart,
+  FaTable,
+  FaFilter,
+  FaChartBar,
+  FaMapMarkedAlt,
+  FaCalendarAlt,
+} from "react-icons/fa";
 import RegistrationStatusChart from "@/components/charts/RegistrationStatusChart";
+import PreviousYearStudentStats from "@/components/dashboard/PreviousYearStudentStats";
+import CurrentYearStudentStats from "@/components/dashboard/CurrentYearStudentStats";
 
 export default function StudentStatusReportsPage() {
   const router = useRouter();
@@ -21,10 +33,11 @@ export default function StudentStatusReportsPage() {
   });
   const [currentYear, setCurrentYear] = useState("");
   const [previousYear, setPreviousYear] = useState("");
-  const [gridSize, setGridSize] = useState(12); // تعداد کاشی در هر صفحه
-  const [refreshing, setRefreshing] = useState(false); // وضعیت بروزرسانی
+  const [gridSize, setGridSize] = useState(12);
+  const [refreshing, setRefreshing] = useState(false);
   const [courseOptions, setCourseOptions] = useState([]);
   const [branchOptions, setBranchOptions] = useState([]);
+  const [activeTab, setActiveTab] = useState("charts");
 
   useEffect(() => {
     fetchFilters();
@@ -41,7 +54,6 @@ export default function StudentStatusReportsPage() {
   ]);
 
   useEffect(() => {
-    // فیلتر بر اساس جستجو
     if (filters.search) {
       const filtered = districts.filter(
         (district) =>
@@ -100,10 +112,8 @@ export default function StudentStatusReportsPage() {
     setFilters((prev) => ({
       ...prev,
       course: courseCode,
-      branch: "", // ریست کردن شاخه هنگام تغییر دوره
+      branch: "",
     }));
-
-    // بارگیری شاخه‌های مربوط به دوره جدید
     fetchBranches(courseCode);
   };
 
@@ -121,21 +131,9 @@ export default function StudentStatusReportsPage() {
       if (filters.sortBy) params.append("sortBy", filters.sortBy);
       if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
 
-      console.log("🔍 Sorting Debug:", {
-        sortBy: filters.sortBy,
-        sortOrder: filters.sortOrder,
-        fullUrl: url + (params.toString() ? `?${params.toString()}` : ""),
-      });
-
-      // Debug log
-      console.log("Filters:", filters);
-      console.log("URL params:", params.toString());
-
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
-
-      console.log("Final URL:", url);
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` },
@@ -143,7 +141,6 @@ export default function StudentStatusReportsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Response data:", data);
         setDistricts(data.data);
         setCurrentYear(data.currentYear);
         setPreviousYear(data.previousYear);
@@ -158,7 +155,6 @@ export default function StudentStatusReportsPage() {
     }
   };
 
-  // تابع بروزرسانی
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchData();
@@ -240,328 +236,401 @@ export default function StudentStatusReportsPage() {
     );
   }
 
-  // محاسبه کاشی‌های نمایش داده شده
   const displayedDistricts = filteredDistricts.slice(0, gridSize);
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">
-          گزارش وضعیت دانش آموزی
-        </h1>
-        <div className="text-sm text-gray-600 mb-4">
-          مقایسه آمار ثبت نام سال جاری ({currentYear}) با سال قبل (
-          {previousYear})
+    <div className="min-h-screen bg-gray-50">
+      {/* هدر صفحه */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            گزارش وضعیت دانش آموزی
+          </h1>
+          <p className="text-gray-600">
+            مقایسه آمار ثبت نام سال جاری ({currentYear}) با سال قبل (
+            {previousYear})
+          </p>
         </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-6 py-6">
         {/* فیلترها */}
-        <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-          <div className="flex flex-wrap items-center gap-2 mb-4 text-gray-800">
-            <label className="text-sm font-medium text-gray-700">
-              تعداد نمایش:
-            </label>
-            <select
-              value={gridSize}
-              onChange={(e) => setGridSize(Number(e.target.value))}
-              className="text-sm border rounded px-2 py-1 text-gray-800"
-            >
-              <option value={4}>4</option>
-              <option value={8}>8</option>
-              <option value={12}>12</option>
-              <option value={16}>16</option>
-              <option value={20}>20</option>
-              <option value={24}>24</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-            <div className="text-sm text-gray-600">
-              نمایش {displayedDistricts.length} از {filteredDistricts.length}{" "}
-              منطقه
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                دوره تحصیلی
-              </label>
-              <select
-                value={filters.course}
-                onChange={(e) => handleCourseChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {courseOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+        <div className="bg-white rounded-xl shadow-sm border mb-6">
+          <div className="p-6 border-b bg-gray-50 rounded-t-xl">
+            <div className="flex items-center gap-2 mb-4">
+              <FaFilter className="text-blue-600" />
+              <h2 className="text-lg font-semibold text-gray-800">
+                فیلترها و جستجو
+              </h2>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                شاخه
-              </label>
-              <select
-                value={filters.branch}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, branch: e.target.value }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {branchOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  دوره تحصیلی
+                </label>
+                <select
+                  value={filters.course}
+                  onChange={(e) => handleCourseChange(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {courseOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                جستجوی منطقه
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="نام یا کد منطقه"
-                  value={filters.search}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  شاخه
+                </label>
+                <select
+                  value={filters.branch}
                   onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, search: e.target.value }))
+                    setFilters((prev) => ({ ...prev, branch: e.target.value }))
                   }
-                  className="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <FaSearch className="absolute left-3 top-3 text-gray-400" />
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {branchOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  جستجوی منطقه
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="نام یا کد منطقه"
+                    value={filters.search}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        search: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 pl-8 text-sm border border-gray-300 rounded-lg text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <FaSearch className="absolute left-2.5 top-2.5 text-gray-400 text-sm" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  مرتب‌سازی
+                </label>
+                <select
+                  value={filters.sortBy}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, sortBy: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="registrationPercentage">درصد ثبت‌نام</option>
+                  <option value="currentYearStudents">سال جاری</option>
+                  <option value="previousYearStudents">سال قبل</option>
+                  <option value="districtName">نام منطقه</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col justify-end">
+                <button
+                  onClick={() =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
+                    }))
+                  }
+                  className="w-full px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+                >
+                  {filters.sortOrder === "asc" ? "↑" : "↓"}
+                  {filters.sortOrder === "asc" ? "صعودی" : "نزولی"}
+                </button>
+              </div>
+
+              <div className="flex flex-col justify-end">
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className={`w-full px-3 py-2 text-sm rounded-lg flex items-center justify-center gap-2 ${
+                    refreshing
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-600 hover:bg-green-700"
+                  } text-white`}
+                >
+                  <FaSync
+                    className={`text-sm ${refreshing ? "animate-spin" : ""}`}
+                  />
+                  {refreshing ? "بروز..." : "بروزرسانی"}
+                </button>
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                مرتب‌سازی بر اساس
-              </label>
-              <select
-                value={filters.sortBy}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, sortBy: e.target.value }))
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="registrationPercentage">درصد ثبت‌نام</option>
-                <option value="currentYearStudents">
-                  دانش‌آموزان سال جاری
-                </option>
-                <option value="previousYearStudents">
-                  دانش‌آموزان سال قبل
-                </option>
-                <option value="classifiedStudents">کلاس‌بندی شده</option>
-                <option value="femaleStudents">دانش‌آموزان دختر</option>
-                <option value="maleStudents">دانش‌آموزان پسر</option>
-                <option value="totalClasses">تعداد کلاس‌ها</option>
-                <option value="examCentersCount">تعداد مدارس</option>
-                <option value="growthRate">نرخ رشد</option>
-                <option value="districtName">نام منطقه</option>
-                <option value="districtCode">کد منطقه</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                دانلود گزارش
-              </label>
+            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <span>
+                  نمایش {displayedDistricts.length} از{" "}
+                  {filteredDistricts.length} منطقه
+                </span>
+                <select
+                  value={gridSize}
+                  onChange={(e) => setGridSize(Number(e.target.value))}
+                  className="text-sm border rounded px-2 py-1 text-gray-800"
+                >
+                  <option value={8}>8</option>
+                  <option value={12}>12</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                  <option value={100}>همه</option>
+                </select>
+              </div>
               <button
                 onClick={exportToExcel}
-                className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center justify-center gap-2"
+                className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 flex items-center gap-2"
               >
                 <FaDownload />
                 دانلود اکسل
               </button>
             </div>
+          </div>
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                بروزرسانی
-              </label>
+        {/* تب‌ها */}
+        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+          <div className="border-b">
+            <nav className="flex">
               <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className={`w-full px-4 py-2 rounded-md flex items-center justify-center gap-2 ${
-                  refreshing
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
-                } text-white`}
+                onClick={() => setActiveTab("charts")}
+                className={`px-6 py-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
+                  activeTab === "charts"
+                    ? "border-blue-500 text-blue-600 bg-blue-50"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                }`}
               >
-                <FaSync className={refreshing ? "animate-spin" : ""} />
-                {refreshing ? "در حال بروزرسانی..." : "بروزرسانی"}
+                <FaChartBar />
+                نمودارها
               </button>
-            </div>
-          </div>
-
-          {/* کنترل مرتب‌سازی */}
-          <div className="flex items-center justify-between pt-4 border-t">
-            <button
-              onClick={() =>
-                setFilters((prev) => ({
-                  ...prev,
-                  sortOrder: prev.sortOrder === "asc" ? "desc" : "asc",
-                }))
-              }
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
-            >
-              {filters.sortOrder === "asc" ? "↑" : "↓"}
-              {filters.sortOrder === "asc" ? "صعودی" : "نزولی"}
-            </button>
-          </div>
-        </div>
-
-        {/* نمودار وضعیت ثبت نام */}
-        <RegistrationStatusChart
-          data={filteredDistricts}
-          currentYear={currentYear}
-          previousYear={previousYear}
-          title="گزارش وضعیت ثبت نام مناطق"
-        />
-        {/* راهنمای رنگ‌ها */}
-        <div className="bg-white p-4 rounded-lg shadow-md mb-6 text-green-900">
-          <h3 className="text-lg font-semibold mb-3">راهنمای رنگ‌ها:</h3>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-red-200 border border-red-300 rounded mr-2"></div>
-              <span className="text-sm">کمتر از 25% (قرمز)</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-orange-200 border border-orange-300 rounded mr-2"></div>
-              <span className="text-sm">25% تا 75% (نارنجی)</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></div>
-              <span className="text-sm">75% تا 90% (سبز کم رنگ)</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-green-200 border border-green-400 rounded mr-2"></div>
-              <span className="text-sm">بیشتر از 90% (سبز)</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* کاشی‌های مناطق */}
-      <div
-        className={`grid gap-6 ${
-          gridSize <= 4
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            : gridSize <= 8
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            : gridSize <= 12
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            : gridSize <= 16
-            ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4"
-            : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
-        }`}
-      >
-        {displayedDistricts.map((districtData) => (
-          <div
-            key={districtData.district._id}
-            onClick={() => handleDistrictClick(districtData.district._id)}
-            className={`${getCardColor(
-              districtData.registrationPercentage
-            )} border-2 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow duration-200`}
-          >
-            <div className="flex justify-between items-start mb-3">
-              <div>
-                <h3 className="font-bold text-lg text-gray-800">
-                  {districtData.district.name}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  کد: {districtData.district.code}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {districtData.district.province.name}
-                </p>
-              </div>
-              <div
-                className={`text-2xl font-bold ${getPercentageColor(
-                  districtData.registrationPercentage
-                )}`}
+              <button
+                onClick={() => setActiveTab("districts")}
+                className={`px-6 py-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
+                  activeTab === "districts"
+                    ? "border-blue-500 text-blue-600 bg-blue-50"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                }`}
               >
-                {districtData.registrationPercentage}%
-              </div>
-            </div>
+                <FaMapMarkedAlt />
+                مناطق ({filteredDistricts.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("current-year")}
+                className={`px-6 py-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
+                  activeTab === "current-year"
+                    ? "border-blue-500 text-blue-600 bg-blue-50"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <FaCalendarAlt />
+                آمار سال جاری
+              </button>
+              <button
+                onClick={() => setActiveTab("previous-year")}
+                className={`px-6 py-4 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
+                  activeTab === "previous-year"
+                    ? "border-blue-500 text-blue-600 bg-blue-50"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <FaTable />
+                آمار سال گذشته
+              </button>
+            </nav>
+          </div>
 
-            <div className="space-y-2 text-sm text-gray-800">
-              <div className="flex justify-between">
-                <span>سال جاری:</span>
-                <span className="font-semibold">
-                  {districtData.currentYearStats.totalStudents.toLocaleString()}{" "}
-                  نفر
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>سال قبل:</span>
-                <span className="font-semibold">
-                  {districtData.previousYearStats.totalStudents.toLocaleString()}{" "}
-                  نفر
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>تعداد مدارس:</span>
-                <span className="font-semibold">
-                  {districtData.examCentersCount} مدرسه
-                </span>
-              </div>
-            </div>
+          {/* محتوای تب‌ها */}
+          <div className="p-6">
+            {activeTab === "charts" && (
+              <div className="space-y-6">
+                <RegistrationStatusChart
+                  data={filteredDistricts}
+                  currentYear={currentYear}
+                  previousYear={previousYear}
+                  title="گزارش وضعیت ثبت نام مناطق"
+                />
 
-            {/* آمار تفکیکی دوره‌ها */}
-            {districtData.periodBreakdown &&
-              Object.keys(districtData.periodBreakdown).length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-300">
-                  <h4 className="text-xs font-semibold text-gray-700 mb-2">
-                    آمار بر اساس دوره:
-                  </h4>
-                  <div className="space-y-1 ">
-                    {Object.entries(districtData.periodBreakdown).map(
-                      ([period, stats]) => (
-                        <div
-                          key={period}
-                          className="flex justify-between text-xs text-gray-800"
-                        >
-                          <span>{period}:</span>
-                          <span>{stats.totalStudents.toLocaleString()}</span>
-                        </div>
-                      )
-                    )}
+                <div className="bg-gray-50 p-4 rounded-lg border">
+                  <h3 className="text-lg font-semibold mb-3 text-gray-800">
+                    راهنمای رنگ‌ها:
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 bg-red-200 border border-red-300 rounded mr-2"></div>
+                      <span className="text-sm text-gray-700">کمتر از 25%</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 bg-orange-200 border border-orange-300 rounded mr-2"></div>
+                      <span className="text-sm text-gray-700">25% تا 75%</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></div>
+                      <span className="text-sm text-gray-700">75% تا 90%</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 bg-green-200 border border-green-400 rounded mr-2"></div>
+                      <span className="text-sm text-gray-700">
+                        بیشتر از 90%
+                      </span>
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
+
+            {activeTab === "districts" && (
+              <div>
+                <div
+                  className={`grid gap-4 ${
+                    gridSize <= 8
+                      ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                      : gridSize <= 16
+                      ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4"
+                      : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+                  }`}
+                >
+                  {displayedDistricts.map((districtData) => (
+                    <div
+                      key={districtData.district._id}
+                      onClick={() =>
+                        handleDistrictClick(districtData.district._id)
+                      }
+                      className={`${getCardColor(
+                        districtData.registrationPercentage
+                      )} border-2 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]`}
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="font-bold text-lg text-gray-800">
+                            {districtData.district.name}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            کد: {districtData.district.code}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {districtData.district.province.name}
+                          </p>
+                        </div>
+                        <div
+                          className={`text-2xl font-bold ${getPercentageColor(
+                            districtData.registrationPercentage
+                          )}`}
+                        >
+                          {districtData.registrationPercentage}%
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-sm text-gray-800">
+                        <div className="flex justify-between">
+                          <span>سال جاری:</span>
+                          <span className="font-semibold">
+                            {districtData.currentYearStats.totalStudents.toLocaleString()}{" "}
+                            نفر
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>سال قبل:</span>
+                          <span className="font-semibold">
+                            {districtData.previousYearStats.totalStudents.toLocaleString()}{" "}
+                            نفر
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>تعداد مدارس:</span>
+                          <span className="font-semibold">
+                            {districtData.examCentersCount} مدرسه
+                          </span>
+                        </div>
+                      </div>
+
+                      {districtData.periodBreakdown &&
+                        Object.keys(districtData.periodBreakdown).length >
+                          0 && (
+                          <div className="mt-3 pt-3 border-t border-gray-300">
+                            <h4 className="text-xs font-semibold text-gray-700 mb-2">
+                              آمار بر اساس دوره:
+                            </h4>
+                            <div className="space-y-1">
+                              {Object.entries(districtData.periodBreakdown).map(
+                                ([period, stats]) => (
+                                  <div
+                                    key={period}
+                                    className="flex justify-between text-xs text-gray-800"
+                                  >
+                                    <span>{period}:</span>
+                                    <span>
+                                      {stats.totalStudents.toLocaleString()}
+                                    </span>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  ))}
+                </div>
+
+                {filteredDistricts.length > gridSize && (
+                  <div className="text-center mt-6 flex gap-4 justify-center">
+                    <button
+                      onClick={() =>
+                        setGridSize((prev) =>
+                          Math.min(prev + 12, filteredDistricts.length)
+                        )
+                      }
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      نمایش بیشتر ({filteredDistricts.length - gridSize} منطقه
+                      باقی مانده)
+                    </button>
+                    <button
+                      onClick={() => setGridSize(filteredDistricts.length)}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      نمایش همه ({filteredDistricts.length} منطقه)
+                    </button>
+                  </div>
+                )}
+
+                {filteredDistricts.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-lg">
+                      هیچ منطقه‌ای یافت نشد
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "current-year" && (
+              <div>
+                <CurrentYearStudentStats filters={filters} />
+              </div>
+            )}
+
+            {activeTab === "previous-year" && (
+              <div>
+                <PreviousYearStudentStats filters={filters} />
+              </div>
+            )}
           </div>
-        ))}
+        </div>
       </div>
-
-      {/* دکمه نمایش بیشتر */}
-      {filteredDistricts.length > gridSize && (
-        <div className="text-center mt-6 flex gap-4 justify-center">
-          <button
-            onClick={() =>
-              setGridSize((prev) =>
-                Math.min(prev + 12, filteredDistricts.length)
-              )
-            }
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            نمایش بیشتر ({filteredDistricts.length - gridSize} منطقه باقی مانده)
-          </button>
-          <button
-            onClick={() => setGridSize(filteredDistricts.length)}
-            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-          >
-            نمایش همه ({filteredDistricts.length} منطقه)
-          </button>
-        </div>
-      )}
-
-      {filteredDistricts.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">هیچ منطقه‌ای یافت نشد</p>
-        </div>
-      )}
     </div>
   );
 }
