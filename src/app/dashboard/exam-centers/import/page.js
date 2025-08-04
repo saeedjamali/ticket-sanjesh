@@ -134,6 +134,7 @@ export default function ImportExamCentersPage() {
               <li>9. کد شاخه</li>
               <li>10. تعداد دانش آموز</li>
               <li>11. کد نوع واحد سازمانی</li>
+              <li>12. موقعیت جغرافیایی (شهری، روستایی، خارج کشور)</li>
             </ol>
           </div>
           <div className="mt-4">

@@ -226,6 +226,7 @@ export async function POST(request) {
       branch,
       studentCount,
       organizationType,
+      geographicalLocation,
     } = await request.json();
 
     // Validate required fields
@@ -236,13 +237,14 @@ export async function POST(request) {
       !gender ||
       !course ||
       !branch ||
-      !organizationType
+      !organizationType ||
+      !geographicalLocation
     ) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "نام، کد، منطقه، جنسیت، دوره، شاخه و نوع واحد سازمانی الزامی است",
+            "نام، کد، منطقه، جنسیت، دوره، شاخه، نوع واحد سازمانی و موقعیت جغرافیایی الزامی است",
         },
         { status: 400 }
       );
@@ -299,6 +301,19 @@ export async function POST(request) {
       );
     }
 
+    // Validate geographical location
+    const validLocations = ["شهری", "روستایی", "خارج کشور"];
+    if (!validLocations.includes(geographicalLocation)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "موقعیت جغرافیایی باید یکی از مقادیر شهری، روستایی یا خارج کشور باشد",
+        },
+        { status: 400 }
+      );
+    }
+
     // Check if user has access to this district
     const district = await District.findById(districtId).populate("province");
     if (!district) {
@@ -344,6 +359,7 @@ export async function POST(request) {
       branch: branch,
       studentCount: studentCount ? Number(studentCount) : undefined,
       organizationType: organizationType,
+      geographicalLocation: geographicalLocation,
       createdAt: new Date(),
       createdBy: user.id,
     });

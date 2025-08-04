@@ -32,6 +32,7 @@ export default function ExamCentersPage() {
     branch: "",
     studentCount: "",
     organizationType: "",
+    geographicalLocation: "",
   });
 
   const [selectedFilters, setSelectedFilters] = useState({
@@ -330,6 +331,7 @@ export default function ExamCentersPage() {
       course: "دوره",
       branch: "شاخه",
       organizationType: "نوع واحد سازمانی",
+      geographicalLocation: "موقعیت جغرافیایی",
     };
 
     const missingFields = Object.entries(requiredFields)
@@ -360,6 +362,7 @@ export default function ExamCentersPage() {
           ? Number(newExamCenter.studentCount)
           : undefined,
         organizationType: newExamCenter.organizationType,
+        geographicalLocation: newExamCenter.geographicalLocation,
       };
 
       console.log("Sending data to API:", examCenterData);
@@ -736,26 +739,48 @@ export default function ExamCentersPage() {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             افزودن واحد سازمانی جدید
           </h2>
-          <Link
-            href="/dashboard/exam-centers/import"
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-1"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          <div className="flex gap-2">
+            <Link
+              href="/dashboard/exam-centers/update-locations"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md flex items-center gap-1"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-              />
-            </svg>
-            افزودن گروهی واحدهای سازمانی
-          </Link>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                />
+              </svg>
+              بروزرسانی موقعیت جغرافیایی
+            </Link>
+            <Link
+              href="/dashboard/exam-centers/import"
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-1"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+              افزودن گروهی واحدهای سازمانی
+            </Link>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -1027,6 +1052,30 @@ export default function ExamCentersPage() {
                   {orgType.unitTypeTitle}
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="geographicalLocation"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              موقعیت جغرافیایی *
+            </label>
+            <select
+              id="geographicalLocation"
+              name="geographicalLocation"
+              value={newExamCenter.geographicalLocation}
+              onChange={(e) =>
+                handleChange("geographicalLocation", e.target.value)
+              }
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              required
+            >
+              <option value="">انتخاب موقعیت جغرافیایی</option>
+              <option value="شهری">شهری</option>
+              <option value="روستایی">روستایی</option>
+              <option value="خارج کشور">خارج کشور</option>
             </select>
           </div>
 

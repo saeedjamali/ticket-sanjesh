@@ -104,6 +104,7 @@ export async function POST(request) {
           ? parseInt(row[9].toString().trim(), 10)
           : undefined;
         const organizationTypeCode = row[10]?.toString().trim();
+        const geographicalLocation = row[11]?.toString().trim();
 
         // بررسی مقادیر الزامی
         if (!name) {
@@ -126,6 +127,18 @@ export async function POST(request) {
         // بررسی اگر تعداد دانش آموز وارد شده عدد صحیح است
         if (studentCount !== undefined && isNaN(studentCount)) {
           throw new Error("تعداد دانش آموز باید عدد صحیح باشد");
+        }
+
+        // بررسی موقعیت جغرافیایی
+        if (!geographicalLocation) {
+          throw new Error("موقعیت جغرافیایی الزامی است");
+        }
+
+        const validLocations = ["شهری", "روستایی", "خارج کشور"];
+        if (!validLocations.includes(geographicalLocation)) {
+          throw new Error(
+            "موقعیت جغرافیایی باید یکی از مقادیر شهری، روستایی یا خارج کشور باشد"
+          );
         }
 
         // تبدیل کدها به ObjectId
@@ -208,6 +221,7 @@ export async function POST(request) {
           branch: branchId || undefined,
           studentCount: studentCount || undefined,
           organizationType: organizationTypeId || undefined,
+          geographicalLocation: geographicalLocation,
           createdBy: user.id,
           isActive: true,
         });

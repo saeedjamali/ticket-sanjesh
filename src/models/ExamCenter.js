@@ -62,6 +62,15 @@ const examCenterSchema = new mongoose.Schema(
       ref: "OrganizationalUnitType",
       required: [true, "نوع واحد سازمانی الزامی است"],
     },
+    geographicalLocation: {
+      type: String,
+      enum: {
+        values: ["شهری", "روستایی", "خارج کشور"],
+        message:
+          "موقعیت جغرافیایی باید یکی از مقادیر شهری، روستایی یا خارج کشور باشد",
+      },
+      required: [true, "موقعیت جغرافیایی الزامی است"],
+    },
     isActive: {
       type: Boolean,
       default: true,
