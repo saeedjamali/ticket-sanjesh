@@ -1,6 +1,7 @@
 @import url("../style/font.css");
 @import url("../style/responsive-utils.css");
 @import url("../style/responsive-typography.css");
+@import url("../style/sidebar-colors.css");
 @import "tailwindcss";
 
 * {

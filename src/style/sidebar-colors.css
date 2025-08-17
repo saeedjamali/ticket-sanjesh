@@ -1,0 +1,86 @@
+/* Sidebar Color Fallbacks - برای اطمینان از نمایش رنگ‌ها در همه مانیتورها */
+
+/* تعریف متغیرهای رنگی با پشتیبانی از مانیتورهای مختلف */
+:root {
+    --sidebar-bg: #111827;
+    --sidebar-header-bg: #374151;
+    --sidebar-text: #ffffff;
+    --sidebar-hover: #4b5563;
+    --sidebar-active: #6b7280;
+
+    /* رنگ‌های fallback برای مانیتورهای قدیمی */
+    --sidebar-bg-fallback: rgb(17, 24, 39);
+    --sidebar-header-bg-fallback: rgb(55, 65, 81);
+    --sidebar-text-fallback: rgb(255, 255, 255);
+    --sidebar-hover-fallback: rgb(75, 85, 99);
+    --sidebar-active-fallback: rgb(107, 114, 128);
+}
+
+/* اعمال رنگ‌های fallback برای sidebar */
+.sidebar-container {
+    background-color: var(--sidebar-bg-fallback) !important;
+    background-color: var(--sidebar-bg) !important;
+    color: var(--sidebar-text-fallback) !important;
+    color: var(--sidebar-text) !important;
+}
+
+.sidebar-header {
+    background-color: var(--sidebar-header-bg-fallback) !important;
+    background-color: var(--sidebar-header-bg) !important;
+    border-bottom-color: var(--sidebar-header-bg-fallback) !important;
+    border-bottom-color: var(--sidebar-header-bg) !important;
+}
+
+.sidebar-menu-item {
+    color: var(--sidebar-text-fallback) !important;
+    color: var(--sidebar-text) !important;
+}
+
+.sidebar-menu-item:hover {
+    background-color: var(--sidebar-hover-fallback) !important;
+    background-color: var(--sidebar-hover) !important;
+}
+
+.sidebar-menu-item.active {
+    background-color: var(--sidebar-active-fallback) !important;
+    background-color: var(--sidebar-active) !important;
+}
+
+/* تنظیمات ویژه برای مانیتورهای با color space محدود */
+@media screen and (color-gamut: srgb) {
+    :root {
+        --sidebar-bg: rgb(17, 24, 39);
+        --sidebar-header-bg: rgb(55, 65, 81);
+        --sidebar-text: rgb(255, 255, 255);
+        --sidebar-hover: rgb(75, 85, 99);
+        --sidebar-active: rgb(107, 114, 128);
+    }
+}
+
+/* پشتیبانی از dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --sidebar-bg: #0f172a;
+        --sidebar-header-bg: #1e293b;
+        --sidebar-text: #f8fafc;
+        --sidebar-hover: #334155;
+        --sidebar-active: #475569;
+    }
+}
+
+/* اطمینان از نمایش متن در تمام شرایط */
+.sidebar-text-force {
+    color: white !important;
+    color: var(--sidebar-text) !important;
+}
+
+/* پشتیبانی از مانیتورهای با contrast کم */
+@media (prefers-contrast: high) {
+    :root {
+        --sidebar-bg: #000000;
+        --sidebar-header-bg: #1a1a1a;
+        --sidebar-text: #ffffff;
+        --sidebar-hover: #333333;
+        --sidebar-active: #4d4d4d;
+    }
+}

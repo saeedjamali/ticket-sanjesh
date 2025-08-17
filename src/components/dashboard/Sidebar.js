@@ -44,7 +44,6 @@ const icons = {
   events: <FaCalendarAlt className="h-5 w-5" />,
   statusReports: <FaChartLine className="h-5 w-5" />,
   edit: <FaEdit className="h-5 w-5" />,
-
 };
 
 export default function Sidebar({ user, children }) {
@@ -70,7 +69,7 @@ export default function Sidebar({ user, children }) {
       {/* Desktop sidebar toggle button */}
       <button
         onClick={toggleSidebar}
-        className=" lg:flex fixed top-3 right-5 z-50 p-2 rounded-md bg-gray-800 text-white shadow-lg items-center"
+        className=" lg:flex fixed top-3 right-5 z-50 p-2 rounded-md bg-gray-900 text-white shadow-lg items-center hover:bg-gray-700 transition-colors duration-300"
         aria-label="Toggle sidebar"
       >
         {isOpen ? (
@@ -83,7 +82,7 @@ export default function Sidebar({ user, children }) {
       {/* Overlay for mobile - appears when sidebar is open */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-transparent bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-transparent bg-opacity-50 z-40 lg:hidden "
           onClick={toggleSidebar}
           aria-hidden="true"
         />
@@ -91,38 +90,69 @@ export default function Sidebar({ user, children }) {
 
       {/* Sidebar */}
       <aside
-        className={`bg-gray-800 text-white w-[85vw] sm:w-80 lg:w-64 min-h-screen fixed right-0 z-50 transition-transform duration-300 transform rounded-l-2xl shadow-xl overflow-y-auto ${
+        className={`sidebar-container bg-gray-900 text-white w-[85vw] sm:w-80 lg:w-64 min-h-screen fixed right-0 z-50 transition-transform duration-300 transform rounded-l-2xl shadow-xl overflow-y-auto ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
+        style={{
+          backgroundColor: "#111827", // fallback color for bg-gray-900
+          color: "#ffffff",
+          minHeight: "100vh",
+        }}
       >
-        <div className="flex justify-between items-center p-4 sticky top-0 bg-gray-800 z-10 border-b border-gray-700">
-          <h2 className="text-xl font-bold">پنل کاربری</h2>
+        <div
+          className="sidebar-header flex justify-between items-center p-4 sticky top-0 bg-gray-700 z-10 border-b border-gray-700"
+          style={{
+            backgroundColor: "#374151", // fallback color for bg-gray-700
+            borderBottomColor: "#374151",
+          }}
+        >
+          <h2 className="text-xl font-bold text-white">پنل کاربری</h2>
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-md hover:bg-gray-700"
+            className="p-2 rounded-md hover:bg-gray-700 text-white"
+            style={{
+              color: "#ffffff",
+              backgroundColor: "transparent",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#374151")}
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = "transparent")
+            }
             aria-label="Close menu"
           >
             <FaTimes className="h-6 w-6" />
           </button>
         </div>
         <nav className="flex flex-col justify-between p-4">
-          <ul className="space-y-2">
+          <ul className="space-y-2 ">
             {menuItems.map((item) => (
               <li key={item.path}>
                 {item.submenu ? (
                   <div>
                     <button
                       onClick={() => toggleSubmenu(item.path)}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-700 transition-colors`}
+                      className={`w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-700 transition-colors text-white`}
+                      style={{
+                        color: "#ffffff",
+                        backgroundColor: "transparent",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.target.style.backgroundColor = "#374151")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.target.style.backgroundColor = "transparent")
+                      }
                     >
-                      <div className="flex items-center">
+                      <div className="flex items-center text-white">
                         <span className="ml-3">{icons[item.icon]}</span>
-                        <span className="text-[14px] font-iransans">{item.label}</span>
+                        <span className="text-[14px] font-iransans text-white">
+                          {item.label}
+                        </span>
                       </div>
                       {openSubmenu === item.path ? (
-                        <FaChevronUp className="h-4 w-4" />
+                        <FaChevronUp className="h-4 w-4 text-white" />
                       ) : (
-                        <FaChevronDown className="h-4 w-4" />
+                        <FaChevronDown className="h-4 w-4 text-white" />
                       )}
                     </button>
                     {openSubmenu === item.path && (
@@ -134,8 +164,10 @@ export default function Sidebar({ user, children }) {
                                 className="flex items-center justify-between p-2 rounded-lg cursor-not-allowed opacity-50 bg-gray-700/50"
                                 title="این بخش فعلاً در دسترس نیست"
                               >
-                                <span className="mr-2 text-[12px] font-iransans">{subItem.label}</span>
-                                <span className="text-md text-gray-400 bg-gray-600 px-2 py-1 rounded">
+                                <span className="mr-2 text-[12px] font-iransans text-white">
+                                  {subItem.label}
+                                </span>
+                                <span className="text-md text-gray-400 bg-gray-600 px-2 py-1 rounded text-white">
                                   غیرفعال
                                 </span>
                               </div>
@@ -152,7 +184,9 @@ export default function Sidebar({ user, children }) {
                                       toggleSidebar();
                                   }}
                                 >
-                                  <span className="mr-2 text-[12px] font-iransans">{subItem.label}</span>
+                                  <span className="mr-2 text-[12px] font-iransans">
+                                    {subItem.label}
+                                  </span>
                                 </div>
                               </Link>
                             )}
@@ -168,7 +202,9 @@ export default function Sidebar({ user, children }) {
                   >
                     <div className="flex items-center">
                       <span className="ml-3">{icons[item.icon]}</span>
-                      <span className="text-[14px] font-iransans">{item.label}</span>
+                      <span className="text-[14px] font-iransans">
+                        {item.label}
+                      </span>
                     </div>
                     <div className="flex items-center">
                       {item.badge && item.badge > 0 && (
@@ -195,7 +231,9 @@ export default function Sidebar({ user, children }) {
                     >
                       <div className="flex items-center">
                         <span className="ml-3">{icons[item.icon]}</span>
-                        <span className="text-[14px] font-iransans">{item.label}</span>
+                        <span className="text-[14px] font-iransans">
+                          {item.label}
+                        </span>
                       </div>
                       {item.badge && item.badge > 0 && (
                         <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
