@@ -114,7 +114,8 @@ export default function UpdateLocationsPage() {
             </p>
             <ul className="list-disc list-inside mt-2 text-yellow-600 text-sm">
               <li>
-                فایل اکسل باید شامل دو ستون "کد مرکز" و "موقعیت جغرافیایی" باشد
+                فایل اکسل باید شامل دو ستون &quot;کد مرکز&quot; و &quot;موقعیت
+                جغرافیایی&quot; باشد
               </li>
               <li>
                 موقعیت جغرافیایی فقط می‌تواند یکی از سه مقدار شهری، روستایی یا
