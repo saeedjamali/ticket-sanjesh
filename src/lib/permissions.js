@@ -48,6 +48,8 @@ export function getRolePermissions(role) {
     canViewProvinceDistricts: false,
     canViewProvinceExamCenters: false,
     canViewExamCenterTickets: false,
+    canManageSmartSchool: false,
+    canViewSmartSchoolReports: false,
     canCreateAnnouncements: false,
     canManageAnnouncements: false,
     canCreateForms: false,
@@ -136,6 +138,7 @@ export function getRolePermissions(role) {
       permissions.canCreateForms = true;
       permissions.canManageForms = true;
       permissions.canSubmitForms = true;
+      permissions.canViewSmartSchoolReports = true;
       break;
 
     case ROLES.DISTRICT_TECH_EXPERT:
@@ -145,6 +148,7 @@ export function getRolePermissions(role) {
       permissions.canViewDistrictTickets = true;
       permissions.canViewExamCenterTickets = true;
       permissions.canSubmitForms = true;
+      permissions.canViewSmartSchoolReports = true;
       break;
 
     case ROLES.DISTRICT_EDUCATION_EXPERT:
@@ -190,6 +194,7 @@ export function getRolePermissions(role) {
       permissions.canViewExamCenterStudents = true;
       permissions.canManageExamCenterStudents = true;
       permissions.canSubmitForms = true;
+      permissions.canManageSmartSchool = true;
       break;
   }
 
@@ -414,6 +419,27 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
     } else {
       activeMenuItems.push(formsMenuItem);
     }
+  }
+
+  // منوی مدرسه هوشمند - برای مدیران واحد سازمانی
+  if (role === ROLES.EXAM_CENTER_MANAGER) {
+    activeMenuItems.push({
+      label: "مدرسه هوشمند",
+      path: "/dashboard/smart-school",
+      icon: "smartSchool",
+    });
+  }
+
+  // منوی گزارش مدرسه هوشمند - برای کارشناسان فنی
+  if (
+    role === ROLES.PROVINCE_TECH_EXPERT ||
+    role === ROLES.DISTRICT_TECH_EXPERT
+  ) {
+    activeMenuItems.push({
+      label: "گزارش مدرسه هوشمند",
+      path: "/dashboard/smart-school-reports",
+      icon: "smartSchoolReports",
+    });
   }
 
   // منوی گزارش‌های ارسالی - برای کاربران که می‌توانند فرم ارسال کنند

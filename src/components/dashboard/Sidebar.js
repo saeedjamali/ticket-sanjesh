@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { getMenuItemsByRole } from "@/lib/permissions";
 import { usePendingFormsCount } from "@/hooks/usePendingFormsCount";
+import { useSmartSchoolStatus } from "@/hooks/useSmartSchoolStatus";
 import {
   FaTicketAlt,
   FaUsers,
@@ -25,6 +26,8 @@ import {
   FaClipboardList,
   FaCalendarAlt,
   FaEdit,
+  FaBrain,
+  FaChartBar,
 } from "react-icons/fa";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -44,11 +47,15 @@ const icons = {
   events: <FaCalendarAlt className="h-5 w-5" />,
   statusReports: <FaChartLine className="h-5 w-5" />,
   edit: <FaEdit className="h-5 w-5" />,
+  smartSchool: <FaBrain className="h-5 w-5" />,
+  smartSchoolReports: <FaChartBar className="h-5 w-5" />,
 };
 
 export default function Sidebar({ user, children }) {
   const pathname = usePathname();
   const { count: pendingFormsCount } = usePendingFormsCount();
+  const { hasSmartSchoolData, isLoading: smartSchoolLoading } =
+    useSmartSchoolStatus(user);
   const menuItems = getMenuItemsByRole(user?.role || "", pendingFormsCount);
   const { isOpen, toggleSidebar, openSubmenu, toggleSubmenu, isMobile } =
     useSidebar();
@@ -224,15 +231,42 @@ export default function Sidebar({ user, children }) {
                         pathname === item.path
                           ? "bg-blue-600"
                           : "hover:bg-gray-700"
+                      } ${
+                        // اگر منوی مدرسه هوشمند است و داده‌ای وجود ندارد، چشمک‌زن کن
+                        item.path === "/dashboard/smart-school" &&
+                        user?.role === "examCenterManager" &&
+                        hasSmartSchoolData === false &&
+                        !smartSchoolLoading
+                          ? "menu-item-incomplete"
+                          : ""
                       }`}
                       onClick={() => {
                         if (window.innerWidth < 1024) toggleSidebar();
                       }}
                     >
                       <div className="flex items-center">
-                        <span className="ml-3">{icons[item.icon]}</span>
+                        <span
+                          className={`ml-3 ${
+                            item.path === "/dashboard/smart-school" &&
+                            user?.role === "examCenterManager" &&
+                            hasSmartSchoolData === false &&
+                            !smartSchoolLoading
+                              ? "menu-icon"
+                              : ""
+                          }`}
+                        >
+                          {icons[item.icon]}
+                        </span>
                         <span className="text-[14px] font-iransans">
                           {item.label}
+                          {item.path === "/dashboard/smart-school" &&
+                            user?.role === "examCenterManager" &&
+                            hasSmartSchoolData === false &&
+                            !smartSchoolLoading && (
+                              <span className="mr-2 text-xs text-red-300">
+                                (ناتمام)
+                              </span>
+                            )}
                         </span>
                       </div>
                       {item.badge && item.badge > 0 && (
