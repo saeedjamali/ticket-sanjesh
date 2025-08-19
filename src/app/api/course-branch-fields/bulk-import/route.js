@@ -13,7 +13,7 @@ export async function POST(request) {
     const authToken = cookieStore?.get("refresh-token");
     const { user } = await authService.refreshToken(authToken?.value);
 
-    console.log("user---->", user);
+    // console.log("user---->", user);
     if (!user || user.role !== ROLES.SYSTEM_ADMIN) {
       return NextResponse.json({ error: "دسترسی غیرمجاز" }, { status: 403 });
     }

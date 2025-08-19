@@ -214,9 +214,7 @@ export default function UsersPage() {
 
   // فیلتر کردن واحدهای سازمانی بر اساس منطقه انتخاب شده
   const filteredExamCenters = (province, district) => {
-    console.log("province--->", province);
-    console.log("district--->", district);
-    console.log("examCenters--->", examCenters);
+  
     if (!province || !district) return [];
     if (!Array.isArray(examCenters)) return [];
 

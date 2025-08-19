@@ -17,6 +17,7 @@ import {
   FaInfoCircle,
   FaQuestionCircle,
   FaMapMarkedAlt,
+  FaSearch,
 } from "react-icons/fa";
 import {
   BarChart,
@@ -142,6 +143,7 @@ export default function SmartSchoolReportsPage() {
   const [error, setError] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [selectedDistrictName, setSelectedDistrictName] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     // خواندن پارامترهای URL
@@ -653,9 +655,37 @@ export default function SmartSchoolReportsPage() {
   const renderDetailedReport = () => {
     if (!reportData || !Array.isArray(reportData)) return null;
 
+    // فیلتر کردن بر اساس جستجو
+    const filteredSchools = reportData.filter((school) => {
+      const matchesSearch = 
+        school.examCenterCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        school.examCenterName?.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    });
+
     return (
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="space-y-4">
+        {/* جستجو */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="relative">
+            <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="جستجو بر اساس نام یا کد مرکز..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          {searchTerm && (
+            <div className="mt-2 text-sm text-gray-600">
+              نمایش {filteredSchools.length} از {reportData.length} مدرسه
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -694,8 +724,17 @@ export default function SmartSchoolReportsPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {reportData?.map((school, index) => (
+                         <tbody className="bg-white divide-y divide-gray-200">
+               {filteredSchools.length === 0 ? (
+                 <tr>
+                   <td colSpan="11" className="px-6 py-8 text-center text-gray-500">
+                     <FaSearch className="mx-auto text-4xl text-gray-400 mb-4" />
+                     <p className="text-lg mb-2">هیچ مدرسه‌ای یافت نشد</p>
+                     <p className="text-sm">لطفاً کلمات کلیدی دیگری را جستجو کنید</p>
+                   </td>
+                 </tr>
+               ) : (
+                 filteredSchools.map((school, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {school?.examCenterCode || "-"}
@@ -989,9 +1028,17 @@ export default function SmartSchoolReportsPage() {
 
     // استخراج لیست مدارس از گزارش detailed
     // اگر reportData خود یک آرایه است، از آن استفاده کن
-    const schools = Array.isArray(reportData)
+    const allSchools = Array.isArray(reportData)
       ? reportData
       : reportData.schools || [];
+
+    // فیلتر کردن بر اساس جستجو
+    const schools = allSchools.filter((school) => {
+      const matchesSearch = 
+        school.examCenterCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        school.examCenterName?.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    });
 
     const handleSchoolClick = (schoolCode) => {
       // رفتن به صفحه جزئیات مدرسه (می‌توانید URL مناسب را تعریف کنید)
@@ -1006,7 +1053,7 @@ export default function SmartSchoolReportsPage() {
           <div className="bg-blue-100 rounded-lg p-4 text-center">
             <FaBrain className="mx-auto text-3xl text-blue-600 mb-2" />
             <h3 className="text-lg font-semibold text-blue-800">کل مدارس</h3>
-            <p className="text-2xl font-bold text-blue-600">{schools.length}</p>
+            <p className="text-2xl font-bold text-blue-600">{allSchools.length}</p>
           </div>
           <div className="bg-green-100 rounded-lg p-4 text-center">
             <FaChartBar className="mx-auto text-3xl text-green-600 mb-2" />
@@ -1052,6 +1099,25 @@ export default function SmartSchoolReportsPage() {
           </div>
         </div>
 
+        {/* جستجو */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <div className="relative">
+            <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="جستجو بر اساس نام یا کد مرکز..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          {searchTerm && (
+            <div className="mt-2 text-sm text-gray-600">
+              نمایش {schools.length} از {allSchools.length} مدرسه
+            </div>
+          )}
+        </div>
+
         {/* جدول مدارس */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
@@ -1091,7 +1157,16 @@ export default function SmartSchoolReportsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {schools.map((school, index) => (
+                {schools.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
+                      <FaSearch className="mx-auto text-4xl text-gray-400 mb-4" />
+                      <p className="text-lg mb-2">هیچ مدرسه‌ای یافت نشد</p>
+                      <p className="text-sm">لطفاً کلمات کلیدی دیگری را جستجو کنید</p>
+                    </td>
+                  </tr>
+                ) : (
+                  schools.map((school, index) => (
                   <tr
                     key={school.examCenterCode}
                     className="hover:bg-gray-50 cursor-pointer"

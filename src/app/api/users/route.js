@@ -18,7 +18,7 @@ export async function GET(request) {
 
     const userAuth = await authService.validateToken(request);
 
-    console.log("userAuth--------------->", userAuth);
+    // console.log("userAuth--------------->", userAuth);
     if (!userAuth) {
       return NextResponse.json(
         { success: false, error: "عدم احراز هویت" },
@@ -30,7 +30,7 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
 
-    console.log("searchParams--------------->", searchParams);
+    // console.log("searchParams--------------->", searchParams);
     const role = searchParams.get("role");
     const province = searchParams.get("province");
     const district = searchParams.get("district");
@@ -77,7 +77,7 @@ export async function GET(request) {
         // کارشناسان استان فقط می‌توانند کاربران استان خود را ببینند
         query.province = userAuth.province;
         query.role = { $nin: [ROLES.SYSTEM_ADMIN, ROLES.GENERAL_MANAGER] };
-      } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT) {
+      } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT || userAuth.role === ROLES.DISTRICT_REGISTRATION_EXPERT ) {
         // کارشناسان منطقه فقط می‌توانند کاربران منطقه خود را ببینند
         query.district = userAuth.district;
         query.role = {
@@ -281,7 +281,7 @@ export async function POST(request) {
     // رمزنگاری رمز عبور
     // const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(data.password, 12);
-    console.log("hashedPassword 11---->", hashedPassword);
+    //console.log("hashedPassword 11---->", hashedPassword);
     // ایجاد کاربر جدید
     const user = await User.create({
       fullName: data.fullName.trim(),
@@ -295,8 +295,8 @@ export async function POST(request) {
       createdAt: new Date(),
       academicYear: academicYear.name,
     });
-    console.log("hashedPassword 22---->", hashedPassword);
-    console.log("user---->", user);
+    //console.log("hashedPassword 22---->", hashedPassword);
+   // console.log("user---->", user);
     if (requiresExamCenter.includes(data.role)) {
       await ExamCenter.findByIdAndUpdate(data.examCenter, {
         manager: user._id,
@@ -560,6 +560,7 @@ export async function PATCH(request) {
           ROLES.DISTRICT_EDUCATION_EXPERT,
           ROLES.DISTRICT_TECH_EXPERT,
           ROLES.DISTRICT_EVAL_EXPERT,
+           ROLES.DISTRICT_REGISTRATION_EXPERT
         ].includes(user.role)
       ) {
         hasPermission = true;
@@ -569,7 +570,7 @@ export async function PATCH(request) {
           hasPermission = false;
         }
       }
-    } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT) {
+    } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT || userAuth.role === ROLES.DISTRICT_REGISTRATION_EXPERT) {
       // District tech expert can change exam center managers' passwords
       if (user.role === ROLES.EXAM_CENTER_MANAGER) {
         hasPermission = true;

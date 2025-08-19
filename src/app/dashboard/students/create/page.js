@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaExchangeAlt } from "react-icons/fa";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import TransferRequestModal from "@/components/modals/TransferRequestModal";
 
 export default function CreateStudentPage() {
   const router = useRouter();
@@ -11,6 +12,7 @@ export default function CreateStudentPage() {
   const yearFilter = searchParams.get("yearFilter") || "current";
   const [loading, setLoading] = useState(false);
   const [submitMessage, setSubmitMessage] = useState("");
+  const [showTransferModal, setShowTransferModal] = useState(false);
 
   const [formData, setFormData] = useState({
     nationalId: "",
@@ -90,7 +92,10 @@ export default function CreateStudentPage() {
 
     if (!formData.nationalId) {
       newErrors.nationalId = "کد ملی الزامی است";
-    } else if (!/^\d{10}$/.test(formData.nationalId) && !/^\d{11}$/.test(formData.nationalId)) {
+    } else if (
+      !/^\d{10}$/.test(formData.nationalId) &&
+      !/^\d{11}$/.test(formData.nationalId)
+    ) {
       newErrors.nationalId = "کد ملی میتواند 10 یا 11 رقم باشد";
     }
 
@@ -201,6 +206,17 @@ export default function CreateStudentPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* دکمه درخواست جابجایی */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowTransferModal(true)}
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <FaExchangeAlt />
+            درخواست جابجایی
+          </button>
         </div>
       </div>
 
@@ -547,6 +563,13 @@ export default function CreateStudentPage() {
           </div>
         </form>
       </div>
+
+      {/* مودال درخواست جابجایی */}
+      <TransferRequestModal
+        isOpen={showTransferModal}
+        onClose={() => setShowTransferModal(false)}
+        academicYear={helpers.activeAcademicYear}
+      />
     </div>
   );
 }

@@ -35,7 +35,7 @@ export async function POST(request) {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      console.log("Password is not valid");
+      // console.log("Password is not valid");
       return NextResponse.json(
         { message: "کد ملی یا رمز عبور اشتباه است" },
         { status: 404 }

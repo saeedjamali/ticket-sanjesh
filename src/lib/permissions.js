@@ -258,6 +258,10 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
           path: "/dashboard/students/previous",
         },
         {
+          label: "درخواست‌های جابجایی",
+          path: "/dashboard/transfer-requests",
+        },
+        {
           label: "بازمانده از تحصیل",
           path: "/dashboard/students/dropouts",
           disabled: true,
@@ -305,7 +309,9 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
     role === ROLES.SYSTEM_ADMIN ||
     role === ROLES.GENERAL_MANAGER ||
     role === ROLES.PROVINCE_TECH_EXPERT ||
-    role === ROLES.DISTRICT_TECH_EXPERT
+    role === ROLES.DISTRICT_TECH_EXPERT ||
+    role === ROLES.PROVINCE_REGISTRATION_EXPERT ||
+    role === ROLES.DISTRICT_REGISTRATION_EXPERT
   ) {
     activeMenuItems.push({
       label: "کاربران",
@@ -472,6 +478,19 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "درخواست‌های اصلاح آمار",
       path: "/dashboard/correction-requests",
       icon: "edit",
+    });
+  }
+
+  // منوی درخواست‌های جابجایی - برای کارشناسان استانی
+  if (
+    role === ROLES.PROVINCE_REGISTRATION_EXPERT ||
+    role === ROLES.PROVINCE_TECH_EXPERT ||
+    role === ROLES.DISTRICT_REGISTRATION_EXPERT
+  ) {
+    activeMenuItems.push({
+      label: "درخواست‌های جابجایی",
+      path: "/dashboard/transfer-requests",
+      icon: "transferRequests",
     });
   }
   activeMenuItems.push({

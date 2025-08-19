@@ -37,6 +37,7 @@ export async function GET(req) {
 
     const { searchParams } = new URL(req.url);
     const reportType = searchParams.get("type") || "detailed";
+    const districtFilter = searchParams.get("district"); // فیلتر منطقه از URL
 
     let query = {};
 
@@ -63,6 +64,17 @@ export async function GET(req) {
       }
     }
 
+    // اعمال فیلتر منطقه اگر از URL ارسال شده باشد
+    if (districtFilter) {
+      // برای کارشناس فنی استان، اجازه فیلتر بر اساس منطقه
+      if (
+        user.role === ROLES.PROVINCE_TECH_EXPERT ||
+        user.role === "provinceTechExpert"
+      ) {
+        query.districtCode = districtFilter;
+      }
+    }
+
     const smartSchools = await SmartSchool.find(query);
 
     // دریافت نام مراکز
@@ -74,6 +86,15 @@ export async function GET(req) {
       acc[center.code] = center.name;
       return acc;
     }, {});
+
+    // دریافت نام منطقه فیلتر شده
+    let selectedDistrictName = null;
+    if (districtFilter) {
+      const selectedDistrict = await District.findOne({ code: districtFilter });
+      if (selectedDistrict) {
+        selectedDistrictName = selectedDistrict.name;
+      }
+    }
 
     let excelData = [];
     let fileName = "smart-school-report";
@@ -139,6 +160,36 @@ export async function GET(req) {
           "اولویت‌های بهبود": school.improvementPriorities.join("؛ "),
         }));
         fileName = "smart-school-improvements-report";
+        break;
+
+      case "districts":
+        if (districtFilter) {
+          // اگر فیلتر منطقه اعمال شده، لیست مدارس را export کن
+          excelData = smartSchools.map((school) => ({
+            "کد مرکز": school.examCenterCode,
+            "نام مرکز":
+              examCenterNames[school.examCenterCode] || "نام مرکز یافت نشد",
+            امتیاز: school.smartSchoolScore,
+            "کل کلاس‌ها": school.totalClassrooms,
+            "کلاس‌های هوشمند": school.smartClassrooms,
+            "درصد هوشمندسازی":
+              school.totalClassrooms > 0
+                ? Math.round(
+                    (school.smartClassrooms / school.totalClassrooms) * 100
+                  )
+                : 0,
+            وای‌فای: school.wifiAvailable ? "دارد" : "ندارد",
+            "اتصال اینترنت": school.internetConnection,
+            "سرعت اینترنت": school.internetSpeed,
+          }));
+          fileName = `smart-school-schools-${
+            selectedDistrictName || districtFilter
+          }-report`;
+        } else {
+          // در غیر این صورت، لیست مناطق را export کن (این بخش نیاز به پیاده‌سازی دارد)
+          excelData = [{ پیام: "گزارش مناطق هنوز پیاده‌سازی نشده" }];
+          fileName = "smart-school-districts-report";
+        }
         break;
 
       case "summary":

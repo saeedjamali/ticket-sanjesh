@@ -55,7 +55,7 @@ export async function PATCH(request) {
     } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
       // Province tech expert can change district experts' passwords
       if (
-        [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT].includes(
+        [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT,ROLES.DISTRICT_REGISTRATION_EXPERT].includes(
           user.role
         )
       ) {
@@ -66,7 +66,7 @@ export async function PATCH(request) {
           hasPermission = false;
         }
       }
-    } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT) {
+    } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT || userAuth.role === ROLES.DISTRICT_REGISTRATION_EXPERT) {
       // District tech expert can change exam center managers' passwords
       if (user.role === ROLES.EXAM_CENTER_MANAGER) {
         hasPermission = true;

@@ -36,6 +36,7 @@ export async function GET(req) {
 
     const { searchParams } = new URL(req.url);
     const reportType = searchParams.get("type") || "summary";
+    const districtFilter = searchParams.get("district"); // فیلتر منطقه از URL
 
     let query = {};
 
@@ -64,11 +65,35 @@ export async function GET(req) {
       }
     }
 
+    // اعمال فیلتر منطقه اگر از URL ارسال شده باشد
+    if (districtFilter) {
+      // برای کارشناس فنی استان، اجازه فیلتر بر اساس منطقه
+      if (
+        user.role === ROLES.PROVINCE_TECH_EXPERT ||
+        user.role === "provinceTechExpert"
+      ) {
+        query.districtCode = districtFilter;
+      }
+    }
+
     const smartSchools = await SmartSchool.find(query);
+
+    // دریافت نام منطقه فیلتر شده
+    let selectedDistrictName = null;
+    if (districtFilter) {
+      const selectedDistrict = await District.findOne({ code: districtFilter });
+      if (selectedDistrict) {
+        selectedDistrictName = selectedDistrict.name;
+      }
+    }
 
     // دریافت نام مراکز برای گزارش‌های جزئی
     let examCenterNames = {};
-    if (reportType === "detailed" || reportType === "improvements") {
+    if (
+      reportType === "detailed" ||
+      reportType === "improvements" ||
+      (reportType === "districts" && districtFilter)
+    ) {
       const centerCodes = [
         ...new Set(smartSchools.map((s) => s.examCenterCode)),
       ];
@@ -96,6 +121,15 @@ export async function GET(req) {
       case "improvements":
         reportData = generateImprovementsReport(smartSchools, examCenterNames);
         break;
+      case "districts":
+        if (districtFilter) {
+          // اگر فیلتر منطقه اعمال شده، لیست مدارس را ارسال کن
+          reportData = generateDetailedReport(smartSchools, examCenterNames);
+        } else {
+          // در غیر این صورت لیست مناطق را ارسال کن
+          reportData = await generateDistrictsReport(smartSchools, user);
+        }
+        break;
       default:
         reportData = generateSummaryReport(smartSchools);
     }
@@ -104,6 +138,8 @@ export async function GET(req) {
       success: true,
       data: reportData,
       totalCount: smartSchools.length,
+      selectedDistrictName: selectedDistrictName,
+      districtFilter: districtFilter,
     });
   } catch (error) {
     console.error("Error generating smart school reports:", error);
@@ -445,6 +481,145 @@ function generateImprovementsReport(smartSchools, examCenterNames = {}) {
           ? Math.round((school.smartClassrooms / school.totalClassrooms) * 100)
           : 0,
     })),
+  };
+}
+
+async function generateDistrictsReport(smartSchools, user) {
+  // گروه‌بندی بر اساس کد منطقه
+  const districtGroups = smartSchools.reduce((acc, school) => {
+    const districtCode = school.districtCode;
+    if (!acc[districtCode]) {
+      acc[districtCode] = [];
+    }
+    acc[districtCode].push(school);
+    return acc;
+  }, {});
+
+  // دریافت نام مناطق
+  const districtCodes = Object.keys(districtGroups);
+  const districts = await District.find({
+    code: { $in: districtCodes },
+  }).select("code name");
+  const districtNames = districts.reduce((acc, district) => {
+    acc[district.code] = district.name;
+    return acc;
+  }, {});
+
+  // محاسبه آمار هر منطقه
+  const districtStats = Object.entries(districtGroups).map(
+    ([districtCode, schools]) => {
+      const totalSchools = schools.length;
+      const averageScore =
+        totalSchools > 0
+          ? Math.round(
+              (schools.reduce(
+                (sum, school) => sum + school.smartSchoolScore,
+                0
+              ) /
+                totalSchools) *
+                10
+            ) / 10
+          : 0;
+
+      const totalClassrooms = schools.reduce(
+        (sum, school) => sum + (school.totalClassrooms || 0),
+        0
+      );
+      const totalSmartClassrooms = schools.reduce(
+        (sum, school) => sum + (school.smartClassrooms || 0),
+        0
+      );
+      const smartClassroomPercentage =
+        totalClassrooms > 0
+          ? Math.round((totalSmartClassrooms / totalClassrooms) * 100 * 10) / 10
+          : 0;
+
+      // تقسیم‌بندی بر اساس سطح
+      const levels = {
+        ابتدایی: schools.filter((s) => s.smartSchoolScore < 40).length,
+        مقدماتی: schools.filter(
+          (s) => s.smartSchoolScore >= 40 && s.smartSchoolScore < 60
+        ).length,
+        متوسط: schools.filter(
+          (s) => s.smartSchoolScore >= 60 && s.smartSchoolScore < 80
+        ).length,
+        پیشرفته: schools.filter((s) => s.smartSchoolScore >= 80).length,
+      };
+
+      // محاسبه آمار تجهیزات
+      const totalComputers = schools.reduce(
+        (sum, s) => sum + (s.computerCount || 0) + (s.laptopCount || 0),
+        0
+      );
+      const totalSmartBoards = schools.reduce(
+        (sum, s) => sum + (s.smartBoardCount || 0),
+        0
+      );
+
+      // آمار اتصال اینترنت
+      const internetStats = {
+        فیبرنوری: schools.filter((s) => s.internetConnection === "فیبر نوری")
+          .length,
+        ADSL: schools.filter((s) => s.internetConnection === "ADSL").length,
+        "4G/5G": schools.filter((s) => s.internetConnection === "4G/5G").length,
+        ندارد: schools.filter((s) => s.internetConnection === "ندارد").length,
+      };
+
+      // آمار وای‌فای
+      const wifiAvailable = schools.filter((s) => s.wifiAvailable).length;
+
+      return {
+        districtCode,
+        districtName: districtNames[districtCode] || `منطقه ${districtCode}`,
+        totalSchools,
+        averageScore,
+        totalClassrooms,
+        totalSmartClassrooms,
+        smartClassroomPercentage,
+        levels,
+        equipment: {
+          totalComputers,
+          totalSmartBoards,
+          averageComputersPerSchool:
+            totalSchools > 0
+              ? Math.round((totalComputers / totalSchools) * 10) / 10
+              : 0,
+          averageSmartBoardsPerSchool:
+            totalSchools > 0
+              ? Math.round((totalSmartBoards / totalSchools) * 10) / 10
+              : 0,
+        },
+        infrastructure: {
+          internetStats,
+          wifiAvailable,
+          wifiPercentage:
+            totalSchools > 0
+              ? Math.round((wifiAvailable / totalSchools) * 100 * 10) / 10
+              : 0,
+        },
+      };
+    }
+  );
+
+  // مرتب‌سازی بر اساس امتیاز میانگین (نزولی)
+  districtStats.sort((a, b) => b.averageScore - a.averageScore);
+
+  return {
+    districts: districtStats,
+    summary: {
+      totalDistricts: districtStats.length,
+      totalSchools: smartSchools.length,
+      overallAverageScore:
+        districtStats.length > 0
+          ? Math.round(
+              (districtStats.reduce((sum, d) => sum + d.averageScore, 0) /
+                districtStats.length) *
+                10
+            ) / 10
+          : 0,
+      bestDistrict: districtStats[0] || null,
+      worstDistrict: districtStats[districtStats.length - 1] || null,
+    },
   };
 }
 

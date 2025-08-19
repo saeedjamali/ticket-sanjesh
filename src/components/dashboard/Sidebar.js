@@ -28,6 +28,7 @@ import {
   FaEdit,
   FaBrain,
   FaChartBar,
+  FaExchangeAlt,
 } from "react-icons/fa";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -49,6 +50,7 @@ const icons = {
   edit: <FaEdit className="h-5 w-5" />,
   smartSchool: <FaBrain className="h-5 w-5" />,
   smartSchoolReports: <FaChartBar className="h-5 w-5" />,
+  transferRequests: <FaExchangeAlt className="h-5 w-5" />,
 };
 
 export default function Sidebar({ user, children }) {

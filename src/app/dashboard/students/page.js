@@ -6,6 +6,7 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import CorrectionRequestModal from "@/components/students/CorrectionRequestModal";
 import CorrectionRequestWorkflow from "@/components/students/CorrectionRequestWorkflow";
 import GradeStatsDisplay from "@/components/students/GradeStatsDisplay";
+import TransferRequestModal from "@/components/modals/TransferRequestModal";
 import {
   FaPlus,
   FaSearch,
@@ -15,6 +16,7 @@ import {
   FaFileImport,
   FaFileExcel,
   FaExclamationTriangle,
+  FaExchangeAlt,
 } from "react-icons/fa";
 
 export default function StudentsPage({
@@ -36,6 +38,7 @@ export default function StudentsPage({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showCorrectionModal, setShowCorrectionModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const [stats, setStats] = useState({
     maxStudents: maxStudents || null,
     currentStudentCount: currentStudentCount || null,
@@ -377,11 +380,23 @@ export default function StudentsPage({
             )}
         </div>
         <div className="flex gap-3">
+          {/* دکمه درخواست جابجایی */}
+          {defaultAcademicYear && helpers.examCenterInfo && (
+            <button
+              onClick={() => setShowTransferModal(true)}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              title="درخواست جابجایی دانش‌آموز"
+            >
+              <FaExchangeAlt />
+              درخواست جابجایی
+            </button>
+          )}
+
           {/* دکمه درخواست اصلاح آمار - فقط برای سال قبل و مدیران واحد سازمانی */}
           {defaultAcademicYear === "previous" && helpers.examCenterInfo && (
             <button
               onClick={() => setShowCorrectionModal(true)}
-              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
               title="درخواست اصلاح آمار سال گذشته"
             >
               <FaEdit />
@@ -819,6 +834,13 @@ export default function StudentsPage({
         currentCount={modalStudentCount || stats.currentStudentCount}
         academicYear={academicYearFilter}
         examCenterInfo={helpers.examCenterInfo}
+      />
+
+      {/* مودال درخواست جابجایی */}
+      <TransferRequestModal
+        isOpen={showTransferModal}
+        onClose={() => setShowTransferModal(false)}
+        academicYear={academicYearFilter}
       />
     </div>
   );
