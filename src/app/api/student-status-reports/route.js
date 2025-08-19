@@ -69,9 +69,10 @@ export async function GET(request) {
       statsFilter.provinceCode = user.provinceCode;
     } else if (
       user.role === "districtRegistrationExpert" &&
-      user.districtCode
+      user.provinceCode
     ) {
-      statsFilter.districtCode = user.districtCode;
+      // کاربران منطقه‌ای تمام مناطق استان را می‌بینند (برای رقابت)
+      statsFilter.provinceCode = user.provinceCode;
     }
 
     // فیلتر بر اساس پارامترهای درخواست
@@ -145,8 +146,9 @@ export async function GET(request) {
     let districtFilter = {};
     if (user.role === "provinceRegistrationExpert" && user.province) {
       districtFilter.province = user.province;
-    } else if (user.role === "districtRegistrationExpert" && user.district) {
-      districtFilter._id = user.district;
+    } else if (user.role === "districtRegistrationExpert" && user.province) {
+      // کاربران منطقه‌ای تمام مناطق استان را می‌بینند (برای رقابت)
+      districtFilter.province = user.province;
     }
 
     if (provinceId) {

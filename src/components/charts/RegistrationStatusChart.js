@@ -18,6 +18,7 @@ import {
   FaCamera,
   FaArrowLeft,
 } from "react-icons/fa";
+import { useUserContext } from "@/context/UserContext";
 
 ChartJS.register(
   CategoryScale,
@@ -34,6 +35,7 @@ export default function RegistrationStatusChart({
   previousYear = "",
   title = "گزارش وضعیت ثبت نام مناطق",
 }) {
+  const { user } = useUserContext();
   const chartRef = useRef();
   const [isVisible, setIsVisible] = useState(true);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
@@ -91,6 +93,19 @@ export default function RegistrationStatusChart({
   const chartData =
     viewMode === "overview" ? overviewChartData : getDetailChartData();
 
+  // بررسی اینکه آیا کاربر می‌تواند روی منطقه کلیک کند
+  const canClickOnDistrict = (district) => {
+    // اگر کاربر منطقه‌ای است، فقط روی منطقه خودش می‌تواند کلیک کند
+    if (user?.role === "districtRegistrationExpert") {
+      return (
+        user?.district === district.district._id ||
+        user?.districtCode === district.district.code
+      );
+    }
+    // سایر کاربران (مثل استانی) می‌توانند روی همه مناطق کلیک کنند
+    return true;
+  };
+
   // تنظیمات نمودار اصلی
   const overviewOptions = {
     responsive: true,
@@ -99,8 +114,12 @@ export default function RegistrationStatusChart({
       if (elements.length > 0) {
         const elementIndex = elements[0].index;
         const district = data[elementIndex];
-        setSelectedDistrict(district);
-        setViewMode("detail");
+
+        // بررسی دسترسی کلیک
+        if (canClickOnDistrict(district)) {
+          setSelectedDistrict(district);
+          setViewMode("detail");
+        }
       }
     },
     plugins: {
@@ -130,17 +149,40 @@ export default function RegistrationStatusChart({
             const value = context.parsed.y;
             return `درصد ثبت نام: ${value}%`;
           },
-          footer: function () {
+          footer: function (context) {
+            const elementIndex = context[0].dataIndex;
+            const district = data[elementIndex];
+
+            if (user?.role === "districtRegistrationExpert") {
+              const canClick = canClickOnDistrict(district);
+              return canClick
+                ? "برای مشاهده جزئیات کلیک کنید"
+                : "فقط منطقه خودتان قابل کلیک است";
+            }
             return "برای مشاهده جزئیات کلیک کنید";
           },
         },
       },
     },
+    onHover: (event, elements) => {
+      // تغییر cursor بر اساس اینکه آیا روی ستون قابل کلیک هستیم یا نه
+      if (elements.length > 0) {
+        const elementIndex = elements[0].index;
+        const district = data[elementIndex];
+        const canClick = canClickOnDistrict(district);
+        event.native.target.style.cursor = canClick ? "pointer" : "not-allowed";
+      } else {
+        event.native.target.style.cursor = "default";
+      }
+    },
     scales: {
       x: {
         title: {
           display: true,
-          text: "مناطق (برای مشاهده جزئیات کلیک کنید)",
+          text:
+            user?.role === "districtRegistrationExpert"
+              ? "مناطق (فقط منطقه خودتان قابل کلیک است)"
+              : "مناطق (برای مشاهده جزئیات کلیک کنید)",
           font: {
             family: "system-ui, -apple-system, sans-serif",
           },
@@ -433,7 +475,9 @@ export default function RegistrationStatusChart({
             </div>
           </div>
           <p className="text-xs text-gray-500 mt-2">
-            💡 برای مشاهده جزئیات هر منطقه، روی میله مربوطه کلیک کنید
+            {user?.role === "districtRegistrationExpert"
+              ? "💡 شما تمام مناطق استان را می‌بینید ولی فقط روی منطقه خودتان می‌توانید کلیک کنید"
+              : "💡 برای مشاهده جزئیات هر منطقه، روی میله مربوطه کلیک کنید"}
           </p>
         </div>
       )}

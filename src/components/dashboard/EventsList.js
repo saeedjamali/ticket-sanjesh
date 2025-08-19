@@ -35,14 +35,11 @@ export default function EventsList() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Events API response data:", data);
 
         const eventsData = data.events || [];
-        console.log(`Setting ${eventsData.length} events`);
         setEvents(eventsData);
       } else {
         const errorText = await response.text();
-        console.error("Error response from events API:", errorText);
         setError(`خطا در دریافت رویدادها: ${response.status}`);
       }
     } catch (error) {

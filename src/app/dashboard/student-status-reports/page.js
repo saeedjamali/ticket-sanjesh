@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { useUserContext } from "@/context/UserContext";
 import {
   FaSync,
   FaDownload,
@@ -19,6 +20,7 @@ import PreviousYearStudentStats from "@/components/dashboard/PreviousYearStudent
 import CurrentYearStudentStats from "@/components/dashboard/CurrentYearStudentStats";
 
 export default function StudentStatusReportsPage() {
+  const { user } = useUserContext();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [districts, setDistricts] = useState([]);
@@ -238,6 +240,21 @@ export default function StudentStatusReportsPage() {
 
   const displayedDistricts = filteredDistricts.slice(0, gridSize);
 
+  // برای تب districts: فیلتر کردن مناطق بر اساس نقش کاربر
+  const getDistrictsForTab = () => {
+    if (user?.role === "districtRegistrationExpert") {
+      return filteredDistricts.filter(
+        (districtData) =>
+          districtData.district._id === user?.district ||
+          districtData.district.code === user?.districtCode
+      );
+    }
+    return filteredDistricts;
+  };
+
+  const districtsForTab = getDistrictsForTab();
+  const displayedDistrictsForTab = districtsForTab.slice(0, gridSize);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* هدر صفحه */}
@@ -378,6 +395,11 @@ export default function StudentStatusReportsPage() {
                 <span>
                   نمایش {displayedDistricts.length} از{" "}
                   {filteredDistricts.length} منطقه
+                  {user?.role === "districtRegistrationExpert" && (
+                    <span className="text-orange-600 mr-2">
+                      (در تب مناطق فقط منطقه شما نمایش داده می‌شود)
+                    </span>
+                  )}
                 </span>
                 <select
                   value={gridSize}
@@ -426,7 +448,9 @@ export default function StudentStatusReportsPage() {
                 }`}
               >
                 <FaMapMarkedAlt />
-                مناطق ({filteredDistricts.length})
+                {user?.role === "districtRegistrationExpert"
+                  ? `منطقه من (${districtsForTab.length})`
+                  : `مناطق (${filteredDistricts.length})`}
               </button>
               <button
                 onClick={() => setActiveTab("current-year")}
@@ -503,7 +527,7 @@ export default function StudentStatusReportsPage() {
                       : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
                   }`}
                 >
-                  {displayedDistricts.map((districtData) => (
+                  {displayedDistrictsForTab.map((districtData) => (
                     <div
                       key={districtData.district._id}
                       onClick={() =>
@@ -585,32 +609,34 @@ export default function StudentStatusReportsPage() {
                   ))}
                 </div>
 
-                {filteredDistricts.length > gridSize && (
+                {districtsForTab.length > gridSize && (
                   <div className="text-center mt-6 flex gap-4 justify-center">
                     <button
                       onClick={() =>
                         setGridSize((prev) =>
-                          Math.min(prev + 12, filteredDistricts.length)
+                          Math.min(prev + 12, districtsForTab.length)
                         )
                       }
                       className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                      نمایش بیشتر ({filteredDistricts.length - gridSize} منطقه
+                      نمایش بیشتر ({districtsForTab.length - gridSize} منطقه
                       باقی مانده)
                     </button>
                     <button
-                      onClick={() => setGridSize(filteredDistricts.length)}
+                      onClick={() => setGridSize(districtsForTab.length)}
                       className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                     >
-                      نمایش همه ({filteredDistricts.length} منطقه)
+                      نمایش همه ({districtsForTab.length} منطقه)
                     </button>
                   </div>
                 )}
 
-                {filteredDistricts.length === 0 && (
+                {districtsForTab.length === 0 && (
                   <div className="text-center py-12">
                     <p className="text-gray-500 text-lg">
-                      هیچ منطقه‌ای یافت نشد
+                      {user?.role === "districtRegistrationExpert"
+                        ? "اطلاعات منطقه شما یافت نشد"
+                        : "هیچ منطقه‌ای یافت نشد"}
                     </p>
                   </div>
                 )}

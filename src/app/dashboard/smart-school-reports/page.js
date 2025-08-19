@@ -1227,14 +1227,20 @@ export default function SmartSchoolReportsPage() {
         {/* نمودار مقایسه مناطق */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">مقایسه امتیاز مناطق</h3>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={districts}>
+          <ResponsiveContainer width="100%" height={500}>
+            <BarChart
+              data={districts}
+              margin={{ top: 10, right: 10, left: 20, bottom: 20 }}
+            >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="districtName"
-                angle={-45}
+                angle={45}
                 textAnchor="end"
                 height={100}
+                interval={0}
+                fontSize={12}
+                tick={{ fontSize: 12 }}
               />
               <YAxis />
               <Tooltip />

@@ -26,7 +26,7 @@ export default function Footer() {
             }
 
             const data = await response.json();
-            console.log("Footer - API response data:", data);
+            // console.log("Footer - API response data:", data);
 
             if (data.error) {
                 throw new Error(data.error);

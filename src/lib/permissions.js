@@ -372,24 +372,24 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
   }
 
   // منوی تیکت‌ها - برای همه کاربران
-  if (
-    role === ROLES.EXAM_CENTER_MANAGER ||
-    role === ROLES.PROVINCE_REGISTRATION_EXPERT 
+  // if (
+  //   role === ROLES.EXAM_CENTER_MANAGER ||
+  //   role === ROLES.PROVINCE_REGISTRATION_EXPERT 
    
-  ) {
-    disabledMenuItems.push({
-      label: "تیکت‌ها",
-      path: "/dashboard/tickets",
-      icon: "tickets",
-      disabled: true,
-    });
-  } else {
-    activeMenuItems.push({
-      label: "تیکت‌ها",
-      path: "/dashboard/tickets",
-      icon: "tickets",
-    });
-  }
+  // ) {
+  //   disabledMenuItems.push({
+  //     label: "تیکت‌ها",
+  //     path: "/dashboard/tickets",
+  //     icon: "tickets",
+  //     disabled: true,
+  //   });
+  // } else {
+  //   activeMenuItems.push({
+  //     label: "تیکت‌ها",
+  //     path: "/dashboard/tickets",
+  //     icon: "tickets",
+  //   });
+  // }
 
   // منوی فرم‌ها - برای کاربران مجاز
   if (
