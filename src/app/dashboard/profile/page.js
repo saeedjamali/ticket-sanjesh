@@ -273,7 +273,7 @@ export default function ProfilePage() {
               {getRoleName(userInfo?.role)}
             </h2>
             <p className="text-white mt-2">{userInfo?.fullName}</p>
-            <p className="text-white mt-2">کد ملی: {userInfo?.nationalId}</p>
+            <p className="text-white mt-2">کد کاربری: {userInfo?.nationalId}</p>
             {userInfo?.academicYear && (
               <p className="text-white mt-2">
                 سال تحصیلی: {userInfo?.academicYear || "تعیین نشده"}

@@ -17,6 +17,8 @@ import {
   FaInfoCircle,
   FaQuestionCircle,
   FaMapMarkedAlt,
+  FaSearch,
+  FaTimes,
 } from "react-icons/fa";
 import {
   BarChart,
@@ -142,6 +144,7 @@ export default function SmartSchoolReportsPage() {
   const [error, setError] = useState("");
   const [selectedDistrict, setSelectedDistrict] = useState(null);
   const [selectedDistrictName, setSelectedDistrictName] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     // خواندن پارامترهای URL
@@ -155,11 +158,22 @@ export default function SmartSchoolReportsPage() {
 
     if (tabParam) {
       setActiveTab(tabParam);
-      fetchReportData(tabParam);
+
+      // برای کارشناس فناوری منطقه، تب districts باید به عنوان detailed لود شود
+      let reportType = tabParam;
+      if (
+        (user?.role === "districtTechExpert" ||
+          user?.role === "DISTRICT_TECH_EXPERT") &&
+        tabParam === "districts"
+      ) {
+        reportType = "detailed";
+      }
+
+      fetchReportData(reportType);
     } else {
       fetchReportData("summary");
     }
-  }, []);
+  }, [user?.role]); // اضافه کردن user.role به dependencies
 
   const fetchReportData = async (reportType) => {
     setLoading(true);
@@ -194,7 +208,18 @@ export default function SmartSchoolReportsPage() {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    fetchReportData(tab);
+
+    // برای کارشناس فناوری منطقه، تب districts باید به عنوان detailed لود شود
+    let reportType = tab;
+    if (
+      (user?.role === "districtTechExpert" ||
+        user?.role === "DISTRICT_TECH_EXPERT") &&
+      tab === "districts"
+    ) {
+      reportType = "detailed";
+    }
+
+    fetchReportData(reportType);
   };
 
   const downloadReport = async () => {
@@ -653,8 +678,73 @@ export default function SmartSchoolReportsPage() {
   const renderDetailedReport = () => {
     if (!reportData || !Array.isArray(reportData)) return null;
 
+    const handleSchoolClick = (schoolCode) => {
+      // رفتن به صفحه جزئیات مدرسه
+      const detailUrl = `/dashboard/smart-school?examCenter=${schoolCode}&view=details`;
+      window.open(detailUrl, "_blank");
+    };
+
+    // فیلتر کردن مدارس بر اساس جستجو
+    const filteredSchools = reportData.filter((school) => {
+      if (!searchTerm.trim()) return true;
+
+      const searchLower = searchTerm.toLowerCase().trim();
+      const schoolCode = (school?.examCenterCode || "").toLowerCase();
+      const schoolName = (school?.examCenterName || "").toLowerCase();
+
+      return (
+        schoolCode.includes(searchLower) || schoolName.includes(searchLower)
+      );
+    });
+
+    const clearSearch = () => {
+      setSearchTerm("");
+    };
+
     return (
       <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              جزئیات تمام مدارس (کلیک برای مشاهده جزئیات)
+            </h3>
+
+            {/* بخش جستجو */}
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <FaSearch className="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="جستجو بر اساس کد یا نام مدرسه..."
+                  className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute inset-y-0 left-0 pl-3 flex items-center"
+                  >
+                    <FaTimes className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  </button>
+                )}
+              </div>
+
+              {/* نمایش تعداد نتایج */}
+              <div className="text-sm text-gray-600 whitespace-nowrap">
+                {searchTerm ? (
+                  <span>
+                    {filteredSchools.length} از {reportData.length} مدرسه
+                  </span>
+                ) : (
+                  <span>{reportData.length} مدرسه</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -692,76 +782,126 @@ export default function SmartSchoolReportsPage() {
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   آخرین بروزرسانی
                 </th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  عملیات
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {reportData?.map((school, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {school?.examCenterCode || "-"}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate">
-                    {school?.examCenterName || "-"}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        (school?.smartSchoolScore || 0) >= 80
-                          ? "bg-green-100 text-green-800"
-                          : (school?.smartSchoolScore || 0) >= 60
-                          ? "bg-yellow-100 text-yellow-800"
-                          : (school?.smartSchoolScore || 0) >= 40
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {school?.smartSchoolScore || 0}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                    {school?.level || "-"}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                    <span className="font-medium">
-                      {school?.classrooms?.totalClassrooms || 0}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                    <span className="font-medium text-blue-600">
-                      {school?.classrooms?.smartClassrooms || 0}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                    <span
-                      className={`font-medium ${
-                        (school?.classrooms?.smartClassroomPercentage || 0) >=
-                        60
-                          ? "text-green-600"
-                          : (school?.classrooms?.smartClassroomPercentage ||
-                              0) >= 30
-                          ? "text-yellow-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {school?.classrooms?.smartClassroomPercentage || 0}%
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                    {school?.infrastructure?.internetConnection || "-"}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                    {school?.equipment?.computers || 0}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                    {school?.skills?.teacherLevel || "-"}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                    {school?.lastUpdate
-                      ? new Date(school.lastUpdate).toLocaleDateString("fa-IR")
-                      : "-"}
+              {filteredSchools.length === 0 ? (
+                <tr>
+                  <td colSpan="12" className="px-6 py-8 text-center">
+                    <div className="text-gray-500">
+                      <FaSearch className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        {searchTerm
+                          ? "نتیجه‌ای یافت نشد"
+                          : "هیچ مدرسه‌ای یافت نشد"}
+                      </h3>
+                      <p className="text-sm">
+                        {searchTerm
+                          ? `برای جستجوی "${searchTerm}" نتیجه‌ای یافت نشد. لطفاً عبارت دیگری امتحان کنید.`
+                          : "در حال حاضر هیچ داده‌ای برای نمایش وجود ندارد."}
+                      </p>
+                      {searchTerm && (
+                        <button
+                          onClick={clearSearch}
+                          className="mt-3 text-blue-600 hover:text-blue-500 text-sm font-medium"
+                        >
+                          پاک کردن جستجو
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredSchools?.map((school, index) => (
+                  <tr
+                    key={index}
+                    className="hover:bg-gray-50 cursor-pointer text-right"
+                    onClick={() => handleSchoolClick(school?.examCenterCode)}
+                    title="کلیک برای مشاهده جزئیات مدرسه"
+                  >
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {school?.examCenterCode || "-"}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate">
+                      {school?.examCenterName || "-"}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          (school?.smartSchoolScore || 0) >= 80
+                            ? "bg-green-100 text-green-800"
+                            : (school?.smartSchoolScore || 0) >= 60
+                            ? "bg-yellow-100 text-yellow-800"
+                            : (school?.smartSchoolScore || 0) >= 40
+                            ? "bg-orange-100 text-orange-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {school?.smartSchoolScore || 0}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {school?.level || "-"}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      <span className="font-medium">
+                        {school?.classrooms?.totalClassrooms || 0}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      <span className="font-medium text-blue-600">
+                        {school?.classrooms?.smartClassrooms || 0}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      <span
+                        className={`font-medium ${
+                          (school?.classrooms?.smartClassroomPercentage || 0) >=
+                          60
+                            ? "text-green-600"
+                            : (school?.classrooms?.smartClassroomPercentage ||
+                                0) >= 30
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {school?.classrooms?.smartClassroomPercentage || 0}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {school?.infrastructure?.internetConnection || "-"}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {school?.equipment?.computers || 0}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {school?.skills?.teacherLevel || "-"}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {school?.lastUpdate
+                        ? new Date(school.lastUpdate).toLocaleDateString(
+                            "fa-IR"
+                          )
+                        : "-"}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-center">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSchoolClick(school?.examCenterCode);
+                        }}
+                        className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors duration-200"
+                      >
+                        <FaEye className="mr-1" />
+                        مشاهده جزئیات
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -1094,7 +1234,7 @@ export default function SmartSchoolReportsPage() {
                 {schools.map((school, index) => (
                   <tr
                     key={school.examCenterCode}
-                    className="hover:bg-gray-50 cursor-pointer"
+                    className="hover:bg-gray-50 cursor-pointer text-right"
                     onClick={() => handleSchoolClick(school.examCenterCode)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -1165,6 +1305,14 @@ export default function SmartSchoolReportsPage() {
 
   const renderDistrictsReport = () => {
     if (!reportData) return null;
+
+    // برای کارشناس فناوری منطقه، همیشه لیست مدارس نمایش داده شود
+    if (
+      user?.role === "districtTechExpert" ||
+      user?.role === "DISTRICT_TECH_EXPERT"
+    ) {
+      return renderSchoolsList();
+    }
 
     // اگر فیلتر منطقه اعمال شده، لیست مدارس را نمایش بده
     if (selectedDistrictName) {
@@ -1443,14 +1591,26 @@ export default function SmartSchoolReportsPage() {
                 icon: FaExclamationTriangle,
               },
               ...(user?.role === "provinceTechExpert" ||
-              user?.role === "PROVINCE_TECH_EXPERT"
+              user?.role === "PROVINCE_TECH_EXPERT" ||
+              user?.role === "districtTechExpert" ||
+              user?.role === "DISTRICT_TECH_EXPERT"
                 ? [
                     {
                       id: "districts",
-                      label: selectedDistrictName
-                        ? "مقایسه مدارس"
-                        : "مقایسه مناطق",
-                      icon: selectedDistrictName ? FaBrain : FaMapMarkedAlt,
+                      label:
+                        user?.role === "districtTechExpert" ||
+                        user?.role === "DISTRICT_TECH_EXPERT"
+                          ? "مقایسه مدارس"
+                          : selectedDistrictName
+                          ? "مقایسه مدارس"
+                          : "مقایسه مناطق",
+                      icon:
+                        user?.role === "districtTechExpert" ||
+                        user?.role === "DISTRICT_TECH_EXPERT"
+                          ? FaBrain
+                          : selectedDistrictName
+                          ? FaBrain
+                          : FaMapMarkedAlt,
                     },
                   ]
                 : []),

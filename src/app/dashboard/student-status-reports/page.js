@@ -165,17 +165,26 @@ export default function StudentStatusReportsPage() {
   };
 
   const getCardColor = (percentage) => {
-    if (percentage < 25) return "bg-red-100 border-red-300";
-    if (percentage < 75) return "bg-orange-100 border-orange-300";
-    if (percentage < 90) return "bg-green-100 border-green-300";
-    return "bg-green-200 border-green-400";
+    if (percentage < 25) return "bg-red-50 border-red-300 hover:bg-red-100";
+    if (percentage < 75)
+      return "bg-orange-50 border-orange-300 hover:bg-orange-100";
+    if (percentage < 90)
+      return "bg-green-50 border-green-300 hover:bg-green-100";
+    return "bg-green-100 border-green-400 hover:bg-green-200";
   };
 
   const getPercentageColor = (percentage) => {
-    if (percentage < 25) return "text-red-600";
-    if (percentage < 75) return "text-orange-600";
-    if (percentage < 90) return "text-green-600";
-    return "text-green-700";
+    if (percentage < 25) return "text-red-700";
+    if (percentage < 75) return "text-orange-700";
+    if (percentage < 90) return "text-green-700";
+    return "text-green-800";
+  };
+
+  const getTextColor = (percentage) => {
+    if (percentage < 25) return "text-red-800";
+    if (percentage < 75) return "text-orange-800";
+    if (percentage < 90) return "text-green-800";
+    return "text-green-900";
   };
 
   const handleDistrictClick = (districtId) => {
@@ -488,30 +497,40 @@ export default function StudentStatusReportsPage() {
                   title="گزارش وضعیت ثبت نام مناطق"
                 />
 
-                <div className="bg-gray-50 p-4 rounded-lg border">
-                  <h3 className="text-lg font-semibold mb-3 text-gray-800">
-                    راهنمای رنگ‌ها:
+                <div className="bg-white p-6 rounded-lg border-2 border-gray-200 shadow-sm">
+                  <h3 className="text-lg font-bold mb-4 text-gray-900 border-b pb-2">
+                    📊 راهنمای رنگ‌ها:
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-red-200 border border-red-300 rounded mr-2"></div>
-                      <span className="text-sm text-gray-700">کمتر از 25%</span>
+                    <div className="flex items-center bg-red-50 p-3 rounded-lg border border-red-200">
+                      <div className="w-6 h-6 bg-red-100 border-2 border-red-300 rounded-lg mr-3 shadow-sm"></div>
+                      <span className="text-sm font-semibold text-red-800">
+                        کمتر از 25%
+                      </span>
                     </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-orange-200 border border-orange-300 rounded mr-2"></div>
-                      <span className="text-sm text-gray-700">25% تا 75%</span>
+                    <div className="flex items-center bg-orange-50 p-3 rounded-lg border border-orange-200">
+                      <div className="w-6 h-6 bg-orange-100 border-2 border-orange-300 rounded-lg mr-3 shadow-sm"></div>
+                      <span className="text-sm font-semibold text-orange-800">
+                        25% تا 75%
+                      </span>
                     </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></div>
-                      <span className="text-sm text-gray-700">75% تا 90%</span>
+                    <div className="flex items-center bg-green-50 p-3 rounded-lg border border-green-200">
+                      <div className="w-6 h-6 bg-green-100 border-2 border-green-300 rounded-lg mr-3 shadow-sm"></div>
+                      <span className="text-sm font-semibold text-green-800">
+                        75% تا 90%
+                      </span>
                     </div>
-                    <div className="flex items-center">
-                      <div className="w-4 h-4 bg-green-200 border border-green-400 rounded mr-2"></div>
-                      <span className="text-sm text-gray-700">
+                    <div className="flex items-center bg-green-100 p-3 rounded-lg border border-green-300">
+                      <div className="w-6 h-6 bg-green-200 border-2 border-green-400 rounded-lg mr-3 shadow-sm"></div>
+                      <span className="text-sm font-semibold text-green-900">
                         بیشتر از 90%
                       </span>
                     </div>
                   </div>
+                  <p className="text-xs text-gray-600 mt-3 text-center bg-gray-50 p-2 rounded-lg">
+                    💡 رنگ‌ها بر اساس درصد ثبت‌نام سال جاری نسبت به سال قبل
+                    محاسبه می‌شوند
+                  </p>
                 </div>
               </div>
             )}
@@ -535,47 +554,55 @@ export default function StudentStatusReportsPage() {
                       }
                       className={`${getCardColor(
                         districtData.registrationPercentage
-                      )} border-2 rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]`}
+                      )} border-2 rounded-lg p-4 cursor-pointer shadow-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02]`}
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className="font-bold text-lg text-gray-800">
+                          <h3
+                            className={`font-bold text-lg ${getTextColor(
+                              districtData.registrationPercentage
+                            )}`}
+                          >
                             {districtData.district.name}
                           </h3>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-700 font-medium">
                             کد: {districtData.district.code}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-600 font-medium">
                             {districtData.district.province.name}
                           </p>
                         </div>
                         <div
                           className={`text-2xl font-bold ${getPercentageColor(
                             districtData.registrationPercentage
-                          )}`}
+                          )} bg-white/70 px-3 py-1 rounded-lg shadow-sm`}
                         >
                           {districtData.registrationPercentage}%
                         </div>
                       </div>
 
-                      <div className="space-y-2 text-sm text-gray-800">
-                        <div className="flex justify-between">
-                          <span>سال جاری:</span>
-                          <span className="font-semibold">
+                      <div
+                        className={`space-y-2 text-sm ${getTextColor(
+                          districtData.registrationPercentage
+                        )}`}
+                      >
+                        <div className="flex justify-between bg-white/30 px-2 py-1 rounded">
+                          <span className="font-medium">سال جاری:</span>
+                          <span className="font-bold">
                             {districtData.currentYearStats.totalStudents.toLocaleString()}{" "}
                             نفر
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>سال قبل:</span>
-                          <span className="font-semibold">
+                        <div className="flex justify-between bg-white/30 px-2 py-1 rounded">
+                          <span className="font-medium">سال قبل:</span>
+                          <span className="font-bold">
                             {districtData.previousYearStats.totalStudents.toLocaleString()}{" "}
                             نفر
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span>تعداد مدارس:</span>
-                          <span className="font-semibold">
+                        <div className="flex justify-between bg-white/30 px-2 py-1 rounded">
+                          <span className="font-medium">تعداد مدارس:</span>
+                          <span className="font-bold">
                             {districtData.examCentersCount} مدرسه
                           </span>
                         </div>
@@ -584,8 +611,12 @@ export default function StudentStatusReportsPage() {
                       {districtData.periodBreakdown &&
                         Object.keys(districtData.periodBreakdown).length >
                           0 && (
-                          <div className="mt-3 pt-3 border-t border-gray-300">
-                            <h4 className="text-xs font-semibold text-gray-700 mb-2">
+                          <div className="mt-3 pt-3 border-t border-white/40">
+                            <h4
+                              className={`text-xs font-bold ${getTextColor(
+                                districtData.registrationPercentage
+                              )} mb-2 bg-white/40 px-2 py-1 rounded`}
+                            >
                               آمار بر اساس دوره:
                             </h4>
                             <div className="space-y-1">
@@ -593,10 +624,14 @@ export default function StudentStatusReportsPage() {
                                 ([period, stats]) => (
                                   <div
                                     key={period}
-                                    className="flex justify-between text-xs text-gray-800"
+                                    className={`flex justify-between text-xs ${getTextColor(
+                                      districtData.registrationPercentage
+                                    )} bg-white/20 px-2 py-1 rounded`}
                                   >
-                                    <span>{period}:</span>
-                                    <span>
+                                    <span className="font-medium">
+                                      {period}:
+                                    </span>
+                                    <span className="font-bold">
                                       {stats.totalStudents.toLocaleString()}
                                     </span>
                                   </div>
@@ -610,33 +645,45 @@ export default function StudentStatusReportsPage() {
                 </div>
 
                 {districtsForTab.length > gridSize && (
-                  <div className="text-center mt-6 flex gap-4 justify-center">
-                    <button
-                      onClick={() =>
-                        setGridSize((prev) =>
-                          Math.min(prev + 12, districtsForTab.length)
-                        )
-                      }
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      نمایش بیشتر ({districtsForTab.length - gridSize} منطقه
-                      باقی مانده)
-                    </button>
-                    <button
-                      onClick={() => setGridSize(districtsForTab.length)}
-                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      نمایش همه ({districtsForTab.length} منطقه)
-                    </button>
+                  <div className="text-center mt-8 p-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border">
+                    <p className="text-gray-700 font-medium mb-4">
+                      {gridSize} از {districtsForTab.length} منطقه نمایش داده
+                      شده است
+                    </p>
+                    <div className="flex gap-4 justify-center">
+                      <button
+                        onClick={() =>
+                          setGridSize((prev) =>
+                            Math.min(prev + 12, districtsForTab.length)
+                          )
+                        }
+                        className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        📈 نمایش بیشتر ({districtsForTab.length - gridSize}{" "}
+                        منطقه باقی مانده)
+                      </button>
+                      <button
+                        onClick={() => setGridSize(districtsForTab.length)}
+                        className="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        📊 نمایش همه ({districtsForTab.length} منطقه)
+                      </button>
+                    </div>
                   </div>
                 )}
 
                 {districtsForTab.length === 0 && (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">
+                  <div className="text-center py-16 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                    <div className="text-6xl mb-4">📊</div>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-2">
                       {user?.role === "districtRegistrationExpert"
                         ? "اطلاعات منطقه شما یافت نشد"
                         : "هیچ منطقه‌ای یافت نشد"}
+                    </h3>
+                    <p className="text-gray-500">
+                      {user?.role === "districtRegistrationExpert"
+                        ? "لطفاً با مدیر سیستم تماس بگیرید"
+                        : "فیلترهای انتخابی را بررسی کنید"}
                     </p>
                   </div>
                 )}

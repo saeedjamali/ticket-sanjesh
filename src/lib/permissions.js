@@ -304,22 +304,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
 
   // منوی پروفایل کاربری - برای همه کاربران
 
-  // منوی کاربران - فقط برای مدیران ارشد
-  if (
-    role === ROLES.SYSTEM_ADMIN ||
-    role === ROLES.GENERAL_MANAGER ||
-    role === ROLES.PROVINCE_TECH_EXPERT ||
-    role === ROLES.DISTRICT_TECH_EXPERT ||
-    role === ROLES.PROVINCE_REGISTRATION_EXPERT ||
-    role === ROLES.DISTRICT_REGISTRATION_EXPERT
-  ) {
-    activeMenuItems.push({
-      label: "کاربران",
-      path: "/dashboard/users",
-      icon: "users",
-    });
-  }
-
+ 
   // منوی تنظیمات - فقط برای مدیران سیستم
   if (role === ROLES.SYSTEM_ADMIN) {
     activeMenuItems.push({
@@ -374,8 +359,8 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
   // منوی تیکت‌ها - برای همه کاربران
   // if (
   //   role === ROLES.EXAM_CENTER_MANAGER ||
-  //   role === ROLES.PROVINCE_REGISTRATION_EXPERT 
-   
+  //   role === ROLES.PROVINCE_REGISTRATION_EXPERT
+
   // ) {
   //   disabledMenuItems.push({
   //     label: "تیکت‌ها",
@@ -499,6 +484,20 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
     path: "/dashboard/profile",
     icon: "profile",
   });
+   // منوی کاربران - فقط برای مدیران ارشد
+   if (
+    role === ROLES.SYSTEM_ADMIN ||
+    role === ROLES.GENERAL_MANAGER ||
+    role === ROLES.PROVINCE_TECH_EXPERT ||
+    role === ROLES.DISTRICT_TECH_EXPERT 
+  ) {
+    activeMenuItems.push({
+      label: "کاربران",
+      path: "/dashboard/users",
+      icon: "users",
+    });
+  }
+
   // ترکیب منوهای فعال و غیرفعال (غیرفعال‌ها در انتها)
   return [...activeMenuItems, ...disabledMenuItems];
 }
