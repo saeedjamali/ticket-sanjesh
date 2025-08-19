@@ -17,6 +17,7 @@ import {
   FaSearch,
 } from "react-icons/fa";
 import toast from "react-hot-toast";
+import { ROLES } from "@/lib/permissions";
 
 export default function TransferRequestsPage() {
   const { user } = useUserContext();
@@ -33,6 +34,12 @@ export default function TransferRequestsPage() {
     action: "",
     description: "",
   });
+
+  // States برای جستجوی دانش‌آموز (فقط برای PROVINCE_TECH_EXPERT)
+  const [studentSearchTerm, setStudentSearchTerm] = useState("");
+  const [studentSearchResults, setStudentSearchResults] = useState([]);
+  const [studentSearchLoading, setStudentSearchLoading] = useState(false);
+  const [showStudentSearchModal, setShowStudentSearchModal] = useState(false);
 
   // Helper functions for translation
   const getGenderText = (gender) => {
@@ -99,6 +106,51 @@ export default function TransferRequestsPage() {
     const filtered = filterRequests(transferRequests, searchTerm, searchType);
     setFilteredRequests(filtered);
   }, [transferRequests, searchTerm, searchType]);
+
+  // جستجوی دانش‌آموز در کل استان (فقط برای PROVINCE_TECH_EXPERT)
+  const searchStudentsInProvince = async (nationalId) => {
+    if (!nationalId || nationalId.trim().length < 3) {
+      setStudentSearchResults([]);
+      return;
+    }
+
+    setStudentSearchLoading(true);
+    try {
+      const response = await fetch(
+        `/api/students/search-province?nationalId=${encodeURIComponent(
+          nationalId.trim()
+        )}`
+      );
+      const result = await response.json();
+
+      if (result.success) {
+        setStudentSearchResults(result.data);
+      } else {
+        console.error("Error searching students:", result.error);
+        toast.error(result.error || "خطا در جستجوی دانش‌آموزان");
+        setStudentSearchResults([]);
+      }
+    } catch (error) {
+      console.error("Error searching students:", error);
+      toast.error("خطا در جستجوی دانش‌آموزان");
+      setStudentSearchResults([]);
+    } finally {
+      setStudentSearchLoading(false);
+    }
+  };
+
+  // جستجوی دانش‌آموز با تأخیر
+  useEffect(() => {
+    if (user?.role === ROLES.PROVINCE_TECH_EXPERT && studentSearchTerm) {
+      const timeoutId = setTimeout(() => {
+        searchStudentsInProvince(studentSearchTerm);
+      }, 500);
+
+      return () => clearTimeout(timeoutId);
+    } else {
+      setStudentSearchResults([]);
+    }
+  }, [studentSearchTerm, user?.role]);
 
   const fetchTransferRequests = async () => {
     setLoading(true);
@@ -233,18 +285,32 @@ export default function TransferRequestsPage() {
           </h1>
         </div>
 
-        {/* فیلتر */}
-        <div className="flex items-center gap-2">
-          <FaFilter className="text-gray-500" />
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="all">همه درخواست‌ها</option>
-            <option value="incoming">درخواست‌های دریافتی</option>
-            <option value="outgoing">درخواست‌های ارسالی</option>
-          </select>
+        {/* فیلتر و دکمه‌ها */}
+        <div className="flex items-center gap-4">
+          {/* دکمه جستجوی دانش‌آموز (فقط برای PROVINCE_TECH_EXPERT) */}
+          {user?.role === ROLES.PROVINCE_TECH_EXPERT && (
+            <button
+              onClick={() => setShowStudentSearchModal(true)}
+              className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+            >
+              <FaUserGraduate />
+              جستجوی دانش‌آموز
+            </button>
+          )}
+
+          {/* فیلتر */}
+          <div className="flex items-center gap-2">
+            <FaFilter className="text-gray-500" />
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">همه درخواست‌ها</option>
+              <option value="incoming">درخواست‌های دریافتی</option>
+              <option value="outgoing">درخواست‌های ارسالی</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -973,6 +1039,235 @@ export default function TransferRequestsPage() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* مودال جستجوی دانش‌آموز */}
+      {showStudentSearchModal && user?.role === ROLES.PROVINCE_TECH_EXPERT && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            {/* هدر */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <FaUserGraduate className="text-green-600 text-xl" />
+                <h2 className="text-xl font-bold text-gray-900">
+                  جستجوی دانش‌آموز در استان
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowStudentSearchModal(false);
+                  setStudentSearchTerm("");
+                  setStudentSearchResults([]);
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
+
+            {/* محتوا */}
+            <div className="p-6">
+              {/* راهنما */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <FaInfoCircle className="text-blue-600 mt-1 flex-shrink-0" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-2">راهنما:</p>
+                    <ul className="space-y-1 list-disc list-inside">
+                      <li>
+                        با وارد کردن کد ملی، تمام دانش‌آموزان استان را جستجو
+                        کنید
+                      </li>
+                      <li>نتایج شامل تمام سال‌های تحصیلی است</li>
+                      <li>حداقل 3 کاراکتر وارد کنید</li>
+                      <li>حداکثر 50 نتیجه نمایش داده می‌شود</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* جستجو */}
+              <div className="mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <FaSearch className="text-gray-500" />
+                    <label className="text-sm font-medium text-gray-700">
+                      کد ملی دانش‌آموز:
+                    </label>
+                  </div>
+                  <div className="flex-1 max-w-md">
+                    <input
+                      type="text"
+                      value={studentSearchTerm}
+                      onChange={(e) => setStudentSearchTerm(e.target.value)}
+                      placeholder="کد ملی دانش‌آموز را وارد کنید..."
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                  </div>
+                  {studentSearchLoading && (
+                    <FaSpinner className="animate-spin text-gray-500" />
+                  )}
+                </div>
+              </div>
+
+              {/* نتایج */}
+              {studentSearchTerm.length >= 3 && (
+                <div className="border border-gray-200 rounded-lg">
+                  {studentSearchLoading ? (
+                    <div className="text-center py-8">
+                      <FaSpinner className="animate-spin mx-auto text-2xl text-gray-400 mb-2" />
+                      <p className="text-gray-500">در حال جستجو...</p>
+                    </div>
+                  ) : studentSearchResults.length === 0 ? (
+                    <div className="text-center py-8">
+                      <FaUserGraduate className="mx-auto text-4xl text-gray-400 mb-4" />
+                      <p className="text-gray-500">دانش‌آموزی یافت نشد</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              اطلاعات دانش‌آموز
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              سال تحصیلی
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              پایه و رشته
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              مدرسه
+                            </th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              وضعیت
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {studentSearchResults.map((student, index) => (
+                            <tr
+                              key={`${student._id}-${index}`}
+                              className="hover:bg-gray-50"
+                            >
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <div className="flex items-center gap-2">
+                                  <FaUserGraduate className="text-blue-500" />
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {student.firstName} {student.lastName}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      کد ملی: {student.nationalId}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      نام پدر: {student.fatherName}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      جنسیت: {getGenderText(student.gender)}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <div className="flex items-center gap-1">
+                                  <FaCalendarAlt className="text-gray-400" />
+                                  <span className="text-sm text-gray-900">
+                                    {student.academicYear}
+                                  </span>
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  دوره: {student.academicCourse}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <div className="text-sm text-gray-900">
+                                  پایه:{" "}
+                                  {student.gradeName ||
+                                    student.gradeCode ||
+                                    "نامشخص"}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  رشته:{" "}
+                                  {student.fieldName ||
+                                    student.fieldCode ||
+                                    "نامشخص"}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  نوع: {getStudentTypeText(student.studentType)}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right">
+                                <div className="flex items-center gap-2">
+                                  <FaSchool className="text-orange-500" />
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {student.examCenter?.name || "نامشخص"}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      کد: {student.examCenter?.code || "نامشخص"}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      منطقه:{" "}
+                                      {student.examCenter?.district?.name ||
+                                        "نامشخص"}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center">
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    student.isActive
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-red-100 text-red-800"
+                                  }`}
+                                >
+                                  {student.isActive ? "فعال" : "غیرفعال"}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+
+                      {/* خلاصه نتایج */}
+                      <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                        <p className="text-sm text-gray-600">
+                          {studentSearchResults.length} نتیجه یافت شد
+                          {studentSearchResults.length === 50 &&
+                            " (حداکثر 50 نتیجه نمایش داده می‌شود)"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {studentSearchTerm.length > 0 && studentSearchTerm.length < 3 && (
+                <div className="text-center py-8">
+                  <FaInfoCircle className="mx-auto text-3xl text-gray-400 mb-2" />
+                  <p className="text-gray-500">حداقل 3 کاراکتر وارد کنید</p>
+                </div>
+              )}
+            </div>
+
+            {/* پایین */}
+            <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowStudentSearchModal(false);
+                  setStudentSearchTerm("");
+                  setStudentSearchResults([]);
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                بستن
+              </button>
+            </div>
           </div>
         </div>
       )}
