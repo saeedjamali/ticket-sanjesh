@@ -374,8 +374,8 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
   // منوی تیکت‌ها - برای همه کاربران
   if (
     role === ROLES.EXAM_CENTER_MANAGER ||
-    role === ROLES.PROVINCE_REGISTRATION_EXPERT ||
-    role === ROLES.DISTRICT_REGISTRATION_EXPERT
+    role === ROLES.PROVINCE_REGISTRATION_EXPERT 
+   
   ) {
     disabledMenuItems.push({
       label: "تیکت‌ها",
@@ -393,15 +393,15 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
 
   // منوی فرم‌ها - برای کاربران مجاز
   if (
-    role === ROLES.SYSTEM_ADMIN ||
-    role === ROLES.GENERAL_MANAGER ||
-    role === ROLES.PROVINCE_EDUCATION_EXPERT ||
-    role === ROLES.PROVINCE_TECH_EXPERT ||
-    role === ROLES.PROVINCE_EVAL_EXPERT ||
-    role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-    role === ROLES.DISTRICT_TECH_EXPERT ||
-    role === ROLES.DISTRICT_EVAL_EXPERT ||
-    role === ROLES.EXAM_CENTER_MANAGER
+    role === ROLES.SYSTEM_ADMIN
+    // role === ROLES.GENERAL_MANAGER ||
+    // role === ROLES.PROVINCE_EDUCATION_EXPERT ||
+    // role === ROLES.PROVINCE_TECH_EXPERT ||
+    // role === ROLES.PROVINCE_EVAL_EXPERT ||
+    // role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+    // role === ROLES.DISTRICT_TECH_EXPERT ||
+    // role === ROLES.DISTRICT_EVAL_EXPERT ||
+    // role === ROLES.EXAM_CENTER_MANAGER
   ) {
     const formsMenuItem = {
       label: "فرم‌ها",
@@ -450,10 +450,11 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
 
   // منوی گزارش‌های ارسالی - برای کاربران که می‌توانند فرم ارسال کنند
   if (
-    role === ROLES.DISTRICT_EDUCATION_EXPERT ||
-    role === ROLES.DISTRICT_TECH_EXPERT ||
-    role === ROLES.DISTRICT_EVAL_EXPERT ||
-    role === ROLES.EXAM_CENTER_MANAGER
+    role === ROLES.SYSTEM_ADMIN
+    // role === ROLES.DISTRICT_EDUCATION_EXPERT ||
+    // role === ROLES.DISTRICT_TECH_EXPERT ||
+    // role === ROLES.DISTRICT_EVAL_EXPERT ||
+    // role === ROLES.EXAM_CENTER_MANAGER
   ) {
     const submissionsMenuItem = {
       label: "گزارش‌های ارسالی",
