@@ -304,7 +304,7 @@ export default function TransferRequestsPage() {
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 forced-input"
             >
               <option value="all">همه درخواست‌ها</option>
               <option value="incoming">درخواست‌های دریافتی</option>
@@ -328,7 +328,7 @@ export default function TransferRequestsPage() {
             <select
               value={searchType}
               onChange={(e) => setSearchType(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 forced-input"
             >
               <option value="nationalId">کد ملی دانش‌آموز</option>
               <option value="orgCode">کد واحد سازمانی</option>
@@ -346,7 +346,7 @@ export default function TransferRequestsPage() {
                   ? "کد ملی دانش‌آموز را وارد کنید..."
                   : "کد واحد سازمانی را وارد کنید..."
               }
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700 forced-input"
             />
           </div>
 
@@ -354,7 +354,7 @@ export default function TransferRequestsPage() {
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
-              className="text-sm text-gray-500 hover:text-gray-700 underline"
+              className="text-sm text-gray-500 hover:text-gray-700 underline forced-text-gray-500 forced-hover-text-gray-700"
             >
               پاک کردن
             </button>
@@ -375,10 +375,10 @@ export default function TransferRequestsPage() {
       </div>
 
       {/* راهنما */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 forced-bg-blue-50 forced-border-blue-200">
         <div className="flex items-start gap-3">
           <FaInfoCircle className="text-blue-600 mt-1 flex-shrink-0" />
-          <div className="text-sm text-blue-800">
+          <div className="text-sm text-blue-800 forced-text-blue-800">
             <p className="font-semibold mb-2">راهنما:</p>
             <ul className="space-y-1 list-disc list-inside">
               <li>
@@ -396,11 +396,11 @@ export default function TransferRequestsPage() {
       </div>
 
       {/* لیست درخواست‌ها */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-hidden forced-bg-white">
         {filteredRequests.length === 0 ? (
           <div className="text-center py-12">
             <FaExchangeAlt className="mx-auto text-4xl text-gray-400 mb-4" />
-            <p className="text-gray-500 text-lg">
+            <p className="text-gray-500 text-lg forced-text-gray-500">
               {searchTerm
                 ? "نتیجه‌ای برای جستجوی شما یافت نشد"
                 : filter === "incoming"
@@ -412,47 +412,47 @@ export default function TransferRequestsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50 text-gray-700">
+            <table className="min-w-full divide-y divide-gray-200 forced-table">
+              <thead className="bg-gray-50 text-gray-700 forced-bg-gray-50 forced-text-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 ">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                     نوع
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 ">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                     دانش‌آموز
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 ">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                     سال تحصیلی
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 ">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                     مدرسه مبدا
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 ">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                     مدرسه مقصد
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                     وضعیت
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                     تاریخ درخواست
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                     عملیات
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-200 forced-bg-white">
                 {filteredRequests.map((request, index) => {
                   const shouldBlur = shouldBlurData(request);
                   return (
                     <tr
                       key={request._id}
-                      className="hover:bg-gray-50 text-gray-700"
+                      className="hover:bg-gray-50 text-gray-700 forced-bg-white forced-text-gray-700"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap forced-text-gray-700">
                         {getRequestTypeBadge(request)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap forced-text-gray-700">
                         <div
                           className={`flex items-center gap-2 text-right ${
                             shouldBlur ? "filter blur-sm opacity-50" : ""
@@ -460,18 +460,18 @@ export default function TransferRequestsPage() {
                         >
                           <FaUserGraduate className="text-blue-500" />
                           <div>
-                            <div className="text-sm font-medium text-gray-700">
+                            <div className="text-sm font-medium text-gray-700 forced-text-gray-700">
                               {shouldBlur
                                 ? "●●● ●●●"
                                 : `${request.studentInfo.firstName} ${request.studentInfo.lastName}`}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 forced-text-gray-500">
                               کد ملی:{" "}
                               {shouldBlur
                                 ? "●●●●●●●●●●"
                                 : request.studentNationalId}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 forced-text-gray-500">
                               پایه:{" "}
                               {shouldBlur
                                 ? "●●●"
@@ -486,7 +486,7 @@ export default function TransferRequestsPage() {
                                   request.studentInfo?.fieldCode ||
                                   "نامشخص"}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 forced-text-gray-500">
                               دوره:{" "}
                               {shouldBlur
                                 ? "●●●"
@@ -504,7 +504,7 @@ export default function TransferRequestsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-1">
                           <FaCalendarAlt className="text-gray-400" />
-                          <span className="text-sm text-gray-900">
+                          <span className="text-sm text-gray-900 forced-text-gray-900">
                             {request.academicYear}
                           </span>
                         </div>
@@ -513,13 +513,13 @@ export default function TransferRequestsPage() {
                         <div className="flex items-center gap-2 text-right">
                           <FaSchool className="text-green-500" />
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-gray-900 forced-text-gray-900">
                               {request.fromSchool.schoolName}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 forced-text-gray-500">
                               کد: {request.fromSchool.organizationalUnitCode}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 forced-text-gray-500">
                               منطقه:{" "}
                               {request.fromSchool?.districtName || "نامشخص"}{" "}
                               (کد:{" "}
@@ -527,7 +527,7 @@ export default function TransferRequestsPage() {
                             </div>
                             {request.fromSchool?.provinceName &&
                               request.fromSchool.provinceName !== "نامشخص" && (
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 forced-text-gray-500">
                                   استان: {request.fromSchool.provinceName}
                                 </div>
                               )}
@@ -542,18 +542,18 @@ export default function TransferRequestsPage() {
                         >
                           <FaSchool className="text-orange-500" />
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-gray-900 forced-text-gray-900">
                               {shouldBlur
                                 ? "●●● ●●● ●●●"
                                 : request.toSchool.schoolName}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 forced-text-gray-500">
                               کد:{" "}
                               {shouldBlur
                                 ? "●●●●●●"
                                 : request.toSchool.organizationalUnitCode}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 forced-text-gray-500">
                               منطقه:{" "}
                               {shouldBlur
                                 ? "●●●"
@@ -567,7 +567,7 @@ export default function TransferRequestsPage() {
                             </div>
                             {request.toSchool?.provinceName &&
                               request.toSchool.provinceName !== "نامشخص" && (
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 forced-text-gray-500">
                                   استان:{" "}
                                   {shouldBlur
                                     ? "●●●"
@@ -580,7 +580,7 @@ export default function TransferRequestsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         {getStatusBadge(request.status)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 forced-text-gray-500">
                         {new Date(request.requestDate).toLocaleDateString(
                           "fa-IR"
                         )}
@@ -588,7 +588,7 @@ export default function TransferRequestsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <button
                           onClick={() => handleViewRequest(request)}
-                          className="text-blue-600 hover:text-blue-900 font-medium flex items-center gap-1 mx-auto"
+                          className="text-blue-600 hover:text-blue-900 font-medium flex items-center gap-1 mx-auto forced-text-blue-600 forced-hover-text-blue-900"
                         >
                           <FaEye />
                           جزئیات
@@ -605,20 +605,20 @@ export default function TransferRequestsPage() {
 
       {/* مودال جزئیات درخواست */}
       {showModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 forced-bg-black forced-bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             {/* هدر */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 forced-border-gray-200">
               <div className="flex items-center gap-3">
-                <FaExchangeAlt className="text-blue-600 text-xl" />
-                <h2 className="text-xl font-bold text-gray-900">
+                <FaExchangeAlt className="text-blue-600 text-xl forced-text-blue-600" />
+                <h2 className="text-xl font-bold text-gray-900 forced-text-gray-900">
                   جزئیات درخواست جابجایی
                 </h2>
                 {getRequestTypeBadge(selectedRequest)}
               </div>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors forced-text-gray-400 forced-hover-text-gray-600"
               >
                 <FaTimes size={20} />
               </button>
@@ -633,57 +633,65 @@ export default function TransferRequestsPage() {
                     <>
                       {/* اطلاعات دانش‌آموز */}
                       <div
-                        className={`bg-blue-50 rounded-lg p-4 ${
+                        className={`bg-blue-50 rounded-lg p-4 forced-bg-blue-50 ${
                           shouldBlurModal ? "filter blur-sm opacity-50" : ""
                         }`}
                       >
-                        <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center gap-2 forced-text-blue-800">
                           <FaUserGraduate />
                           اطلاعات دانش‌آموز
                           {shouldBlurModal && (
-                            <span className="text-sm bg-yellow-200 text-yellow-800 px-2 py-1 rounded">
+                            <span className="text-sm bg-yellow-200 text-yellow-800 px-2 py-1 rounded forced-bg-yellow-200 forced-text-yellow-800">
                               در انتظار تایید
                             </span>
                           )}
                         </h3>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">
+                            <span className="text-gray-600 forced-text-gray-600">
                               نام و نام خانوادگی:
                             </span>
-                            <span className="font-medium">
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●● ●●●"
                                 : `${selectedRequest.studentInfo.firstName} ${selectedRequest.studentInfo.lastName}`}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">نام پدر:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              نام پدر:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●●"
                                 : selectedRequest.studentInfo.fatherName}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">کد ملی:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              کد ملی:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●●●●●●●●●"
                                 : selectedRequest.studentNationalId}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">تاریخ تولد:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              تاریخ تولد:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●●●/●●/●●"
                                 : selectedRequest.studentInfo.birthDate}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">جنسیت:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              جنسیت:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●●"
                                 : getGenderText(
@@ -692,40 +700,50 @@ export default function TransferRequestsPage() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">ملیت:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              ملیت:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●●"
                                 : selectedRequest.studentInfo.nationality}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">شماره همراه:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              شماره همراه:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●●●●●●●●●●"
                                 : selectedRequest.studentInfo.mobile || "-"}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">آدرس:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              آدرس:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●● ●●● ●●●"
                                 : selectedRequest.studentInfo.address || "-"}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">دوره تحصیلی:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              دوره تحصیلی:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●●"
                                 : selectedRequest.studentInfo.academicCourse}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">پایه تحصیلی:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              پایه تحصیلی:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●●"
                                 : selectedRequest.studentInfo?.gradeName ||
@@ -733,7 +751,7 @@ export default function TransferRequestsPage() {
                                   "نامشخص"}
                               {!shouldBlurModal &&
                                 selectedRequest.studentInfo?.gradeName && (
-                                  <span className="text-gray-500 text-sm">
+                                  <span className="text-gray-500 text-sm forced-text-gray-500">
                                     {" "}
                                     (کد: {selectedRequest.studentInfo.gradeCode}
                                     )
@@ -742,8 +760,10 @@ export default function TransferRequestsPage() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">رشته تحصیلی:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              رشته تحصیلی:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●●"
                                 : selectedRequest.studentInfo?.fieldName ||
@@ -751,7 +771,7 @@ export default function TransferRequestsPage() {
                                   "نامشخص"}
                               {!shouldBlurModal &&
                                 selectedRequest.studentInfo?.fieldName && (
-                                  <span className="text-gray-500 text-sm">
+                                  <span className="text-gray-500 text-sm forced-text-gray-500">
                                     {" "}
                                     (کد: {selectedRequest.studentInfo.fieldCode}
                                     )
@@ -760,10 +780,10 @@ export default function TransferRequestsPage() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">
+                            <span className="text-gray-600 forced-text-gray-600">
                               نوع دانش‌آموز:
                             </span>
-                            <span className="font-medium">
+                            <span className="font-medium forced-font-medium">
                               {shouldBlurModal
                                 ? "●●●"
                                 : getStudentTypeText(
@@ -772,18 +792,22 @@ export default function TransferRequestsPage() {
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">سال تحصیلی:</span>
-                            <span className="font-medium">
+                            <span className="text-gray-600 forced-text-gray-600">
+                              سال تحصیلی:
+                            </span>
+                            <span className="font-medium forced-font-medium">
                               {selectedRequest.academicYear}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">وضعیت فعال:</span>
+                            <span className="text-gray-600 forced-text-gray-600">
+                              وضعیت فعال:
+                            </span>
                             <span
-                              className={`font-medium ${
+                              className={`font-medium forced-font-medium ${
                                 selectedRequest.studentInfo.isActive
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                                  ? "text-green-600 forced-text-green-600"
+                                  : "text-red-600 forced-text-red-600"
                               }`}
                             >
                               {shouldBlurModal
@@ -799,21 +823,25 @@ export default function TransferRequestsPage() {
                       {/* اطلاعات مدارس */}
                       <div className="space-y-4">
                         {/* مدرسه مبدا */}
-                        <div className="bg-green-50 rounded-lg p-4">
-                          <h3 className="text-lg font-semibold text-green-800 mb-3 flex items-center gap-2">
+                        <div className="bg-green-50 rounded-lg p-4 forced-bg-green-50">
+                          <h3 className="text-lg font-semibold text-green-800 mb-3 flex items-center gap-2 forced-text-green-800">
                             <FaSchool />
                             مدرسه مبدا (درخواست‌کننده)
                           </h3>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-gray-600">نام مدرسه:</span>
-                              <span className="font-medium">
+                              <span className="text-gray-600 forced-text-gray-600">
+                                نام مدرسه:
+                              </span>
+                              <span className="font-medium forced-font-medium">
                                 {selectedRequest.fromSchool.schoolName}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">کد مدرسه:</span>
-                              <span className="font-medium">
+                              <span className="text-gray-600 forced-text-gray-600">
+                                کد مدرسه:
+                              </span>
+                              <span className="font-medium forced-font-medium">
                                 {
                                   selectedRequest.fromSchool
                                     .organizationalUnitCode
@@ -821,26 +849,30 @@ export default function TransferRequestsPage() {
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">منطقه:</span>
-                              <span className="font-medium">
+                              <span className="text-gray-600 forced-text-gray-600">
+                                منطقه:
+                              </span>
+                              <span className="font-medium forced-font-medium">
                                 {selectedRequest.fromSchool.districtName} (کد:{" "}
                                 {selectedRequest.fromSchool.districtCode})
                               </span>
                             </div>
                             {selectedRequest.fromSchool.provinceName && (
                               <div className="flex justify-between">
-                                <span className="text-gray-600">استان:</span>
-                                <span className="font-medium">
+                                <span className="text-gray-600 forced-text-gray-600">
+                                  استان:
+                                </span>
+                                <span className="font-medium forced-font-medium">
                                   {selectedRequest.fromSchool.provinceName} (کد:{" "}
                                   {selectedRequest.fromSchool.provinceCode})
                                 </span>
                               </div>
                             )}
                             <div className="flex justify-between">
-                              <span className="text-gray-600">
+                              <span className="text-gray-600 forced-text-gray-600">
                                 مدیر درخواست‌کننده:
                               </span>
-                              <span className="font-medium">
+                              <span className="font-medium forced-font-medium">
                                 {selectedRequest.fromSchool.managerName}
                               </span>
                             </div>
@@ -849,31 +881,35 @@ export default function TransferRequestsPage() {
 
                         {/* مدرسه مقصد */}
                         <div
-                          className={`bg-orange-50 rounded-lg p-4 ${
+                          className={`bg-orange-50 rounded-lg p-4 forced-bg-orange-50 ${
                             shouldBlurModal ? "filter blur-sm opacity-50" : ""
                           }`}
                         >
-                          <h3 className="text-lg font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                          <h3 className="text-lg font-semibold text-orange-800 mb-3 flex items-center gap-2 forced-text-orange-800">
                             <FaSchool />
                             مدرسه مقصد (فعلی دانش‌آموز)
                             {shouldBlurModal && (
-                              <span className="text-sm bg-yellow-200 text-yellow-800 px-2 py-1 rounded">
+                              <span className="text-sm bg-yellow-200 text-yellow-800 px-2 py-1 rounded forced-bg-yellow-200 forced-text-yellow-800">
                                 در انتظار تایید
                               </span>
                             )}
                           </h3>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                              <span className="text-gray-600">نام مدرسه:</span>
-                              <span className="font-medium">
+                              <span className="text-gray-600 forced-text-gray-600">
+                                نام مدرسه:
+                              </span>
+                              <span className="font-medium forced-font-medium">
                                 {shouldBlurModal
                                   ? "●●● ●●● ●●●"
                                   : selectedRequest.toSchool.schoolName}
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">کد مدرسه:</span>
-                              <span className="font-medium">
+                              <span className="text-gray-600 forced-text-gray-600">
+                                کد مدرسه:
+                              </span>
+                              <span className="font-medium forced-font-medium">
                                 {shouldBlurModal
                                   ? "●●●●●●"
                                   : selectedRequest.toSchool
@@ -881,8 +917,10 @@ export default function TransferRequestsPage() {
                               </span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-600">منطقه:</span>
-                              <span className="font-medium">
+                              <span className="text-gray-600 forced-text-gray-600">
+                                منطقه:
+                              </span>
+                              <span className="font-medium forced-font-medium">
                                 {shouldBlurModal
                                   ? "●●● (کد: ●●●)"
                                   : `${selectedRequest.toSchool.districtName} (کد: ${selectedRequest.toSchool.districtCode})`}
@@ -890,8 +928,10 @@ export default function TransferRequestsPage() {
                             </div>
                             {selectedRequest.toSchool.provinceName && (
                               <div className="flex justify-between">
-                                <span className="text-gray-600">استان:</span>
-                                <span className="font-medium">
+                                <span className="text-gray-600 forced-text-gray-600">
+                                  استان:
+                                </span>
+                                <span className="font-medium forced-font-medium">
                                   {shouldBlurModal
                                     ? "●●● (کد: ●●)"
                                     : `${selectedRequest.toSchool.provinceName} (کد: ${selectedRequest.toSchool.provinceCode})`}
@@ -907,11 +947,11 @@ export default function TransferRequestsPage() {
               </div>
 
               {/* توضیحات درخواست */}
-              <div className="mt-6 bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              <div className="mt-6 bg-gray-50 rounded-lg p-4 forced-bg-gray-50">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 forced-text-gray-800">
                   توضیحات درخواست:
                 </h3>
-                <p className="text-gray-700 whitespace-pre-wrap">
+                <p className="text-gray-700 whitespace-pre-wrap forced-text-gray-700">
                   {selectedRequest.requestDescription}
                 </p>
               </div>
@@ -920,14 +960,16 @@ export default function TransferRequestsPage() {
               <div className="mt-6 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div>
-                    <span className="text-sm text-gray-600">وضعیت: </span>
+                    <span className="text-sm text-gray-600 forced-text-gray-600">
+                      وضعیت:{" "}
+                    </span>
                     {getStatusBadge(selectedRequest.status)}
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 forced-text-gray-600">
                       تاریخ درخواست:{" "}
                     </span>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-medium forced-font-medium">
                       {new Date(selectedRequest.requestDate).toLocaleDateString(
                         "fa-IR"
                       )}
@@ -935,10 +977,10 @@ export default function TransferRequestsPage() {
                   </div>
                   {selectedRequest.responseDate && (
                     <div>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 forced-text-gray-600">
                         تاریخ پاسخ:{" "}
                       </span>
-                      <span className="text-sm font-medium">
+                      <span className="text-sm font-medium forced-font-medium">
                         {new Date(
                           selectedRequest.responseDate
                         ).toLocaleDateString("fa-IR")}
@@ -950,11 +992,11 @@ export default function TransferRequestsPage() {
 
               {/* پاسخ مدیر (در صورت وجود) */}
               {selectedRequest.responseDescription && (
-                <div className="mt-6 bg-yellow-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-3">
+                <div className="mt-6 bg-yellow-50 rounded-lg p-4 forced-bg-yellow-50">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-3 forced-text-yellow-800">
                     پاسخ مدیر:
                   </h3>
-                  <p className="text-yellow-700 whitespace-pre-wrap">
+                  <p className="text-yellow-700 whitespace-pre-wrap forced-text-yellow-700">
                     {selectedRequest.responseDescription}
                   </p>
                 </div>
@@ -963,13 +1005,13 @@ export default function TransferRequestsPage() {
               {/* فرم پاسخ (فقط برای درخواست‌های دریافتی در انتظار) */}
               {selectedRequest.canRespond && (
                 <div className="mt-6 border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 forced-text-gray-800">
                     پاسخ به درخواست:
                   </h3>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2 forced-text-gray-700">
                         توضیحات پاسخ (اختیاری):
                       </label>
                       <textarea
@@ -982,7 +1024,7 @@ export default function TransferRequestsPage() {
                         }
                         rows={3}
                         placeholder="توضیحات اضافی در مورد پاسخ شما..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none forced-input"
                       />
                     </div>
 
@@ -990,7 +1032,7 @@ export default function TransferRequestsPage() {
                       <button
                         onClick={() => handleRespond("reject")}
                         disabled={responding}
-                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed forced-bg-red-600 forced-hover-bg-red-700 forced-text-white"
                       >
                         {responding ? (
                           <FaSpinner className="animate-spin" />
@@ -1016,8 +1058,10 @@ export default function TransferRequestsPage() {
                     <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
                       <div className="flex items-start gap-2">
                         <FaInfoCircle className="text-yellow-600 mt-0.5 flex-shrink-0" />
-                        <div className="text-sm text-yellow-800">
-                          <p className="font-medium mb-1">توجه:</p>
+                        <div className="text-sm text-yellow-800 forced-text-yellow-800">
+                          <p className="font-medium mb-1 forced-font-medium">
+                            توجه:
+                          </p>
                           <p>
                             در صورت تایید، دانش‌آموز از مدرسه شما حذف و به مدرسه
                             درخواست‌کننده منتقل خواهد شد. این عمل قابل برگشت
@@ -1036,7 +1080,7 @@ export default function TransferRequestsPage() {
               <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors forced-bg-gray-50 forced-border-gray-300 forced-text-gray-700 forced-hover-bg-gray-50"
                 >
                   بستن
                 </button>
@@ -1049,12 +1093,12 @@ export default function TransferRequestsPage() {
       {/* مودال جستجوی دانش‌آموز */}
       {showStudentSearchModal && user?.role === ROLES.PROVINCE_TECH_EXPERT && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto forced-bg-white">
             {/* هدر */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 forced-border-gray-200">
               <div className="flex items-center gap-3">
-                <FaUserGraduate className="text-green-600 text-xl" />
-                <h2 className="text-xl font-bold text-gray-900">
+                <FaUserGraduate className="text-green-600 text-xl forced-text-green-600" />
+                <h2 className="text-xl font-bold text-gray-900 forced-text-gray-900">
                   جستجوی دانش‌آموز در استان
                 </h2>
               </div>
@@ -1064,7 +1108,7 @@ export default function TransferRequestsPage() {
                   setStudentSearchTerm("");
                   setStudentSearchResults([]);
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors forced-text-gray-400 forced-hover-text-gray-600"
               >
                 <FaTimes size={20} />
               </button>
@@ -1073,10 +1117,10 @@ export default function TransferRequestsPage() {
             {/* محتوا */}
             <div className="p-6">
               {/* راهنما */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 forced-bg-blue-50 forced-border-blue-200">
                 <div className="flex items-start gap-3">
-                  <FaInfoCircle className="text-blue-600 mt-1 flex-shrink-0" />
-                  <div className="text-sm text-blue-800">
+                  <FaInfoCircle className="text-blue-600 mt-1 flex-shrink-0 forced-text-blue-600" />
+                  <div className="text-sm text-blue-800 forced-text-blue-800">
                     <p className="font-semibold mb-2">راهنما:</p>
                     <ul className="space-y-1 list-disc list-inside">
                       <li>
@@ -1095,8 +1139,8 @@ export default function TransferRequestsPage() {
               <div className="mb-6">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
-                    <FaSearch className="text-gray-500" />
-                    <label className="text-sm font-medium text-gray-700">
+                    <FaSearch className="text-gray-500 forced-text-gray-500" />
+                    <label className="text-sm font-medium text-gray-700 forced-text-gray-700">
                       کد ملی دانش‌آموز:
                     </label>
                   </div>
@@ -1106,46 +1150,48 @@ export default function TransferRequestsPage() {
                       value={studentSearchTerm}
                       onChange={(e) => setStudentSearchTerm(e.target.value)}
                       placeholder="کد ملی دانش‌آموز را وارد کنید..."
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500 forced-input"
                     />
                   </div>
                   {studentSearchLoading && (
-                    <FaSpinner className="animate-spin text-gray-500" />
+                    <FaSpinner className="animate-spin text-gray-500 forced-text-gray-500" />
                   )}
                 </div>
               </div>
 
               {/* نتایج */}
               {studentSearchTerm.length >= 3 && (
-                <div className="border border-gray-200 rounded-lg">
+                <div className="border border-gray-200 rounded-lg forced-border-gray-200">
                   {studentSearchLoading ? (
                     <div className="text-center py-8">
-                      <FaSpinner className="animate-spin mx-auto text-2xl text-gray-400 mb-2" />
-                      <p className="text-gray-500">در حال جستجو...</p>
+                      <FaSpinner className="animate-spin mx-auto text-2xl text-gray-400 mb-2 forced-text-gray-400" />
+                      <p className="text-gray-500 forced-text-gray-500">
+                        در حال جستجو...
+                      </p>
                     </div>
                   ) : studentSearchResults.length === 0 ? (
                     <div className="text-center py-8">
-                      <FaUserGraduate className="mx-auto text-4xl text-gray-400 mb-4" />
+                      <FaUserGraduate className="mx-auto text-4xl text-gray-400 mb-4 forced-text-gray-400" />
                       <p className="text-gray-500">دانش‌آموزی یافت نشد</p>
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr className="text-gray-700">
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <thead className="bg-gray-50 forced-bg-gray-50">
+                          <tr className="text-gray-700 forced-text-gray-700">
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider forced-text-gray-500">
                               اطلاعات دانش‌آموز
                             </th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider forced-text-gray-500">
                               سال تحصیلی
                             </th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider forced-text-gray-500">
                               پایه و رشته
                             </th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider forced-text-gray-500">
                               مدرسه
                             </th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider forced-text-gray-500">
                               وضعیت
                             </th>
                           </tr>
@@ -1178,28 +1224,28 @@ export default function TransferRequestsPage() {
                               <td className="px-6 py-4 whitespace-nowrap text-right">
                                 <div className="flex items-center gap-1">
                                   <FaCalendarAlt className="text-gray-400" />
-                                  <span className="text-sm text-gray-900">
+                                  <span className="text-sm text-gray-900 forced-text-gray-900">
                                     {student.academicYear}
                                   </span>
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 forced-text-gray-500">
                                   دوره: {student.academicCourse}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right">
-                                <div className="text-sm text-gray-900">
+                                <div className="text-sm text-gray-900 forced-text-gray-900">
                                   پایه:{" "}
                                   {student.gradeName ||
                                     student.gradeCode ||
                                     "نامشخص"}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 forced-text-gray-500">
                                   رشته:{" "}
                                   {student.fieldName ||
                                     student.fieldCode ||
                                     "نامشخص"}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 forced-text-gray-500">
                                   نوع: {getStudentTypeText(student.studentType)}
                                 </div>
                               </td>
@@ -1207,13 +1253,13 @@ export default function TransferRequestsPage() {
                                 <div className="flex items-center gap-2">
                                   <FaSchool className="text-orange-500" />
                                   <div>
-                                    <div className="text-sm font-medium text-gray-900">
+                                    <div className="text-sm font-medium text-gray-900 forced-text-gray-900">
                                       {student.examCenter?.name || "نامشخص"}
                                     </div>
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-gray-500 forced-text-gray-500">
                                       کد: {student.examCenter?.code || "نامشخص"}
                                     </div>
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-gray-500 forced-text-gray-500">
                                       منطقه:{" "}
                                       {student.examCenter?.district?.name ||
                                         "نامشخص"}
@@ -1239,7 +1285,7 @@ export default function TransferRequestsPage() {
 
                       {/* خلاصه نتایج */}
                       <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600 forced-text-gray-600">
                           {studentSearchResults.length} نتیجه یافت شد
                           {studentSearchResults.length === 50 &&
                             " (حداکثر 50 نتیجه نمایش داده می‌شود)"}
@@ -1252,8 +1298,10 @@ export default function TransferRequestsPage() {
 
               {studentSearchTerm.length > 0 && studentSearchTerm.length < 3 && (
                 <div className="text-center py-8">
-                  <FaInfoCircle className="mx-auto text-3xl text-gray-400 mb-2" />
-                  <p className="text-gray-500">حداقل 3 کاراکتر وارد کنید</p>
+                  <FaInfoCircle className="mx-auto text-3xl text-gray-400 mb-2 forced-text-gray-400" />
+                  <p className="text-gray-500 forced-text-gray-500">
+                    حداقل 3 کاراکتر وارد کنید
+                  </p>
                 </div>
               )}
             </div>
@@ -1266,7 +1314,7 @@ export default function TransferRequestsPage() {
                   setStudentSearchTerm("");
                   setStudentSearchResults([]);
                 }}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors forced-bg-gray-50 forced-border-gray-300 forced-text-gray-700 forced-hover-bg-gray-50   "
               >
                 بستن
               </button>

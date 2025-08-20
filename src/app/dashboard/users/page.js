@@ -955,7 +955,7 @@ export default function UsersPage() {
               <option value="inactive">غیرفعال</option>
             </select>
           </div>
-          <button className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md forced-bg-gray-200 forced-hover-bg-gray-300">
+          <button className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md forced-bg-gray-200 forced-hover-bg-gray-300 forced-text-gray-700 forced-hover-text-gray-700">
             فیلتر
           </button>
         </div>
