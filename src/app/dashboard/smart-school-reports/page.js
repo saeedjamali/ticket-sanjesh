@@ -843,19 +843,19 @@ export default function SmartSchoolReportsPage() {
                   </td>
                 </tr>
               ) : (
-                                filteredSchools?.map((school, index) => (
+                filteredSchools?.map((school, index) => (
                   <tr
                     key={index}
                     className="hover:bg-gray-50 cursor-pointer text-right forced-bg-white"
                     onClick={() => handleSchoolClick(school?.examCenterCode)}
                     title="کلیک برای مشاهده جزئیات مدرسه"
                   >
-                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 forced-text-gray-900">
-                    {school?.examCenterCode || "-"}
-                  </td>
-                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate forced-text-gray-900">
-                    {school?.examCenterName || "-"}
-                  </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 forced-text-gray-900">
+                      {school?.examCenterCode || "-"}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate forced-text-gray-900">
+                      {school?.examCenterName || "-"}
+                    </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
