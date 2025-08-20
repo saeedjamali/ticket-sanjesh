@@ -328,7 +328,7 @@ export default function TransferRequestsPage() {
             <select
               value={searchType}
               onChange={(e) => setSearchType(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
             >
               <option value="nationalId">کد ملی دانش‌آموز</option>
               <option value="orgCode">کد واحد سازمانی</option>
@@ -346,7 +346,7 @@ export default function TransferRequestsPage() {
                   ? "کد ملی دانش‌آموز را وارد کنید..."
                   : "کد واحد سازمانی را وارد کنید..."
               }
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-700"
             />
           </div>
 
@@ -413,30 +413,30 @@ export default function TransferRequestsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 text-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
                     نوع
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
                     دانش‌آموز
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
                     سال تحصیلی
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
                     مدرسه مبدا
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
                     مدرسه مقصد
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     وضعیت
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     تاریخ درخواست
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     عملیات
                   </th>
                 </tr>
@@ -445,7 +445,7 @@ export default function TransferRequestsPage() {
                 {filteredRequests.map((request, index) => {
                   const shouldBlur = shouldBlurData(request);
                   return (
-                    <tr key={request._id} className="hover:bg-gray-50">
+                    <tr key={request._id} className="hover:bg-gray-50 text-gray-700">
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getRequestTypeBadge(request)}
                       </td>
@@ -457,7 +457,7 @@ export default function TransferRequestsPage() {
                         >
                           <FaUserGraduate className="text-blue-500" />
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-gray-700">
                               {shouldBlur
                                 ? "●●● ●●●"
                                 : `${request.studentInfo.firstName} ${request.studentInfo.lastName}`}
@@ -1129,7 +1129,7 @@ export default function TransferRequestsPage() {
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
-                          <tr>
+                          <tr className="text-gray-700">
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                               اطلاعات دانش‌آموز
                             </th>
