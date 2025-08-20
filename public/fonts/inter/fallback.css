@@ -1,0 +1,9 @@
+/* 
+Fallback file - Replace with actual Inter font files
+Download from: https://fonts.google.com/specimen/Inter
+*/
+
+/* Fallback to system fonts */
+.inter-fallback {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}

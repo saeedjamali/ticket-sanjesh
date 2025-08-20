@@ -1,0 +1,9 @@
+/* 
+Fallback file - Replace with actual Roboto Mono font files
+Download from: https://fonts.google.com/specimen/Roboto+Mono
+*/
+
+/* Fallback to system monospace fonts */
+.roboto-mono-fallback {
+    font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+}

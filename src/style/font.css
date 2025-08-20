@@ -68,9 +68,92 @@
     font-display: swap;
 }
 
+/* 
+   Note: Google Fonts removed from Next.js build to prevent ETIMEDOUT errors
+   
+   To add local fonts:
+   1. Download Inter from: https://fonts.google.com/specimen/Inter
+   2. Download Roboto Mono from: https://fonts.google.com/specimen/Roboto+Mono
+   3. Place woff2 files in /public/fonts/inter/ and /public/fonts/roboto-mono/
+   4. Uncomment the @font-face declarations below
+   
+   For now, we use system font fallbacks which work perfectly.
+*/
+
+/* Inter Font - Local (uncomment when font files are available)
+@font-face {
+    font-family: "Inter";
+    src: url("/fonts/inter/Inter-Regular.woff2") format("woff2"),
+         url("/fonts/inter/Inter-Regular.woff") format("woff");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("/fonts/inter/Inter-Medium.woff2") format("woff2"),
+         url("/fonts/inter/Inter-Medium.woff") format("woff");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("/fonts/inter/Inter-SemiBold.woff2") format("woff2"),
+         url("/fonts/inter/Inter-SemiBold.woff") format("woff");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("/fonts/inter/Inter-Bold.woff2") format("woff2"),
+         url("/fonts/inter/Inter-Bold.woff") format("woff");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+*/
+
+/* Roboto Mono Font - Local (uncomment when font files are available)
+@font-face {
+    font-family: "Roboto Mono";
+    src: url("/fonts/roboto-mono/RobotoMono-Regular.woff2") format("woff2"),
+         url("/fonts/roboto-mono/RobotoMono-Regular.woff") format("woff");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Roboto Mono";
+    src: url("/fonts/roboto-mono/RobotoMono-Medium.woff2") format("woff2"),
+         url("/fonts/roboto-mono/RobotoMono-Medium.woff") format("woff");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Roboto Mono";
+    src: url("/fonts/roboto-mono/RobotoMono-Bold.woff2") format("woff2"),
+         url("/fonts/roboto-mono/RobotoMono-Bold.woff") format("woff");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+*/
+
 /* Apply fonts to elements */
 :root {
     --font-primary: "IranYekan", "IRANSans", "Shabnam", system-ui, -apple-system, sans-serif;
+
+    /* System font fallbacks - no Google Fonts dependency */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "IranYekan", "IRANSans", sans-serif;
+    --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
 }
 
 body {

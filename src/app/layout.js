@@ -1,18 +1,12 @@
 import "./globals.css";
-import { Inter, Roboto_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import NextAuthProvider from "@/components/providers/NextAuthProvider";
 import { SidebarProvider } from "@/context/SidebarContext";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-const robotoMono = Roboto_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
+// Local fonts are now loaded via CSS @font-face in globals.css and font.css
+// No need for Google Fonts imports - they're defined as CSS variables:
+// --font-sans for Inter
+// --font-mono for Roboto Mono
 
 export const metadata = {
   title: "سامانه رصد",
@@ -34,7 +28,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="fa" dir="rtl">
-      <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
+      <body className="antialiased">
         <SidebarProvider>
           <NextAuthProvider>{children}</NextAuthProvider>
         </SidebarProvider>
