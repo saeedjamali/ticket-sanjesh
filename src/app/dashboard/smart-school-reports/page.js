@@ -367,7 +367,7 @@ export default function SmartSchoolReportsPage() {
                       <span className="text-gray-700">امتیاز = درصد × 0.1 (حداکثر 10 امتیاز)</span>
                     </div>
                     <div className="mt-3 p-2 bg-green-50 rounded text-xs">
-                      <strong>مثال:</strong> مدرسه با 12 کلاس که 8 کلاس آن
+                      <strong className="text-gray-700">مثال:</strong> مدرسه با 12 کلاس که 8 کلاس آن
                       هوشمند است:
                       <br />
                       درصد = (8 ÷ 12) × 100 = 67%
@@ -483,7 +483,7 @@ export default function SmartSchoolReportsPage() {
               توزیع مدارس بر اساس سطح
             </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={levelData}>
+              <BarChart data={levelData} fill="#c0c0c0">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -546,31 +546,31 @@ export default function SmartSchoolReportsPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
                 <span className="text-gray-700">کامپیوتر</span>
-                <span className="font-bold">
+                <span className="font-bold text-gray-700">
                   {equipment?.totalComputers || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
                 <span className="text-gray-700">لپ‌تاپ</span>
-                <span className="font-bold">
+                <span className="font-bold text-gray-700">
                   {equipment?.totalLaptops || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
                 <span className="text-gray-700">تبلت</span>
-                <span className="font-bold">
+                <span className="font-bold text-gray-700">
                   {equipment?.totalTablets || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
                 <span className="text-gray-700">تخته هوشمند</span>
-                <span className="font-bold">
+                <span className="font-bold text-gray-700">
                   {equipment?.totalSmartBoards || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
                 <span className="text-gray-700">ویدئو پروژکتور</span>
-                <span className="font-bold">
+                <span className="font-bold text-gray-700">
                   {equipment?.totalProjectors || 0}
                 </span>
               </div>
@@ -642,7 +642,7 @@ export default function SmartSchoolReportsPage() {
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">خدمات آنلاین</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">خدمات آنلاین</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-gray-700">کلاس آنلاین</span>
@@ -720,7 +720,7 @@ export default function SmartSchoolReportsPage() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="جستجو بر اساس کد یا نام مدرسه..."
-                  className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
                 />
                 {searchTerm && (
                   <button
@@ -735,11 +735,11 @@ export default function SmartSchoolReportsPage() {
               {/* نمایش تعداد نتایج */}
               <div className="text-sm text-gray-600 whitespace-nowrap">
                 {searchTerm ? (
-                  <span>
+                  <span className="text-gray-700">
                     {filteredSchools.length} از {reportData.length} مدرسه
                   </span>
                 ) : (
-                  <span>{reportData.length} مدرسه</span>
+                  <span className="text-gray-700">{reportData.length} مدرسه</span>
                 )}
               </div>
             </div>
@@ -747,42 +747,42 @@ export default function SmartSchoolReportsPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 text-gray-700">
               <tr>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700">
                   کد مرکز
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700">
                   نام مرکز
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th classN  ame="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
                   امتیاز
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
                   سطح
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
                   کل کلاس
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  </th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
                   کلاس هوشمند
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
                   درصد هوشمند
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
                   اینترنت
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
                   کامپیوتر
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
                   مهارت معلم
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
                   آخرین بروزرسانی
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
                   عملیات
                 </th>
               </tr>
@@ -927,9 +927,9 @@ export default function SmartSchoolReportsPage() {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">مقایسه سطوح مدارس</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">مقایسه سطوح مدارس</h3>
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={comparisonData}>
+            <BarChart data={comparisonData} fill="#c0c0c0">
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="level" />
               <YAxis />
@@ -947,11 +947,11 @@ export default function SmartSchoolReportsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">
               میانگین تجهیزات به تفکیک سطح
             </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={comparisonData}>
+              <BarChart data={comparisonData} fill="#c0c0c0">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="level" />
                 <YAxis />
@@ -963,11 +963,11 @@ export default function SmartSchoolReportsPage() {
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">
               نوع اینترنت به تفکیک سطح
             </h3>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={comparisonData}>
+              <BarChart data={comparisonData} fill="#c0c0c0">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="level" />
                 <YAxis />
@@ -992,7 +992,7 @@ export default function SmartSchoolReportsPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center gap-2 mb-4">
             <FaExclamationTriangle className="text-orange-500" />
-            <h3 className="text-lg font-semibold">مدارس نیازمند بهبود</h3>
+            <h3 className="text-lg font-semibold text-gray-700">مدارس نیازمند بهبود</h3>
           </div>
           <div className="text-center p-4 bg-orange-50 rounded-lg">
             <p className="text-3xl font-bold text-orange-600">
@@ -1005,16 +1005,16 @@ export default function SmartSchoolReportsPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">اولویت‌های بهبود</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">اولویت‌های بهبود</h3>
           <div className="space-y-3">
             {reportData?.prioritizedImprovements?.map((item, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded"
               >
-                <span className="font-medium">{item.priority}</span>
+                <span className="font-medium text-gray-700">{item.priority}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-600">
                     {item.count} مدرسه
                   </span>
                   <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
@@ -1027,32 +1027,32 @@ export default function SmartSchoolReportsPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">
             جزئیات مدارس نیازمند بهبود
           </h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 text-gray-700">  
                 <tr>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase">
                     کد مرکز
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">
                     نام مرکز
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">
                     امتیاز
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">
                     کل کلاس
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">
                     کلاس هوشمند
                   </th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">
                     درصد هوشمند
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">
                     اولویت‌های بهبود
                   </th>
                 </tr>
@@ -1060,10 +1060,10 @@ export default function SmartSchoolReportsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {reportData?.schoolsByPriority?.map((school, index) => (
                   <tr key={index} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
                       {school?.examCenterCode || "-"}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 max-w-xs truncate">
                       {school?.examCenterName || "-"}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
@@ -1374,7 +1374,7 @@ export default function SmartSchoolReportsPage() {
 
         {/* نمودار مقایسه مناطق */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">مقایسه امتیاز مناطق</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">مقایسه امتیاز مناطق</h3>
           <ResponsiveContainer width="100%" height={500}>
             <BarChart
               data={districts}
@@ -1400,37 +1400,37 @@ export default function SmartSchoolReportsPage() {
         {/* جدول تفصیلی مناطق */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-gray-700">
               جزئیات مناطق (کلیک برای مشاهده جزئیات)
             </h3>
           </div>
 
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 text-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
                     منطقه
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     تعداد مدارس
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     میانگین امتیاز
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     کل کلاس‌ها
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     کلاس‌های هوشمند
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     درصد هوشمندسازی
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     وای‌فای
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
                     عملیات
                   </th>
                 </tr>

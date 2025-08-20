@@ -344,7 +344,9 @@ export default function SmartSchoolPage() {
             </div>
             <ul className="list-disc list-inside text-orange-700">
               {existingData.improvementPriorities.map((priority, index) => (
-                <li key={index}>{priority}</li>
+                <li key={index} className="text-gray-700">
+                  {priority}
+                </li>
               ))}
             </ul>
           </div>
@@ -366,7 +368,7 @@ export default function SmartSchoolPage() {
                   name="internetConnection"
                   value={formData.internetConnection}
                   onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 text-gray-700"
                   required
                 >
                   <option value="">انتخاب کنید</option>
@@ -387,14 +389,14 @@ export default function SmartSchoolPage() {
                     name="internetSpeed"
                     value={formData.internetSpeed}
                     onChange={handleInputChange}
-                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 text-gray-700"
                     min="0"
                   />
                   <select
                     name="internetSpeedUnit"
                     value={formData.internetSpeedUnit}
                     onChange={handleInputChange}
-                    className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                    className="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 text-gray-700"
                   >
                     <option value="Kbps">Kbps</option>
                     <option value="Mbps">Mbps</option>
@@ -438,7 +440,7 @@ export default function SmartSchoolPage() {
                     name="wifiCoverage"
                     value={formData.wifiCoverage}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 text-gray-700"
                   >
                     <option value="">انتخاب کنید</option>
                     <option value="ضعیف">ضعیف</option>
@@ -471,7 +473,7 @@ export default function SmartSchoolPage() {
                   readOnly
                   min="0"
                   required
-                  className="w-full border border-gray-200 bg-gray-100 text-gray-700 rounded-md px-3 py-2 cursor-not-allowed"
+                  className="w-full border border-gray-200 bg-gray-100 text-gray-700 rounded-md px-3 py-2 cursor-not-allowed "
                   placeholder="مثال: 12"
                 />
                 <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
@@ -492,7 +494,7 @@ export default function SmartSchoolPage() {
                   min="0"
                   max={formData.totalClassrooms || 999}
                   required
-                  className={`w-full border rounded-md px-3 py-2 focus:ring-2 ${
+                  className={`w-full border rounded-md px-3 py-2 focus:ring-2 text-gray-700 ${
                     formData.totalClassrooms > 0 &&
                     formData.smartClassrooms > formData.totalClassrooms
                       ? "border-red-500 bg-red-50 focus:ring-red-500"
@@ -586,7 +588,7 @@ export default function SmartSchoolPage() {
                     name={key}
                     value={formData[key]}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-center focus:ring-2 focus:ring-green-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-center focus:ring-2 focus:ring-green-500 text-gray-700"
                     min="0"
                   />
                 </div>
@@ -617,7 +619,7 @@ export default function SmartSchoolPage() {
                       name="computerWorkshopSystemsCount"
                       value={formData.computerWorkshopSystemsCount}
                       onChange={handleInputChange}
-                      className="w-20 border border-gray-300 rounded-md px-3 py-2 text-center focus:ring-2 focus:ring-green-500"
+                      className="w-20 border border-gray-300 rounded-md px-3 py-2 text-center focus:ring-2 focus:ring-green-500 text-gray-700"
                       min="0"
                     />
                   </div>
@@ -642,7 +644,7 @@ export default function SmartSchoolPage() {
                   name="managementSoftware"
                   value={formData.managementSoftware}
                   onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-purple-500 text-gray-700"
                 >
                   <option value="">انتخاب کنید</option>
                   <option value="ندارد">ندارد</option>
@@ -666,7 +668,7 @@ export default function SmartSchoolPage() {
                         name="managementSoftwareUrl"
                         value={formData.managementSoftwareUrl}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-purple-500 text-gray-700"
                         placeholder="https://example.com"
                       />
                     </div>
@@ -679,7 +681,7 @@ export default function SmartSchoolPage() {
                         name="managementSoftwareSatisfaction"
                         value={formData.managementSoftwareSatisfaction}
                         onChange={handleInputChange}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-purple-500 text-gray-700"
                       >
                         <option value="">انتخاب کنید</option>
                         <option value="خیلی کم">خیلی کم</option>
@@ -715,7 +717,7 @@ export default function SmartSchoolPage() {
                       name="antivirusSoftwareName"
                       value={formData.antivirusSoftwareName}
                       onChange={handleInputChange}
-                      className="w-full md:w-1/2 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-purple-500"
+                      className="w-full md:w-1/2 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-purple-500 text-gray-700"
                       placeholder="مثال: Kaspersky, Norton, ..."
                     />
                   </div>
@@ -741,7 +743,7 @@ export default function SmartSchoolPage() {
                     name="teacherITSkillLevel"
                     value={formData.teacherITSkillLevel}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500 text-gray-700"
                   >
                     <option value="">انتخاب کنید</option>
                     <option value="مبتدی">مبتدی</option>
@@ -759,7 +761,7 @@ export default function SmartSchoolPage() {
                     name="studentITSkillLevel"
                     value={formData.studentITSkillLevel}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500 text-gray-700"
                   >
                     <option value="">انتخاب کنید</option>
                     <option value="مبتدی">مبتدی</option>
@@ -785,7 +787,7 @@ export default function SmartSchoolPage() {
                       name="technicalStaffCode"
                       value={formData.technicalStaffCode}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500 text-gray-700"
                       placeholder="مثال: 12345"
                     />
                   </div>
@@ -799,7 +801,7 @@ export default function SmartSchoolPage() {
                       name="technicalStaffFirstName"
                       value={formData.technicalStaffFirstName}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500 text-gray-700"
                       placeholder="نام"
                     />
                   </div>
@@ -813,7 +815,7 @@ export default function SmartSchoolPage() {
                       name="technicalStaffLastName"
                       value={formData.technicalStaffLastName}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500 text-gray-700"
                       placeholder="نام خانوادگی"
                     />
                   </div>
@@ -827,7 +829,7 @@ export default function SmartSchoolPage() {
                       name="technicalStaffPhone"
                       value={formData.technicalStaffPhone}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500 text-gray-700"
                       placeholder="09xxxxxxxxx"
                     />
                   </div>
@@ -841,7 +843,7 @@ export default function SmartSchoolPage() {
                       value={formData.technicalStaffSkills}
                       onChange={handleInputChange}
                       rows={3}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-yellow-500 text-gray-700"
                       placeholder="مثال: تعمیر سخت‌افزار، نصب نرم‌افزار، شبکه، امنیت سایبری، برنامه‌نویسی، ..."
                     />
                     <p className="text-xs text-gray-500 mt-1">
@@ -863,13 +865,13 @@ export default function SmartSchoolPage() {
             <div className="space-y-6">
               {/* کلاس آنلاین */}
               <div>
-                <label className="flex items-center gap-2 text-sm mb-2">
+                <label className="flex items-center gap-2 text-sm mb-2 text-gray-700">
                   <input
                     type="checkbox"
                     name="onlineClassesCapability"
                     checked={formData.onlineClassesCapability}
                     onChange={handleInputChange}
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 "
                   />
                   کلاس آنلاین
                 </label>
@@ -880,7 +882,7 @@ export default function SmartSchoolPage() {
                       name="onlineClassesUrl"
                       value={formData.onlineClassesUrl}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-indigo-500 text-gray-700"
                       placeholder="آدرس سایت یا سرویس کلاس آنلاین (مثال: https://meet.google.com)"
                     />
                   </div>
@@ -889,7 +891,7 @@ export default function SmartSchoolPage() {
 
               {/* پلتفرم آموزش الکترونیکی */}
               <div>
-                <label className="flex items-center gap-2 text-sm mb-2">
+                <label className="flex items-center gap-2 text-sm mb-2 text-gray-700">
                   <input
                     type="checkbox"
                     name="elearningPlatform"
@@ -915,13 +917,13 @@ export default function SmartSchoolPage() {
 
               {/* کتابخانه دیجیتال */}
               <div>
-                <label className="flex items-center gap-2 text-sm mb-2">
+                <label className="flex items-center gap-2 text-sm mb-2 text-gray-700">
                   <input
                     type="checkbox"
                     name="digitalLibrary"
                     checked={formData.digitalLibrary}
                     onChange={handleInputChange}
-                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 "
                   />
                   کتابخانه دیجیتال
                 </label>
@@ -941,7 +943,7 @@ export default function SmartSchoolPage() {
 
               {/* سیستم آزمون آنلاین */}
               <div>
-                <label className="flex items-center gap-2 text-sm mb-2">
+                <label className="flex items-center gap-2 text-sm mb-2 text-gray-700">
                   <input
                     type="checkbox"
                     name="onlineExamSystem"
@@ -977,7 +979,7 @@ export default function SmartSchoolPage() {
               value={formData.comments}
               onChange={handleInputChange}
               rows="4"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-gray-500"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-gray-500 text-gray-700"
               placeholder="نظرات، توضیحات اضافی، مشکلات و پیشنهادات خود را بنویسید..."
             />
           </div>
