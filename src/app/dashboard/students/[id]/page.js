@@ -167,32 +167,32 @@ export default function StudentDetailsPage() {
               <div className="flex items-center gap-3">
                 <FaIdCard className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">کد ملی</p>
-                  <p className="font-medium">{student.nationalId}</p>
+                  <p className="text-sm text-gray-700">کد ملی</p>
+                  <p className="font-medium text-gray-600">{student.nationalId}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <FaUser className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">نام پدر</p>
-                  <p className="font-medium">{student.fatherName}</p>
+                  <p className="text-sm text-gray-700">نام پدر</p>
+                  <p className="font-medium text-gray-600">{student.fatherName}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <FaCalendar className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">تاریخ تولد</p>
-                  <p className="font-medium">{student.birthDate}</p>
+                  <p className="text-sm text-gray-700">تاریخ تولد</p>
+                  <p className="font-medium text-gray-600">{student.birthDate}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <FaVenusMars className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">جنسیت</p>
-                  <p className="font-medium">
+                  <p className="text-sm text-gray-700">جنسیت</p>
+                  <p className="font-medium text-gray-600">
                     {student.genderName ||
                       (student.gender === "male" ? "پسر" : "دختر")}
                   </p>
@@ -202,8 +202,8 @@ export default function StudentDetailsPage() {
               <div className="flex items-center gap-3">
                 <FaIdCard className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">ملیت</p>
-                  <p className="font-medium">{student.nationality}</p>
+                  <p className="text-sm text-gray-700">ملیت</p>
+                  <p className="font-medium text-gray-600">{student.nationality}</p>
                 </div>
               </div>
             </div>
@@ -217,8 +217,8 @@ export default function StudentDetailsPage() {
               <div className="flex items-center gap-3">
                 <FaBook className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">دوره تحصیلی</p>
-                  <p className="font-medium">
+                  <p className="text-sm text-gray-700">دوره تحصیلی</p>
+                  <p className="font-medium text-gray-600">
                     {student.courseName || student.academicCourse}
                   </p>
                   {student.branchName && (
@@ -232,8 +232,8 @@ export default function StudentDetailsPage() {
               <div className="flex items-center gap-3">
                 <FaGraduationCap className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">پایه تحصیلی</p>
-                  <p className="font-medium">
+                  <p className="text-sm text-gray-700">پایه تحصیلی</p>
+                  <p className="font-medium text-gray-600">
                     {student.gradeName || student.gradeCode}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
@@ -245,8 +245,8 @@ export default function StudentDetailsPage() {
               <div className="flex items-center gap-3">
                 <FaBook className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">رشته تحصیلی</p>
-                  <p className="font-medium">
+                  <p className="text-sm text-gray-700">رشته تحصیلی</p>
+                  <p className="font-medium text-gray-600">
                     {student.fieldName || student.fieldCode}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
@@ -258,16 +258,16 @@ export default function StudentDetailsPage() {
               <div className="flex items-center gap-3">
                 <FaCalendar className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">سال تحصیلی</p>
-                  <p className="font-medium">{student.academicYear}</p>
+                  <p className="text-sm text-gray-700">سال تحصیلی</p>
+                  <p className="font-medium text-gray-600">{student.academicYear}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <FaIdCard className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">کد واحد سازمانی</p>
-                  <p className="font-medium">
+                  <p className="text-sm text-gray-700">کد واحد سازمانی</p>
+                  <p className="font-medium text-gray-600">
                     {student.organizationalUnitCode}
                   </p>
                 </div>
@@ -284,8 +284,8 @@ export default function StudentDetailsPage() {
                 <div className="flex items-center gap-3">
                   <FaPhone className="text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-600">تلفن همراه</p>
-                    <p className="font-medium">{student.mobile}</p>
+                    <p className="text-sm text-gray-700">تلفن همراه</p>
+                    <p className="font-medium text-gray-600">{student.mobile}</p>
                   </div>
                 </div>
               )}
@@ -294,8 +294,8 @@ export default function StudentDetailsPage() {
                 <div className="flex items-start gap-3">
                   <FaMapMarkerAlt className="text-gray-400 mt-1" />
                   <div>
-                    <p className="text-sm text-gray-600">آدرس</p>
-                    <p className="font-medium">{student.address}</p>
+                    <p className="text-sm text-gray-700">آدرس</p>
+                    <p className="font-medium text-gray-600">{student.address}</p>
                   </div>
                 </div>
               )}
@@ -303,8 +303,8 @@ export default function StudentDetailsPage() {
               <div className="flex items-center gap-3">
                 <FaIdCard className="text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-600">کد منطقه</p>
-                  <p className="font-medium">{student.districtCode}</p>
+                  <p className="text-sm text-gray-700">کد منطقه</p>
+                  <p className="font-medium text-gray-600">{student.districtCode}</p>
                 </div>
               </div>
 

@@ -238,7 +238,7 @@ export default function EditStudentPage() {
                   maxLength="10"
                   pattern="[0-9]{10}"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 />
               </div>
 
@@ -252,7 +252,7 @@ export default function EditStudentPage() {
                   value={formData.firstName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 />
               </div>
 
@@ -266,7 +266,7 @@ export default function EditStudentPage() {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 />
               </div>
 
@@ -280,7 +280,7 @@ export default function EditStudentPage() {
                   value={formData.fatherName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 />
               </div>
 
@@ -295,7 +295,7 @@ export default function EditStudentPage() {
                   onChange={handleInputChange}
                   placeholder="1380/01/01"
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 />
               </div>
 
@@ -308,7 +308,7 @@ export default function EditStudentPage() {
                   value={formData.gender}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 >
                   <option value="">انتخاب کنید</option>
                   {helpers.genders.map((gender) => (
@@ -328,7 +328,7 @@ export default function EditStudentPage() {
                   name="nationality"
                   value={formData.nationality}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 />
               </div>
 
@@ -343,7 +343,7 @@ export default function EditStudentPage() {
                   onChange={handleInputChange}
                   pattern="09[0-9]{9}"
                   placeholder="09123456789"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 />
               </div>
             </div>
@@ -364,7 +364,7 @@ export default function EditStudentPage() {
                   value={formData.gradeCode}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 >
                   <option value="">انتخاب کنید</option>
                   {helpers.grades.map((grade) => (
@@ -384,7 +384,7 @@ export default function EditStudentPage() {
                   value={formData.fieldCode}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 >
                   <option value="">انتخاب کنید</option>
                   {helpers.fields.map((field) => (
@@ -404,7 +404,7 @@ export default function EditStudentPage() {
                   value={formData.studentType}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 >
                   {helpers.studentTypes.map((type) => (
                     <option key={type.value} value={type.value}>
@@ -430,7 +430,7 @@ export default function EditStudentPage() {
                 value={formData.address}
                 onChange={handleInputChange}
                 rows="3"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-600"
                 placeholder="آدرس کامل محل سکونت"
               />
             </div>

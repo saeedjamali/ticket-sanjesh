@@ -577,7 +577,7 @@ export default function StudentsPage({
                 placeholder="کد ملی، نام، نام خانوادگی یا نام پدر"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
               />
               <FaSearch className="absolute right-3 top-3 text-gray-400" />
             </div>
@@ -593,7 +593,7 @@ export default function StudentsPage({
                 setGradeFilter(e.target.value);
                 handleFilterChange();
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
             >
               <option value="">همه پایه‌ها</option>
               {getAllGrades().map((grade) => (
@@ -614,7 +614,7 @@ export default function StudentsPage({
                 setFieldFilter(e.target.value);
                 handleFilterChange();
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
             >
               <option value="">همه رشته‌ها</option>
               {getAllFields().map((field) => (
@@ -636,7 +636,7 @@ export default function StudentsPage({
                   setAcademicYearFilter(e.target.value);
                   handleFilterChange();
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
               >
                 <option value="">همه سال‌ها</option>
                 {(helpers.academicYears || []).map((year) => (
@@ -664,9 +664,9 @@ export default function StudentsPage({
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 text-gray-700">
               <tr>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider ">
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider ">
                   کد ملی
                 </th>
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
