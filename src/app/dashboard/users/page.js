@@ -214,7 +214,6 @@ export default function UsersPage() {
 
   // فیلتر کردن واحدهای سازمانی بر اساس منطقه انتخاب شده
   const filteredExamCenters = (province, district) => {
-  
     if (!province || !district) return [];
     if (!Array.isArray(examCenters)) return [];
 
@@ -869,7 +868,7 @@ export default function UsersPage() {
 
       <div className="bg-white shadow-sm rounded-lg p-6 border-t-4 border-blue-500">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">لیست کاربران</h2>
+          <h2 className="text-xl font-semibold text-gray-700">لیست کاربران</h2>
           {(currentUser.role === ROLES.SYSTEM_ADMIN ||
             currentUser.role === ROLES.GENERAL_MANAGER ||
             currentUser.role === ROLES.PROVINCE_TECH_EXPERT) && (
@@ -911,7 +910,7 @@ export default function UsersPage() {
               name="searchText"
               value={searchFilters.searchText}
               onChange={handleFilterChange}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 forced-input"
               placeholder="جستجوی نام یا کد ملی"
             />
           </div>
@@ -920,7 +919,7 @@ export default function UsersPage() {
               name="role"
               value={searchFilters.role}
               onChange={handleFilterChange}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 forced-input"
             >
               <option value="">همه نقش‌ها</option>
               <option value="systemAdmin">مدیر سیستم</option>
@@ -949,48 +948,48 @@ export default function UsersPage() {
               name="isActive"
               value={searchFilters.isActive}
               onChange={handleFilterChange}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 forced-input"
             >
               <option value="all">همه وضعیت‌ها</option>
               <option value="active">فعال</option>
               <option value="inactive">غیرفعال</option>
             </select>
           </div>
-          <button className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md">
+          <button className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md forced-bg-gray-200 forced-hover-bg-gray-300">
             فیلتر
           </button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead className="bg-gray-100">
+          <table className="min-w-full bg-white border border-gray-200 forced-table">
+            <thead className="bg-gray-100 forced-bg-gray-100">
               <tr>
                 <th
-                  className="py-3 px-6 border-b text-center
+                  className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
                 >
                   نام و نام خانوادگی
                 </th>
                 <th
-                  className="py-3 px-6 border-b text-center
+                  className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
                 >
                   کد ملی
                 </th>
                 <th
-                  className="py-3 px-6 border-b text-center
+                  className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
                 >
                   نقش
                 </th>
                 <th
-                  className="py-3 px-6 border-b text-center
+                  className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
                 >
                   استان
                 </th>
                 <th
-                  className="py-3 px-6 border-b text-center
+                  className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
                 >
                   منطقه
@@ -1002,13 +1001,13 @@ export default function UsersPage() {
                   واحد سازمانی
                 </th>
                 <th
-                  className="py-3 px-6 border-b text-center
+                  className="py-3 px-6 border-b text-center forced-text-gray-700        
                 "
                 >
                   وضعیت
                 </th>
                 <th
-                  className="py-3 px-6 border-b text-center
+                  className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
                 >
                   عملیات
@@ -1017,17 +1016,17 @@ export default function UsersPage() {
             </thead>
             <tbody>
               {filteredUsers.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50">
-                  <td className="py-4 px-6 border-b text-center">
+                <tr key={user._id} className="hover:bg-gray-50 forced-bg-white">
+                  <td className="py-4 px-6 border-b text-center forced-text-gray-700  ">
                     {user.fullName}
                   </td>
-                  <td className="py-4 px-6 border-b text-center">
+                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
                     {user.nationalId}
                   </td>
-                  <td className="py-4 px-6 border-b text-center">
+                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
                     {getRoleName(user.role)}
                   </td>
-                  <td className="py-4 px-6 border-b text-center">
+                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
                     {user.province && typeof user.province === "object"
                       ? user.province.name
                       : Array.isArray(provinces)
@@ -1035,7 +1034,7 @@ export default function UsersPage() {
                         "-"
                       : "-"}
                   </td>
-                  <td className="py-4 px-6 border-b text-center">
+                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
                     {user.district && typeof user.district === "object"
                       ? user.district.name
                       : Array.isArray(districts)
@@ -1043,7 +1042,7 @@ export default function UsersPage() {
                         "-"
                       : "-"}
                   </td>
-                  <td className="py-4 px-6 border-b text-center">
+                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
                     {user.examCenter && typeof user.examCenter === "object"
                       ? user.examCenter.name
                       : Array.isArray(examCenters)
@@ -1051,7 +1050,7 @@ export default function UsersPage() {
                           ?.name || "-"
                       : "-"}
                   </td>
-                  <td className="py-4 px-6 border-b text-center">
+                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
                         user.isActive
@@ -1062,11 +1061,11 @@ export default function UsersPage() {
                       {user.isActive ? "فعال" : "غیرفعال"}
                     </span>
                   </td>
-                  <td className="py-4 px-6 border-b text-center">
+                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
                     <div className="flex space-x-2 space-x-reverse">
                       <button
                         onClick={() => handleShowEditForm(user)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-blue-600 hover:text-blue-800 forced-text-blue-600 forced-hover-text-blue-800"
                         title="ویرایش"
                       >
                         <svg
@@ -1086,7 +1085,7 @@ export default function UsersPage() {
                       </button>
                       <button
                         onClick={() => handleShowChangePasswordForm(user)}
-                        className="text-yellow-600 hover:text-yellow-800"
+                        className="text-yellow-600 hover:text-yellow-800 forced-text-yellow-600 forced-hover-text-yellow-800"
                         title="تغییر رمز عبور"
                       >
                         <svg
@@ -1108,8 +1107,8 @@ export default function UsersPage() {
                         onClick={() => handleToggleUserStatus(user._id)}
                         className={`${
                           user.isActive
-                            ? "text-red-600 hover:text-red-800"
-                            : "text-green-600 hover:text-green-800"
+                            ? "text-red-600 hover:text-red-800 forced-text-red-600 forced-hover-text-red-800"
+                            : "text-green-600 hover:text-green-800 forced-text-green-600 forced-hover-text-green-800"
                         }`}
                         title={user.isActive ? "غیرفعال کردن" : "فعال کردن"}
                       >
@@ -1152,10 +1151,12 @@ export default function UsersPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">افزودن کاربر جدید</h2>
+              <h2 className="text-xl font-semibold text-gray-700">
+                افزودن کاربر جدید
+              </h2>
               <button
                 onClick={handleCloseAllForms}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 forced-text-gray-500 forced-hover-text-gray-700"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -1185,7 +1186,7 @@ export default function UsersPage() {
                     name="fullName"
                     value={newUser.fullName}
                     onChange={(e) => handleInputChange("add", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   />
                 </div>
@@ -1198,7 +1199,7 @@ export default function UsersPage() {
                     name="nationalId"
                     value={newUser.nationalId}
                     onChange={(e) => handleInputChange("add", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   />
                 </div>
@@ -1211,7 +1212,7 @@ export default function UsersPage() {
                     name="password"
                     value={newUser.password}
                     onChange={(e) => handleInputChange("add", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   />
                 </div>
@@ -1224,7 +1225,7 @@ export default function UsersPage() {
                     name="confirmPassword"
                     value={newUser.confirmPassword}
                     onChange={(e) => handleInputChange("add", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   />
                 </div>
@@ -1236,7 +1237,7 @@ export default function UsersPage() {
                     name="role"
                     value={newUser.role}
                     onChange={(e) => handleInputChange("add", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   >
                     <option value="">انتخاب کنید</option>
@@ -1292,7 +1293,7 @@ export default function UsersPage() {
                     name="province"
                     value={newUser.province}
                     onChange={(e) => handleInputChange("add", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   >
                     <option value="">انتخاب کنید</option>
@@ -1325,7 +1326,7 @@ export default function UsersPage() {
                       name="district"
                       value={newUser.district}
                       onChange={(e) => handleInputChange("add", e)}
-                      className="w-full px-4 py-2 border rounded-md"
+                      className="w-full px-4 py-2 border rounded-md forced-input"
                       required
                     >
                       <option value="">انتخاب کنید</option>
@@ -1347,7 +1348,7 @@ export default function UsersPage() {
                     name="examCenter"
                     value={newUser.examCenter}
                     onChange={(e) => handleInputChange("add", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   >
                     <option value="">انتخاب کنید</option>
@@ -1367,13 +1368,13 @@ export default function UsersPage() {
                 <button
                   type="button"
                   onClick={handleCloseAllForms}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 forced-bg-white forced-hover-bg-gray-50 forced-text-gray-700 forced-hover-text-gray-700"
                 >
                   انصراف
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 forced-bg-blue-600 forced-hover-bg-blue-700 forced-text-white"
                 >
                   ثبت کاربر
                 </button>
@@ -1388,10 +1389,12 @@ export default function UsersPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">ویرایش کاربر</h2>
+              <h2 className="text-xl font-semibold text-gray-700">
+                ویرایش کاربر
+              </h2>
               <button
                 onClick={handleCloseAllForms}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 forced-text-gray-500 forced-hover-text-gray-700"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -1421,7 +1424,7 @@ export default function UsersPage() {
                     name="fullName"
                     value={editingUser.fullName}
                     onChange={(e) => handleInputChange("edit", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   />
                 </div>
@@ -1434,7 +1437,7 @@ export default function UsersPage() {
                     name="nationalId"
                     value={editingUser.nationalId}
                     onChange={(e) => handleInputChange("edit", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   />
                 </div>
@@ -1446,7 +1449,7 @@ export default function UsersPage() {
                     name="role"
                     value={editingUser.role}
                     onChange={(e) => handleInputChange("edit", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   >
                     <option value="">انتخاب کنید</option>
@@ -1502,7 +1505,7 @@ export default function UsersPage() {
                     name="province"
                     value={editingUser.province}
                     onChange={(e) => handleInputChange("edit", e)}
-                    className="w-full px-4 py-2 border rounded-md"
+                    className="w-full px-4 py-2 border rounded-md forced-input"
                     required
                   >
                     <option value="">انتخاب کنید</option>
@@ -1535,7 +1538,7 @@ export default function UsersPage() {
                       name="district"
                       value={editingUser.district}
                       onChange={(e) => handleInputChange("edit", e)}
-                      className="w-full px-4 py-2 border rounded-md"
+                      className="w-full px-4 py-2 border rounded-md forced-input"
                       required
                     >
                       <option value="">انتخاب کنید</option>
@@ -1560,7 +1563,7 @@ export default function UsersPage() {
                       name="examCenter"
                       value={editingUser.examCenter}
                       onChange={(e) => handleInputChange("edit", e)}
-                      className="w-full px-4 py-2 border rounded-md"
+                      className="w-full px-4 py-2 border rounded-md forced-input"
                       required
                     >
                       <option value="">انتخاب کنید</option>
