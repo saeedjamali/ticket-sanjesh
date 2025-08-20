@@ -1,0 +1,374 @@
+/* 
+  راه‌حل مشکل Forced Colors Mode و High Contrast Mode
+  برای اطمینان از نمایش صحیح رنگ‌ها در تمام مرورگرها
+*/
+
+/* تعریف رنگ‌های اصلی سیستم */
+:root {
+  /* رنگ‌های Gray Scale */
+  --text-gray-900: #111827;
+  --text-gray-800: #1f2937;
+  --text-gray-700: #374151;
+  --text-gray-600: #4b5563;
+  --text-gray-500: #6b7280;
+  --text-gray-400: #9ca3af;
+  
+  /* رنگ‌های پس‌زمینه */
+  --bg-white: #ffffff;
+  --bg-gray-50: #f9fafb;
+  --bg-gray-100: #f3f4f6;
+  
+  /* رنگ‌های آبی */
+  --text-blue-600: #2563eb;
+  --text-blue-700: #1d4ed8;
+  --bg-blue-50: #eff6ff;
+  --bg-blue-100: #dbeafe;
+  
+  /* رنگ‌های سبز */
+  --text-green-600: #16a34a;
+  --text-green-700: #15803d;
+  --text-green-800: #166534;
+  --bg-green-50: #f0fdf4;
+  --bg-green-100: #dcfce7;
+  
+  /* رنگ‌های قرمز */
+  --text-red-600: #dc2626;
+  --text-red-700: #b91c1c;
+  --text-red-800: #991b1b;
+  --bg-red-50: #fef2f2;
+  --bg-red-100: #fee2e2;
+  
+  /* رنگ‌های نارنجی */
+  --text-orange-600: #ea580c;
+  --text-orange-700: #c2410c;
+  --text-orange-800: #9a3412;
+  --bg-orange-50: #fff7ed;
+  --bg-orange-100: #ffedd5;
+}
+
+/* تنظیمات پایه برای Forced Colors Mode */
+@media (forced-colors: active) {
+  :root {
+    /* استفاده از رنگ‌های سیستم در حالت Forced Colors */
+    --text-gray-900: CanvasText;
+    --text-gray-800: CanvasText;
+    --text-gray-700: CanvasText;
+    --text-gray-600: GrayText;
+    --text-gray-500: GrayText;
+    --text-gray-400: GrayText;
+    
+    --bg-white: Canvas;
+    --bg-gray-50: Canvas;
+    --bg-gray-100: ButtonFace;
+    
+    --text-blue-600: LinkText;
+    --text-blue-700: LinkText;
+    --bg-blue-50: Canvas;
+    --bg-blue-100: ButtonFace;
+    
+    --text-green-600: CanvasText;
+    --text-green-700: CanvasText;
+    --text-green-800: CanvasText;
+    --bg-green-50: Canvas;
+    --bg-green-100: ButtonFace;
+    
+    --text-red-600: CanvasText;
+    --text-red-700: CanvasText;
+    --text-red-800: CanvasText;
+    --bg-red-50: Canvas;
+    --bg-red-100: ButtonFace;
+    
+    --text-orange-600: CanvasText;
+    --text-orange-700: CanvasText;
+    --text-orange-800: CanvasText;
+    --bg-orange-50: Canvas;
+    --bg-orange-100: ButtonFace;
+  }
+}
+
+/* کلاس‌های جایگزین برای رنگ‌های Tailwind */
+.forced-text-gray-900 {
+  color: var(--text-gray-900) !important;
+}
+
+.forced-text-gray-800 {
+  color: var(--text-gray-800) !important;
+}
+
+.forced-text-gray-700 {
+  color: var(--text-gray-700) !important;
+}
+
+.forced-text-gray-600 {
+  color: var(--text-gray-600) !important;
+}
+
+.forced-text-gray-500 {
+  color: var(--text-gray-500) !important;
+}
+
+.forced-text-blue-600 {
+  color: var(--text-blue-600) !important;
+}
+
+.forced-text-blue-700 {
+  color: var(--text-blue-700) !important;
+}
+
+.forced-text-green-600 {
+  color: var(--text-green-600) !important;
+}
+
+.forced-text-green-700 {
+  color: var(--text-green-700) !important;
+}
+
+.forced-text-green-800 {
+  color: var(--text-green-800) !important;
+}
+
+.forced-text-red-600 {
+  color: var(--text-red-600) !important;
+}
+
+.forced-text-red-700 {
+  color: var(--text-red-700) !important;
+}
+
+.forced-text-red-800 {
+  color: var(--text-red-800) !important;
+}
+
+.forced-text-orange-600 {
+  color: var(--text-orange-600) !important;
+}
+
+.forced-text-orange-700 {
+  color: var(--text-orange-700) !important;
+}
+
+.forced-text-orange-800 {
+  color: var(--text-orange-800) !important;
+}
+
+/* کلاس‌های پس‌زمینه */
+.forced-bg-white {
+  background-color: var(--bg-white) !important;
+}
+
+.forced-bg-gray-50 {
+  background-color: var(--bg-gray-50) !important;
+}
+
+.forced-bg-gray-100 {
+  background-color: var(--bg-gray-100) !important;
+}
+
+.forced-bg-blue-50 {
+  background-color: var(--bg-blue-50) !important;
+}
+
+.forced-bg-blue-100 {
+  background-color: var(--bg-blue-100) !important;
+}
+
+.forced-bg-green-50 {
+  background-color: var(--bg-green-50) !important;
+}
+
+.forced-bg-green-100 {
+  background-color: var(--bg-green-100) !important;
+}
+
+.forced-bg-red-50 {
+  background-color: var(--bg-red-50) !important;
+}
+
+.forced-bg-red-100 {
+  background-color: var(--bg-red-100) !important;
+}
+
+.forced-bg-orange-50 {
+  background-color: var(--bg-orange-50) !important;
+}
+
+.forced-bg-orange-100 {
+  background-color: var(--bg-orange-100) !important;
+}
+
+/* تنظیمات ویژه برای جداول */
+.forced-table {
+  background-color: var(--bg-white) !important;
+  color: var(--text-gray-900) !important;
+}
+
+.forced-table thead {
+  background-color: var(--bg-gray-50) !important;
+  color: var(--text-gray-700) !important;
+}
+
+.forced-table th {
+  color: var(--text-gray-700) !important;
+  font-weight: 600 !important;
+}
+
+.forced-table td {
+  background-color: var(--bg-white) !important;
+  color: var(--text-gray-900) !important;
+}
+
+.forced-table tr:hover td {
+  background-color: var(--bg-gray-50) !important;
+}
+
+/* تنظیمات ویژه برای input ها */
+.forced-input {
+  background-color: var(--bg-white) !important;
+  color: var(--text-gray-700) !important;
+  border-color: #d1d5db !important;
+}
+
+.forced-input::placeholder {
+  color: var(--text-gray-500) !important;
+}
+
+.forced-input:focus {
+  outline: none !important;
+  ring: 1px !important;
+  ring-color: var(--text-blue-600) !important;
+  border-color: var(--text-blue-600) !important;
+}
+
+/* تنظیمات ویژه برای دکمه‌ها */
+.forced-button-blue {
+  background-color: var(--text-blue-600) !important;
+  color: white !important;
+}
+
+.forced-button-blue:hover {
+  background-color: var(--text-blue-700) !important;
+}
+
+.forced-button-green {
+  background-color: var(--text-green-600) !important;
+  color: white !important;
+}
+
+.forced-button-green:hover {
+  background-color: var(--text-green-700) !important;
+}
+
+/* تنظیمات ویژه برای کارت‌ها */
+.forced-card {
+  background-color: var(--bg-white) !important;
+  color: var(--text-gray-900) !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+.forced-card-header {
+  background-color: var(--bg-gray-50) !important;
+  color: var(--text-gray-800) !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+/* تنظیمات ویژه برای متن‌های مهم */
+.forced-text-important {
+  color: var(--text-gray-900) !important;
+  font-weight: 600 !important;
+}
+
+.forced-text-secondary {
+  color: var(--text-gray-600) !important;
+}
+
+.forced-text-muted {
+  color: var(--text-gray-500) !important;
+}
+
+/* اطمینان از کنتراست کافی */
+@media (prefers-contrast: high) {
+  :root {
+    --text-gray-900: #000000;
+    --text-gray-800: #1a1a1a;
+    --text-gray-700: #333333;
+    --text-gray-600: #4d4d4d;
+    --text-gray-500: #666666;
+    --text-gray-400: #808080;
+    
+    --bg-white: #ffffff;
+    --bg-gray-50: #f5f5f5;
+    --bg-gray-100: #eeeeee;
+    
+    --text-blue-600: #0000cc;
+    --text-blue-700: #000099;
+    
+    --text-green-600: #006600;
+    --text-green-700: #004d00;
+    --text-green-800: #003300;
+    
+    --text-red-600: #cc0000;
+    --text-red-700: #990000;
+    --text-red-800: #660000;
+    
+    --text-orange-600: #cc6600;
+    --text-orange-700: #994d00;
+    --text-orange-800: #663300;
+  }
+}
+
+/* تنظیمات ویژه برای Windows High Contrast Mode */
+@media (-ms-high-contrast: active) {
+  .forced-text-gray-900,
+  .forced-text-gray-800,
+  .forced-text-gray-700 {
+    color: windowtext !important;
+  }
+  
+  .forced-text-gray-600,
+  .forced-text-gray-500,
+  .forced-text-gray-400 {
+    color: graytext !important;
+  }
+  
+  .forced-bg-white,
+  .forced-bg-gray-50,
+  .forced-bg-gray-100 {
+    background-color: window !important;
+  }
+  
+  .forced-text-blue-600,
+  .forced-text-blue-700 {
+    color: highlight !important;
+  }
+}
+
+/* تنظیمات اضافی برای سازگاری */
+* {
+  forced-color-adjust: auto;
+}
+
+/* غیرفعال کردن forced-color-adjust برای عناصر خاص */
+.preserve-colors {
+  forced-color-adjust: none !important;
+}
+
+/* تنظیمات ویژه برای ایکون‌ها */
+.forced-icon-gray {
+  color: var(--text-gray-400) !important;
+}
+
+.forced-icon-blue {
+  color: var(--text-blue-600) !important;
+}
+
+.forced-icon-green {
+  color: var(--text-green-600) !important;
+}
+
+.forced-icon-red {
+  color: var(--text-red-600) !important;
+}
+
+.forced-icon-orange {
+  color: var(--text-orange-600) !important;
+}

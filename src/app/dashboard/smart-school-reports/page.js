@@ -728,10 +728,10 @@ export default function SmartSchoolReportsPage() {
     };
 
     return (
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <div className="bg-white rounded-lg shadow overflow-hidden forced-card">
+        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 forced-card-header">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h3 className="text-lg font-semibold text-gray-800">
+            <h3 className="text-lg font-semibold text-gray-800 forced-text-gray-800">
               جزئیات تمام مدارس (کلیک برای مشاهده جزئیات)
             </h3>
 
@@ -739,33 +739,33 @@ export default function SmartSchoolReportsPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <FaSearch className="h-4 w-4 text-gray-400" />
+                  <FaSearch className="h-4 w-4 text-gray-400 forced-icon-gray" />
                 </div>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="جستجو بر اساس کد یا نام مدرسه..."
-                  className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700"
+                  className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm text-gray-700 forced-input"
                 />
                 {searchTerm && (
                   <button
                     onClick={clearSearch}
                     className="absolute inset-y-0 left-0 pl-3 flex items-center"
                   >
-                    <FaTimes className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    <FaTimes className="h-4 w-4 text-gray-400 hover:text-gray-600 forced-icon-gray" />
                   </button>
                 )}
               </div>
 
               {/* نمایش تعداد نتایج */}
-              <div className="text-sm text-gray-600 whitespace-nowrap">
+              <div className="text-sm text-gray-600 whitespace-nowrap forced-text-gray-600">
                 {searchTerm ? (
-                  <span className="text-gray-700">
+                  <span className="text-gray-700 forced-text-gray-700">
                     {filteredSchools.length} از {reportData.length} مدرسه
                   </span>
                 ) : (
-                  <span className="text-gray-700">
+                  <span className="text-gray-700 forced-text-gray-700">
                     {reportData.length} مدرسه
                   </span>
                 )}
@@ -774,62 +774,59 @@ export default function SmartSchoolReportsPage() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 text-gray-700">
+          <table className="min-w-full divide-y divide-gray-200 forced-table">
+            <thead className="bg-gray-50 text-gray-700 forced-bg-gray-50 forced-text-gray-700">
               <tr>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   کد مرکز
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   نام مرکز
                 </th>
-                <th
-                  classN
-                  ame="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700"
-                >
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   امتیاز
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   سطح
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   کل کلاس
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   کلاس هوشمند
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   درصد هوشمند
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   اینترنت
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   کامپیوتر
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   مهارت معلم
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   آخرین بروزرسانی
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700">
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 forced-text-gray-700">
                   عملیات
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-200 forced-bg-white">
               {filteredSchools.length === 0 ? (
                 <tr>
                   <td colSpan="12" className="px-6 py-8 text-center">
-                    <div className="text-gray-500">
-                      <FaSearch className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    <div className="text-gray-500 forced-text-gray-500">
+                      <FaSearch className="mx-auto h-12 w-12 text-gray-400 mb-4 forced-icon-gray" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2 forced-text-gray-900">
                         {searchTerm
                           ? "نتیجه‌ای یافت نشد"
                           : "هیچ مدرسه‌ای یافت نشد"}
                       </h3>
-                      <p className="text-sm">
+                      <p className="text-sm forced-text-muted">
                         {searchTerm
                           ? `برای جستجوی "${searchTerm}" نتیجه‌ای یافت نشد. لطفاً عبارت دیگری امتحان کنید.`
                           : "در حال حاضر هیچ داده‌ای برای نمایش وجود ندارد."}
@@ -837,7 +834,7 @@ export default function SmartSchoolReportsPage() {
                       {searchTerm && (
                         <button
                           onClick={clearSearch}
-                          className="mt-3 text-blue-600 hover:text-blue-500 text-sm font-medium"
+                          className="mt-3 text-blue-600 hover:text-blue-500 text-sm font-medium forced-text-blue-600"
                         >
                           پاک کردن جستجو
                         </button>
@@ -846,19 +843,19 @@ export default function SmartSchoolReportsPage() {
                   </td>
                 </tr>
               ) : (
-                filteredSchools?.map((school, index) => (
+                                filteredSchools?.map((school, index) => (
                   <tr
                     key={index}
-                    className="hover:bg-gray-50 cursor-pointer text-right"
+                    className="hover:bg-gray-50 cursor-pointer text-right forced-bg-white"
                     onClick={() => handleSchoolClick(school?.examCenterCode)}
                     title="کلیک برای مشاهده جزئیات مدرسه"
                   >
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {school?.examCenterCode || "-"}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate">
-                      {school?.examCenterName || "-"}
-                    </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 forced-text-gray-900">
+                    {school?.examCenterCode || "-"}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 max-w-xs truncate forced-text-gray-900">
+                    {school?.examCenterName || "-"}
+                  </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -1579,7 +1576,7 @@ export default function SmartSchoolReportsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
             <FaChartBar className="text-blue-600" />
             گزارش مدرسه هوشمند
             {selectedDistrictName && (
@@ -1598,7 +1595,7 @@ export default function SmartSchoolReportsPage() {
                 url.searchParams.delete("tab");
                 window.location.href = url.toString();
               }}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-md flex items-center gap-2 text-sm"
+              className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded-md flex items-center gap-2 text-sm "
             >
               <FaMapMarkedAlt />
               نمایش همه مناطق

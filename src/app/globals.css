@@ -2,6 +2,7 @@
 @import url("../style/responsive-utils.css");
 @import url("../style/responsive-typography.css");
 @import url("../style/sidebar-colors.css");
+@import url("../styles/forced-colors-fix.css");
 @import "tailwindcss";
 
 * {
