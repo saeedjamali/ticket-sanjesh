@@ -323,27 +323,27 @@ export default function SmartSchoolReportsPage() {
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between items-center bg-white rounded px-3 py-2">
-                      <span>🌐 زیرساخت فنی (اینترنت، وای‌فای)</span>
+                      <span className="text-gray-700">🌐 زیرساخت فنی (اینترنت، وای‌فای)</span>
                       <span className="font-bold text-blue-600">25 امتیاز</span>
                     </div>
                     <div className="flex justify-between items-center bg-white rounded px-3 py-2">
-                      <span>💻 تجهیزات (کامپیوتر، تخته هوشمند)</span>
+                      <span className="text-gray-700">💻 تجهیزات (کامپیوتر، تخته هوشمند)</span>
                       <span className="font-bold text-blue-600">25 امتیاز</span>
                     </div>
                     <div className="flex justify-between items-center bg-white rounded px-3 py-2">
-                      <span>🎓 آموزش و مهارت (معلمان، دانش‌آموزان)</span>
+                      <span className="text-gray-700">🎓 آموزش و مهارت (معلمان، دانش‌آموزان)</span>
                       <span className="font-bold text-blue-600">20 امتیاز</span>
                     </div>
                     <div className="flex justify-between items-center bg-white rounded px-3 py-2">
-                      <span>🌐 خدمات آنلاین (کلاس، آزمون)</span>
+                      <span className="text-gray-700">🌐 خدمات آنلاین (کلاس، آزمون)</span>
                       <span className="font-bold text-blue-600">15 امتیاز</span>
                     </div>
                     <div className="flex justify-between items-center bg-white rounded px-3 py-2">
-                      <span>🏫 کلاس‌های هوشمند (درصدی)</span>
+                      <span className="text-gray-700">🏫 کلاس‌های هوشمند (درصدی)</span>
                       <span className="font-bold text-blue-600">10 امتیاز</span>
                     </div>
                     <div className="flex justify-between items-center bg-white rounded px-3 py-2">
-                      <span>📋 سایر موارد</span>
+                      <span className="text-gray-700">📋 سایر موارد</span>
                       <span className="font-bold text-blue-600">5 امتیاز</span>
                     </div>
                   </div>
@@ -357,14 +357,14 @@ export default function SmartSchoolReportsPage() {
                   <div className="bg-white rounded p-3 text-sm space-y-2">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                      <span>
+                      <span className="text-gray-700">
                         درصد کلاس‌های هوشمند = (تعداد کلاس هوشمند ÷ کل کلاس‌ها)
                         × 100
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                      <span>امتیاز = درصد × 0.1 (حداکثر 10 امتیاز)</span>
+                      <span className="text-gray-700">امتیاز = درصد × 0.1 (حداکثر 10 امتیاز)</span>
                     </div>
                     <div className="mt-3 p-2 bg-green-50 rounded text-xs">
                       <strong>مثال:</strong> مدرسه با 12 کلاس که 8 کلاس آن
@@ -382,19 +382,19 @@ export default function SmartSchoolReportsPage() {
                   <div className="text-xs space-y-1">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-red-500 rounded"></div>
-                      <span>ابتدایی: زیر 40 امتیاز</span>
+                      <span className="text-gray-700">ابتدایی: زیر 40 امتیاز</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                      <span>مقدماتی: 40-59 امتیاز</span>
+                      <span className="text-gray-700">مقدماتی: 40-59 امتیاز</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-                      <span>متوسط: 60-79 امتیاز</span>
+                      <span className="text-gray-700">متوسط: 60-79 امتیاز</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 bg-green-500 rounded"></div>
-                      <span>پیشرفته: 80+ امتیاز</span>
+                      <span className="text-gray-700">پیشرفته: 80+ امتیاز</span>
                     </div>
                   </div>
                 </div>
@@ -479,7 +479,7 @@ export default function SmartSchoolReportsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* نمودار سطح مدارس */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">
               توزیع مدارس بر اساس سطح
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -496,7 +496,7 @@ export default function SmartSchoolReportsPage() {
 
           {/* نمودار نوع اتصال اینترنت */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">نوع اتصال اینترنت</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">نوع اتصال اینترنت</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -525,7 +525,7 @@ export default function SmartSchoolReportsPage() {
 
           {/* نمودار مهارت معلمان */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">
               سطح مهارت فناوری معلمان
             </h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -542,34 +542,34 @@ export default function SmartSchoolReportsPage() {
 
           {/* آمار تجهیزات */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">آمار تجهیزات</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">آمار تجهیزات</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                <span>کامپیوتر</span>
+                <span className="text-gray-700">کامپیوتر</span>
                 <span className="font-bold">
                   {equipment?.totalComputers || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                <span>لپ‌تاپ</span>
+                <span className="text-gray-700">لپ‌تاپ</span>
                 <span className="font-bold">
                   {equipment?.totalLaptops || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                <span>تبلت</span>
+                <span className="text-gray-700">تبلت</span>
                 <span className="font-bold">
                   {equipment?.totalTablets || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                <span>تخته هوشمند</span>
+                <span className="text-gray-700">تخته هوشمند</span>
                 <span className="font-bold">
                   {equipment?.totalSmartBoards || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
-                <span>ویدئو پروژکتور</span>
+                <span className="text-gray-700">ویدئو پروژکتور</span>
                 <span className="font-bold">
                   {equipment?.totalProjectors || 0}
                 </span>
@@ -580,28 +580,28 @@ export default function SmartSchoolReportsPage() {
 
         {/* آمار کلاس‌ها */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">آمار تفصیلی کلاس‌ها</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-700">آمار تفصیلی کلاس‌ها</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex justify-between items-center p-3 bg-purple-50 rounded">
-              <span>میانگین کلاس در مدرسه</span>
+              <span className="text-gray-700">میانگین کلاس در مدرسه</span>
               <span className="font-bold text-purple-600">
                 {classrooms?.averageClassroomsPerSchool || 0}
               </span>
             </div>
             <div className="flex justify-between items-center p-3 bg-indigo-50 rounded">
-              <span>میانگین کلاس هوشمند</span>
+              <span className="text-gray-700">میانگین کلاس هوشمند</span>
               <span className="font-bold text-indigo-600">
                 {classrooms?.averageSmartClassroomsPerSchool || 0}
               </span>
             </div>
             <div className="flex justify-between items-center p-3 bg-green-50 rounded">
-              <span>مدارس دارای کلاس هوشمند</span>
+              <span className="text-gray-700">مدارس دارای کلاس هوشمند</span>
               <span className="font-bold text-green-600">
                 {classrooms?.schoolsWithSmartClassrooms || 0}
               </span>
             </div>
             <div className="flex justify-between items-center p-3 bg-orange-50 rounded">
-              <span>میانگین درصد هوشمندسازی</span>
+              <span className="text-gray-700">میانگین درصد هوشمندسازی</span>
               <span className="font-bold text-orange-600">
                 {classrooms?.averageSmartClassroomPercentage || 0}%
               </span>
@@ -612,28 +612,28 @@ export default function SmartSchoolReportsPage() {
         {/* آمار نرم‌افزار و خدمات */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-4">نرم‌افزار و امنیت</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">نرم‌افزار و امنیت</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span>نرم‌افزار مدیریت</span>
+                <span className="text-gray-700">نرم‌افزار مدیریت</span>
                 <span className="font-bold text-green-600">
                   {software?.hasManagementSoftware || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span>آنتی‌ویروس</span>
+                <span className="text-gray-700">آنتی‌ویروس</span>
                 <span className="font-bold text-green-600">
                   {software?.hasAntivirus || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span>سیستم پشتیبان‌گیری</span>
+                <span className="text-gray-700">سیستم پشتیبان‌گیری</span>
                 <span className="font-bold text-green-600">
                   {software?.hasBackup || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span>فایروال</span>
+                <span className="text-gray-700">فایروال</span>
                 <span className="font-bold text-green-600">
                   {software?.hasFirewall || 0}
                 </span>
@@ -645,25 +645,25 @@ export default function SmartSchoolReportsPage() {
             <h3 className="text-lg font-semibold mb-4">خدمات آنلاین</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span>کلاس آنلاین</span>
+                <span className="text-gray-700">کلاس آنلاین</span>
                 <span className="font-bold text-blue-600">
                   {onlineServices?.onlineClasses || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span>پلتفرم آموزش الکترونیکی</span>
+                <span className="text-gray-700">پلتفرم آموزش الکترونیکی</span>
                 <span className="font-bold text-blue-600">
                   {onlineServices?.elearning || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span>کتابخانه دیجیتال</span>
+                <span className="text-gray-700">کتابخانه دیجیتال</span>
                 <span className="font-bold text-blue-600">
                   {onlineServices?.digitalLibrary || 0}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span>آزمون آنلاین</span>
+                <span className="text-gray-700">آزمون آنلاین</span>
                 <span className="font-bold text-blue-600">
                   {onlineServices?.onlineExams || 0}
                 </span>
