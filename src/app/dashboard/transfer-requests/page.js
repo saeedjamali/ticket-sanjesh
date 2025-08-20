@@ -833,7 +833,7 @@ export default function TransferRequestsPage() {
                               <span className="text-gray-600 forced-text-gray-600">
                                 نام مدرسه:
                               </span>
-                              <span className="font-medium forced-font-medium">
+                              <span className="font-medium forced-font-medium forced-text-gray-600">
                                 {selectedRequest.fromSchool.schoolName}
                               </span>
                             </div>
@@ -841,7 +841,7 @@ export default function TransferRequestsPage() {
                               <span className="text-gray-600 forced-text-gray-600">
                                 کد مدرسه:
                               </span>
-                              <span className="font-medium forced-font-medium">
+                              <span className="font-medium forced-font-medium forced-text-gray-600">
                                 {
                                   selectedRequest.fromSchool
                                     .organizationalUnitCode
@@ -852,7 +852,7 @@ export default function TransferRequestsPage() {
                               <span className="text-gray-600 forced-text-gray-600">
                                 منطقه:
                               </span>
-                              <span className="font-medium forced-font-medium">
+                              <span className="font-medium forced-font-medium forced-text-gray-600">
                                 {selectedRequest.fromSchool.districtName} (کد:{" "}
                                 {selectedRequest.fromSchool.districtCode})
                               </span>
@@ -862,7 +862,7 @@ export default function TransferRequestsPage() {
                                 <span className="text-gray-600 forced-text-gray-600">
                                   استان:
                                 </span>
-                                <span className="font-medium forced-font-medium">
+                                <span className="font-medium forced-font-medium forced-text-gray-600">
                                   {selectedRequest.fromSchool.provinceName} (کد:{" "}
                                   {selectedRequest.fromSchool.provinceCode})
                                 </span>
@@ -872,7 +872,7 @@ export default function TransferRequestsPage() {
                               <span className="text-gray-600 forced-text-gray-600">
                                 مدیر درخواست‌کننده:
                               </span>
-                              <span className="font-medium forced-font-medium">
+                              <span className="font-medium forced-font-medium forced-text-gray-600">
                                 {selectedRequest.fromSchool.managerName}
                               </span>
                             </div>
@@ -899,7 +899,7 @@ export default function TransferRequestsPage() {
                               <span className="text-gray-600 forced-text-gray-600">
                                 نام مدرسه:
                               </span>
-                              <span className="font-medium forced-font-medium">
+                              <span className="font-medium forced-font-medium forced-text-gray-600">
                                 {shouldBlurModal
                                   ? "●●● ●●● ●●●"
                                   : selectedRequest.toSchool.schoolName}
@@ -909,7 +909,7 @@ export default function TransferRequestsPage() {
                               <span className="text-gray-600 forced-text-gray-600">
                                 کد مدرسه:
                               </span>
-                              <span className="font-medium forced-font-medium">
+                              <span className="font-medium forced-font-medium forced-text-gray-600">
                                 {shouldBlurModal
                                   ? "●●●●●●"
                                   : selectedRequest.toSchool
@@ -920,7 +920,7 @@ export default function TransferRequestsPage() {
                               <span className="text-gray-600 forced-text-gray-600">
                                 منطقه:
                               </span>
-                              <span className="font-medium forced-font-medium">
+                              <span className="font-medium forced-font-medium forced-text-gray-600">
                                 {shouldBlurModal
                                   ? "●●● (کد: ●●●)"
                                   : `${selectedRequest.toSchool.districtName} (کد: ${selectedRequest.toSchool.districtCode})`}
@@ -931,8 +931,8 @@ export default function TransferRequestsPage() {
                                 <span className="text-gray-600 forced-text-gray-600">
                                   استان:
                                 </span>
-                                <span className="font-medium forced-font-medium">
-                                  {shouldBlurModal
+                                <span className="font-medium forced-font-medium forced-text-gray-600">
+                                  {shouldBlurModal  
                                     ? "●●● (کد: ●●)"
                                     : `${selectedRequest.toSchool.provinceName} (کد: ${selectedRequest.toSchool.provinceCode})`}
                                 </span>
@@ -969,7 +969,7 @@ export default function TransferRequestsPage() {
                     <span className="text-sm text-gray-600 forced-text-gray-600">
                       تاریخ درخواست:{" "}
                     </span>
-                    <span className="text-sm font-medium forced-font-medium">
+                    <span className="text-sm font-medium forced-font-medium forced-text-gray-600">
                       {new Date(selectedRequest.requestDate).toLocaleDateString(
                         "fa-IR"
                       )}
@@ -980,7 +980,7 @@ export default function TransferRequestsPage() {
                       <span className="text-sm text-gray-600 forced-text-gray-600">
                         تاریخ پاسخ:{" "}
                       </span>
-                      <span className="text-sm font-medium forced-font-medium">
+                      <span className="text-sm font-medium forced-font-medium forced-text-gray-600">
                         {new Date(
                           selectedRequest.responseDate
                         ).toLocaleDateString("fa-IR")}
@@ -992,11 +992,11 @@ export default function TransferRequestsPage() {
 
               {/* پاسخ مدیر (در صورت وجود) */}
               {selectedRequest.responseDescription && (
-                <div className="mt-6 bg-yellow-50 rounded-lg p-4 forced-bg-yellow-50">
+                <div className="mt-6 bg-yellow-50 rounded-lg p-4 forced-bg-yellow-50 forced-text-yellow-800 forced-border-yellow-200">
                   <h3 className="text-lg font-semibold text-yellow-800 mb-3 forced-text-yellow-800">
                     پاسخ مدیر:
                   </h3>
-                  <p className="text-yellow-700 whitespace-pre-wrap forced-text-yellow-700">
+                  <p className="text-yellow-700 whitespace-pre-wrap forced-text-yellow-700 forced-border-yellow-200 forced-bg-yellow-50">
                     {selectedRequest.responseDescription}
                   </p>
                 </div>
@@ -1004,7 +1004,7 @@ export default function TransferRequestsPage() {
 
               {/* فرم پاسخ (فقط برای درخواست‌های دریافتی در انتظار) */}
               {selectedRequest.canRespond && (
-                <div className="mt-6 border-t border-gray-200 pt-6">
+                <div className="mt-6 border-t border-gray-200 pt-6 forced-border-gray-200 forced-bg-gray-50 forced-text-gray-800 forced-border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 forced-text-gray-800">
                     پاسخ به درخواست:
                   </h3>
@@ -1013,7 +1013,7 @@ export default function TransferRequestsPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2 forced-text-gray-700">
                         توضیحات پاسخ (اختیاری):
-                      </label>
+                      </label>  
                       <textarea
                         value={responseData.description}
                         onChange={(e) =>
@@ -1024,7 +1024,7 @@ export default function TransferRequestsPage() {
                         }
                         rows={3}
                         placeholder="توضیحات اضافی در مورد پاسخ شما..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none forced-input"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none forced-input forced-text-gray-700 forced-border-gray-300 forced-bg-gray-50 forced-hover-bg-gray-100"
                       />
                     </div>
 
@@ -1032,7 +1032,7 @@ export default function TransferRequestsPage() {
                       <button
                         onClick={() => handleRespond("reject")}
                         disabled={responding}
-                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed forced-bg-red-600 forced-hover-bg-red-700 forced-text-white"
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed  forced-bg-red-600 forced-hover-bg-red-700 forced-text-white"
                       >
                         {responding ? (
                           <FaSpinner className="animate-spin" />
@@ -1206,16 +1206,16 @@ export default function TransferRequestsPage() {
                                 <div className="flex items-center gap-2">
                                   <FaUserGraduate className="text-blue-500" />
                                   <div>
-                                    <div className="text-sm font-medium text-gray-900">
+                                    <div className="text-sm font-medium text-gray-900 forced-text-gray-900">
                                       {student.firstName} {student.lastName}
                                     </div>
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-gray-500 forced-text-gray-500">
                                       کد ملی: {student.nationalId}
                                     </div>
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-gray-500 forced-text-gray-500">
                                       نام پدر: {student.fatherName}
                                     </div>
-                                    <div className="text-sm text-gray-500">
+                                    <div className="text-sm text-gray-500 forced-text-gray-500">
                                       جنسیت: {getGenderText(student.gender)}
                                     </div>
                                   </div>
@@ -1223,7 +1223,7 @@ export default function TransferRequestsPage() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right">
                                 <div className="flex items-center gap-1">
-                                  <FaCalendarAlt className="text-gray-400" />
+                                  <FaCalendarAlt className="text-gray-400 forced-text-gray-400" />
                                   <span className="text-sm text-gray-900 forced-text-gray-900">
                                     {student.academicYear}
                                   </span>
@@ -1251,7 +1251,7 @@ export default function TransferRequestsPage() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right">
                                 <div className="flex items-center gap-2">
-                                  <FaSchool className="text-orange-500" />
+                                  <FaSchool className="text-orange-500 forced-text-orange-500" />
                                   <div>
                                     <div className="text-sm font-medium text-gray-900 forced-text-gray-900">
                                       {student.examCenter?.name || "نامشخص"}
@@ -1269,10 +1269,10 @@ export default function TransferRequestsPage() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-center">
                                 <span
-                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full forced-text-gray-600 forced-bg-gray-100 forced-border-gray-200 forced-hover-bg-gray-200 ${
                                     student.isActive
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-red-100 text-red-800"
+                                      ? "bg-green-100 text-green-800 forced-bg-green-100 forced-text-green-800 forced-border-green-200 forced-hover-bg-green-200"
+                                      : "bg-red-100 text-red-800 forced-bg-red-100 forced-text-red-800 forced-border-red-200 forced-hover-bg-red-200"
                                   }`}
                                 >
                                   {student.isActive ? "فعال" : "غیرفعال"}
