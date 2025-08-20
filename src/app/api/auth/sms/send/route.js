@@ -25,11 +25,11 @@ export async function POST(req) {
     try {
       // ارسال پیامک با استفاده از axios
       await axios.post("https://sms.3300.ir/api/wsSend.ashx", {
-        username: "sanjesh",
-        password: "Sanje@#$sh1600",
-        line: "983000610320",
+        username: "Esari",
+        password: "Saeed@435",
+        line: "9830007206",
         mobile: phone,
-        message: `کد اعتبارسنجی سامانه تیکت : ${code}  `,
+        message: `کد اعتبارسنجی سامانه رصد : ${code}  `,
         type: 0,
         template: 0,
       });

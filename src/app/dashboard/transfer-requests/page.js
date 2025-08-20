@@ -415,28 +415,28 @@ export default function TransferRequestsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 text-gray-700">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 ">
                     نوع
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 ">
                     دانش‌آموز
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 ">
                     سال تحصیلی
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 ">
                     مدرسه مبدا
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-700 ">
                     مدرسه مقصد
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                     وضعیت
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                     تاریخ درخواست
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                     عملیات
                   </th>
                 </tr>
@@ -445,7 +445,10 @@ export default function TransferRequestsPage() {
                 {filteredRequests.map((request, index) => {
                   const shouldBlur = shouldBlurData(request);
                   return (
-                    <tr key={request._id} className="hover:bg-gray-50 text-gray-700">
+                    <tr
+                      key={request._id}
+                      className="hover:bg-gray-50 text-gray-700"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getRequestTypeBadge(request)}
                       </td>

@@ -523,7 +523,7 @@ export default function StudentsPage({
           <div className="mt-3">
             <div className="bg-gray-200 rounded-full h-2">
               <div
-                className={`h-2 rounded-full transition-all duration-300 ${
+                className={`h-2 rounded-full  ${
                   defaultAcademicYear === "current"
                     ? stats.currentStudentCount > stats.maxStudents
                       ? "bg-red-500"
@@ -663,31 +663,31 @@ export default function StudentsPage({
       {/* Students Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 text-gray-700">
             <thead className="bg-gray-50 text-gray-700">
               <tr>
-                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider ">
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                   کد ملی
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                   نام و نام خانوادگی
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                   نام پدر
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                   پایه
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                   رشته
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                   نوع
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                   سال تحصیلی
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-700 ">
                   عملیات
                 </th>
               </tr>

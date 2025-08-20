@@ -58,11 +58,11 @@ export async function POST(req) {
     try {
       // ارسال رمز عبور جدید به شماره موبایل کاربر
       await axios.post("https://sms.3300.ir/api/wsSend.ashx", {
-        username: "sanjesh",
-        password: "Sanje@#$sh1600",
-        line: "983000610320",
+        username: "Esari",
+        password: "Saeed@435",
+        line: "9830007206",
         mobile: user.phone,
-        message: `سامانه سنجش: رمز عبور جدید شما: ${newPassword}`,
+        message: `سامانه رصد رمز عبور جدید شما: ${newPassword}`,
         type: 0,
         template: 0,
       });
