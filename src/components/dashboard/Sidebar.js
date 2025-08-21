@@ -29,6 +29,10 @@ import {
   FaBrain,
   FaChartBar,
   FaExchangeAlt,
+  FaCogs,
+  FaIdCard,
+  FaExclamationTriangle,
+  FaArrowRight,
 } from "react-icons/fa";
 import { useSidebar } from "@/context/SidebarContext";
 
@@ -51,6 +55,9 @@ const icons = {
   smartSchool: <FaBrain className="h-5 w-5" />,
   smartSchoolReports: <FaChartBar className="h-5 w-5" />,
   transferRequests: <FaExchangeAlt className="h-5 w-5" />,
+  transferSettings: <FaCogs className="h-5 w-5" />,
+  transferApplicantSpecs: <FaIdCard className="h-5 w-5" />, // Added for transfer applicant specs
+  transfer: <FaArrowRight className="h-5 w-5" />, // Added for transfer request
 };
 
 export default function Sidebar({ user, children }) {
@@ -241,6 +248,11 @@ export default function Sidebar({ user, children }) {
                         !smartSchoolLoading
                           ? "menu-item-incomplete"
                           : ""
+                      } ${
+                        // اگر منو نیاز به احراز هویت دارد و کاربر احراز نشده، چشمک‌زن کن
+                        item.requiresPhoneVerification && !user?.phoneVerified
+                          ? "menu-item-phone-unverified"
+                          : ""
                       }`}
                       onClick={() => {
                         if (window.innerWidth < 1024) toggleSidebar();
@@ -255,6 +267,11 @@ export default function Sidebar({ user, children }) {
                             !smartSchoolLoading
                               ? "menu-icon"
                               : ""
+                          } ${
+                            item.requiresPhoneVerification &&
+                            !user?.phoneVerified
+                              ? "menu-icon-unverified"
+                              : ""
                           }`}
                         >
                           {icons[item.icon]}
@@ -267,6 +284,12 @@ export default function Sidebar({ user, children }) {
                             !smartSchoolLoading && (
                               <span className="mr-2 text-xs text-red-300">
                                 (ناتمام)
+                              </span>
+                            )}
+                          {item.requiresPhoneVerification &&
+                            !user?.phoneVerified && (
+                              <span className="mr-2 text-xs text-orange-300 animate-pulse">
+                                (احراز هویت)
                               </span>
                             )}
                         </span>

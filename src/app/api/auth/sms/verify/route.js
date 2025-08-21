@@ -1,11 +1,13 @@
 import OtpModel from "@/models/Otp";
 import UserModel from "@/models/User";
+import dbConnect from "@/lib/dbConnect";
 
 export async function POST(req) {
   const body = await req.json();
   const { phone, code } = body;
 
   console.log("phone----->", phone);
+  console.log("code----->", code);
   if (!phone) {
     throw new Error("phone is not corrected...");
   }
@@ -15,11 +17,11 @@ export async function POST(req) {
       return Response.json({ message: "خطا در اتصال به پایگاه", status: 500 });
     }
     const otp = await OtpModel.findOne({ phone, code });
-
+    console.log("otp----->", otp);
     if (otp) {
       const date = new Date();
       const now = date.getTime();
-
+      console.log("otp.expTime----->", otp);
       if (otp.expTime > now) {
         const fonuded = await UserModel.findOneAndUpdate(
           { phone },

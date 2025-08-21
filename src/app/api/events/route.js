@@ -187,6 +187,15 @@ export async function POST(request) {
       "systemAdmin",
       "generalManager",
       "examCenterManager",
+      "transferApplicant",
+      "provinceTransferExpert",
+      "districtTransferExpert",
+      "provinceEvalExpert",
+      "districtEvalExpert",
+      "provinceTechExpert",
+      "districtTechExpert",
+      "provinceRegistrationExpert",
+      "districtRegistrationExpert",
       "all",
     ];
     if (!data.targetRoles.every((role) => validRoles.includes(role))) {
@@ -310,14 +319,24 @@ export async function PUT(request) {
           { status: 400 }
         );
       }
-
+      console.log("data.targetRoles", data.targetRoles);
       const validRoles = [
         "systemAdmin",
         "generalManager",
         "examCenterManager",
+        "transferApplicant",
+        "provinceTransferExpert",
+        "districtTransferExpert",
+        "provinceEvalExpert",
+        "districtEvalExpert",
+        "provinceTechExpert",
+        "districtTechExpert",
+        "provinceRegistrationExpert",
+        "districtRegistrationExpert",
         "all",
       ];
       if (!data.targetRoles.every((role) => validRoles.includes(role))) {
+        console.log("data.targetRoles------->", role);
         return NextResponse.json(
           { error: "نقش‌های انتخاب شده معتبر نیستند" },
           { status: 400 }

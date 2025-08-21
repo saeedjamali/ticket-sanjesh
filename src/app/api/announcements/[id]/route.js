@@ -56,6 +56,13 @@ export async function GET(request, { params }) {
         "districtTechExpert",
         "districtEvalExpert",
         "examCenterManager",
+        "transferApplicant",
+        "provinceEvalExpert",
+        "districtEvalExpert",
+        "provinceTechExpert",
+        "districtTechExpert",
+        "provinceRegistrationExpert",
+        "districtRegistrationExpert",
       ].includes(user.role) &&
       announcement.targetRoles.includes(user.role) &&
       (!announcement.targetDistricts.length ||
@@ -120,6 +127,12 @@ export async function PUT(request, { params }) {
       ROLES.PROVINCE_EDUCATION_EXPERT,
       ROLES.PROVINCE_TECH_EXPERT,
       ROLES.PROVINCE_EVAL_EXPERT,
+      ROLES.PROVINCE_TRANSFER_EXPERT,
+      ROLES.DISTRICT_TRANSFER_EXPERT,
+      ROLES.PROVINCE_REGISTRATION_EXPERT,
+      ROLES.DISTRICT_REGISTRATION_EXPERT,
+      ROLES.PROVINCE_EVAL_EXPERT,
+      ROLES.TRANSFER_APPLICANT
     ];
 
     if (!allowedRoles.includes(user.role)) {

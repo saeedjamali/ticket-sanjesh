@@ -61,6 +61,15 @@ export default function ProfilePage() {
       examCenterManager: "مدیر واحد سازمانی",
       provinceRegistrationExpert: "کارشناس ثبت نام استان",
       districtRegistrationExpert: "کارشناس ثبت نام منطقه",
+      transferApplicant: "کاربر متقاضی انتقال",
+      districtTransferExpert: "کارشناس انتقال منطقه",
+      provinceTransferExpert: "کارشناس انتقال استان",
+      provinceEvalExpert: "کارشناس سنجش استان",
+      districtEvalExpert: "کارشناس سنجش منطقه",
+      provinceTechExpert: "کارشناس فناوری استان",
+      districtTechExpert: "کارشناس فناوری منطقه",
+      provinceRegistrationExpert: "کارشناس ثبت نام استان",
+      districtRegistrationExpert: "کارشناس ثبت نام منطقه",
     };
 
     return roleMap[role] || role;

@@ -12,32 +12,32 @@
   --text-gray-600: #4b5563;
   --text-gray-500: #6b7280;
   --text-gray-400: #9ca3af;
-  
+
   /* رنگ‌های پس‌زمینه */
   --bg-white: #ffffff;
   --bg-gray-50: #f9fafb;
   --bg-gray-100: #f3f4f6;
-  
+
   /* رنگ‌های آبی */
   --text-blue-600: #2563eb;
   --text-blue-700: #1d4ed8;
   --bg-blue-50: #eff6ff;
   --bg-blue-100: #dbeafe;
-  
+
   /* رنگ‌های سبز */
   --text-green-600: #16a34a;
   --text-green-700: #15803d;
   --text-green-800: #166534;
   --bg-green-50: #f0fdf4;
   --bg-green-100: #dcfce7;
-  
+
   /* رنگ‌های قرمز */
   --text-red-600: #dc2626;
   --text-red-700: #b91c1c;
   --text-red-800: #991b1b;
   --bg-red-50: #fef2f2;
   --bg-red-100: #fee2e2;
-  
+
   /* رنگ‌های نارنجی */
   --text-orange-600: #ea580c;
   --text-orange-700: #c2410c;
@@ -56,28 +56,28 @@
     --text-gray-600: GrayText;
     --text-gray-500: GrayText;
     --text-gray-400: GrayText;
-    
+
     --bg-white: Canvas;
     --bg-gray-50: Canvas;
     --bg-gray-100: ButtonFace;
-    
+
     --text-blue-600: LinkText;
     --text-blue-700: LinkText;
     --bg-blue-50: Canvas;
     --bg-blue-100: ButtonFace;
-    
+
     --text-green-600: CanvasText;
     --text-green-700: CanvasText;
     --text-green-800: CanvasText;
     --bg-green-50: Canvas;
     --bg-green-100: ButtonFace;
-    
+
     --text-red-600: CanvasText;
     --text-red-700: CanvasText;
     --text-red-800: CanvasText;
     --bg-red-50: Canvas;
     --bg-red-100: ButtonFace;
-    
+
     --text-orange-600: CanvasText;
     --text-orange-700: CanvasText;
     --text-orange-800: CanvasText;
@@ -294,22 +294,22 @@
     --text-gray-600: #4d4d4d;
     --text-gray-500: #666666;
     --text-gray-400: #808080;
-    
+
     --bg-white: #ffffff;
     --bg-gray-50: #f5f5f5;
     --bg-gray-100: #eeeeee;
-    
+
     --text-blue-600: #0000cc;
     --text-blue-700: #000099;
-    
+
     --text-green-600: #006600;
     --text-green-700: #004d00;
     --text-green-800: #003300;
-    
+
     --text-red-600: #cc0000;
     --text-red-700: #990000;
     --text-red-800: #660000;
-    
+
     --text-orange-600: #cc6600;
     --text-orange-700: #994d00;
     --text-orange-800: #663300;
@@ -318,24 +318,25 @@
 
 /* تنظیمات ویژه برای Windows High Contrast Mode */
 @media (-ms-high-contrast: active) {
+
   .forced-text-gray-900,
   .forced-text-gray-800,
   .forced-text-gray-700 {
     color: windowtext !important;
   }
-  
+
   .forced-text-gray-600,
   .forced-text-gray-500,
   .forced-text-gray-400 {
     color: graytext !important;
   }
-  
+
   .forced-bg-white,
   .forced-bg-gray-50,
   .forced-bg-gray-100 {
     background-color: window !important;
   }
-  
+
   .forced-text-blue-600,
   .forced-text-blue-700 {
     color: highlight !important;
@@ -371,4 +372,17 @@
 
 .forced-icon-orange {
   color: var(--text-orange-600) !important;
+}
+
+/* کلاس‌های جدید برای مشکل کنونی */
+.forced-color-text-black {
+  color: var(--text-gray-900) !important;
+}
+
+.forced-color-text-gray {
+  color: var(--text-gray-500) !important;
+}
+
+.forced-color-bg-white {
+  background-color: var(--bg-white) !important;
 }

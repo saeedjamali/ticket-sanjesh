@@ -36,6 +36,13 @@ const AnnouncementSchema = new mongoose.Schema({
       "districtTechExpert", // کارشناس فناوری منطقه
       "districtEvalExpert", // کارشناس ارزیابی منطقه
       "examCenterManager", // مدیر واحد سازمانی
+      "transferApplicant", // پرسنل
+      "provinceEvalExpert", // کارشناس سنجش استان
+      "districtEvalExpert", // کارشناس سنجش منطقه
+      "provinceTechExpert", // کارشناس فناوری استان
+      "districtTechExpert", // کارشناس فناوری منطقه
+      "provinceRegistrationExpert", // کارشناس ثبت نام استان
+      "districtRegistrationExpert", // کارشناس ثبت نام منطقه
     ],
     required: true,
   },

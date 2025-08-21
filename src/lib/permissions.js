@@ -28,6 +28,10 @@ export const ROLES = {
   DISTRICT_EVAL_EXPERT: "districtEvalExpert",
   DISTRICT_REGISTRATION_EXPERT: "districtRegistrationExpert",
   EXAM_CENTER_MANAGER: "examCenterManager",
+  // نقش‌های جدید برای سیستم انتقال
+  TRANSFER_APPLICANT: "transferApplicant",
+  DISTRICT_TRANSFER_EXPERT: "districtTransferExpert",
+  PROVINCE_TRANSFER_EXPERT: "provinceTransferExpert",
 };
 
 export function getRolePermissions(role) {
@@ -66,6 +70,15 @@ export function getRolePermissions(role) {
     canViewDistrictExamCenterStats: false,
     canManageProvinceExamCenterStats: false,
     canManageDistrictExamCenterStats: false,
+    // دسترسی‌های جدید برای سیستم انتقال
+    canCreateTransferRequest: false,
+    canViewTransferRequests: false,
+    canManageDistrictTransferRequests: false,
+    canManageProvinceTransferRequests: false,
+    canViewOwnTransferRequests: false,
+    canManageTransferSettings: false,
+    // دسترسی مدیریت مشخصات پرسنل انتقال
+    canManageTransferApplicantSpecs: false,
   };
 
   switch (role) {
@@ -86,6 +99,8 @@ export function getRolePermissions(role) {
       permissions.canCreateForms = true;
       permissions.canManageForms = true;
       permissions.canSubmitForms = true;
+      permissions.canManageTransferSettings = true;
+      permissions.canManageTransferApplicantSpecs = true;
       break;
 
     case ROLES.GENERAL_MANAGER:
@@ -196,6 +211,31 @@ export function getRolePermissions(role) {
       permissions.canSubmitForms = true;
       permissions.canManageSmartSchool = true;
       break;
+
+    case ROLES.TRANSFER_APPLICANT:
+      permissions.canCreateTransferRequest = true;
+      permissions.canViewOwnTransferRequests = true;
+      permissions.canSubmitForms = true;
+      break;
+
+    case ROLES.DISTRICT_TRANSFER_EXPERT:
+      permissions.canViewTransferRequests = true;
+      permissions.canManageDistrictTransferRequests = true;
+      permissions.canViewDistrictStudents = true;
+      permissions.canSubmitForms = true;
+      permissions.canManageTransferApplicantSpecs = true; // اضافه شد
+      break;
+
+    case ROLES.PROVINCE_TRANSFER_EXPERT:
+      permissions.canViewTransferRequests = true;
+      permissions.canManageProvinceTransferRequests = true;
+      permissions.canViewProvinceStudents = true;
+      permissions.canViewProvinceDistricts = true;
+      permissions.canViewProvinceExamCenters = true;
+      permissions.canSubmitForms = true;
+      permissions.canManageTransferSettings = true;
+      permissions.canManageTransferApplicantSpecs = true;
+      break;
   }
 
   return permissions;
@@ -214,6 +254,10 @@ export function getRoleName(role) {
     [ROLES.DISTRICT_EVAL_EXPERT]: "کارشناس ارزیابی منطقه",
     [ROLES.DISTRICT_REGISTRATION_EXPERT]: "کارشناس ثبت نام منطقه",
     [ROLES.EXAM_CENTER_MANAGER]: "مدیر واحد سازمانی",
+    // نقش‌های جدید برای سیستم انتقال
+    [ROLES.TRANSFER_APPLICANT]: "کاربر متقاضی انتقال",
+    [ROLES.DISTRICT_TRANSFER_EXPERT]: "کارشناس امور اداری منطقه",
+    [ROLES.PROVINCE_TRANSFER_EXPERT]: "کارشناس امور اداری استان",
   };
 
   return roleNames[role] || "کاربر";
@@ -304,7 +348,6 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
 
   // منوی پروفایل کاربری - برای همه کاربران
 
- 
   // منوی تنظیمات - فقط برای مدیران سیستم
   if (role === ROLES.SYSTEM_ADMIN) {
     activeMenuItems.push({
@@ -353,6 +396,44 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
           path: "/dashboard/settings/dropout-reasons",
         },
       ],
+    });
+  }
+
+  // منوی تنظیمات انتقالات - برای مدیر سیستم و کارشناس امور اداری استان
+  if (role === ROLES.SYSTEM_ADMIN || role === ROLES.PROVINCE_TRANSFER_EXPERT) {
+    activeMenuItems.push({
+      label: "تنظیمات انتقالات",
+      path: "/dashboard/transfer-settings",
+      icon: "transferSettings",
+      submenu: [
+        {
+          label: "تذکرات اولیه",
+          path: "/dashboard/transfer-settings/preliminary-notices",
+        },
+        {
+          label: "علل انتقال",
+          path: "/dashboard/transfer-settings/transfer-reasons",
+        },
+        {
+          label: "دلایل موافقت/مخالفت",
+          path: "/dashboard/transfer-settings/approval-reasons",
+        },
+      ],
+    });
+
+    activeMenuItems.push({
+      label: "مشخصات پرسنل انتقال",
+      path: "/dashboard/transfer-applicant-specs",
+      icon: "transferApplicantSpecs",
+    });
+  }
+
+  // منوی مشخصات پرسنل انتقال - برای کارشناس امور اداری منطقه
+  if (role === ROLES.DISTRICT_TRANSFER_EXPERT) {
+    activeMenuItems.push({
+      label: "پرسنل منطقه",
+      path: "/dashboard/transfer-applicant-specs",
+      icon: "transferApplicantSpecs",
     });
   }
 
@@ -479,17 +560,27 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       icon: "transferRequests",
     });
   }
+
+  // منوی درخواست انتقال - برای کاربران transferApplicant
+  if (role === ROLES.TRANSFER_APPLICANT) {
+    activeMenuItems.push({
+      label: "درخواست انتقال",
+      path: "/dashboard/emergency-transfer",
+      icon: "transfer",
+      requiresPhoneVerification: true, // فیلد جدید برای نشان دادن نیاز به احراز هویت
+    });
+  }
   activeMenuItems.push({
     label: "پروفایل ",
     path: "/dashboard/profile",
     icon: "profile",
   });
-   // منوی کاربران - فقط برای مدیران ارشد
-   if (
+  // منوی کاربران - فقط برای مدیران ارشد
+  if (
     role === ROLES.SYSTEM_ADMIN ||
     role === ROLES.GENERAL_MANAGER ||
     role === ROLES.PROVINCE_TECH_EXPERT ||
-    role === ROLES.DISTRICT_TECH_EXPERT 
+    role === ROLES.DISTRICT_TECH_EXPERT
   ) {
     activeMenuItems.push({
       label: "کاربران",

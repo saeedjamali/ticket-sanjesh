@@ -53,6 +53,10 @@ const UserSchema = new mongoose.Schema({
       "districtEvalExpert", // کارشناس ارزیابی منطقه
       "districtRegistrationExpert", // کارشناس ثبت نام منطقه
       "examCenterManager", // مدیر واحد سازمانی
+      // نقش‌های جدید برای سیستم انتقال
+      "transferApplicant", // متقاضی انتقال
+      "districtTransferExpert", // کارشناس امور اداری منطقه
+      "provinceTransferExpert", // کارشناس امور اداری استان
     ],
     required: true,
   },

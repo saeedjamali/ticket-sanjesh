@@ -255,6 +255,10 @@ export default function UsersPage() {
       districtEvalExpert: "کارشناس ارزیابی منطقه",
       districtRegistrationExpert: "کارشناس ثبت نام منطقه",
       examCenterManager: "مدیر واحد سازمانی",
+      // نقش‌های جدید برای سیستم انتقال
+      transferApplicant: "متقاضی انتقال",
+      districtTransferExpert: "کارشناس امور اداری منطقه",
+      provinceTransferExpert: "کارشناس امور اداری استان",
     };
 
     return roleMap[role] || role;
@@ -614,14 +618,25 @@ export default function UsersPage() {
       "generalManager",
       "provinceEducationExpert",
       "provinceTechExpert",
+      "provinceEvalExpert",
+      "provinceRegistrationExpert",
       "districtEducationExpert",
       "districtTechExpert",
+      "districtEvalExpert",
+      "districtRegistrationExpert",
       "examCenterManager",
+      "provinceTransferExpert",
+      "districtTransferExpert",
+      "transferApplicant",
     ];
     const requiresDistrict = [
       "districtEducationExpert",
       "districtTechExpert",
+      "districtEvalExpert",
+      "districtRegistrationExpert",
       "examCenterManager",
+      "districtTransferExpert",
+      "transferApplicant",
     ];
     const requiresExamCenter = ["examCenterManager"];
 
@@ -699,12 +714,18 @@ export default function UsersPage() {
       "provinceRegistrationExpert",
       "districtRegistrationExpert",
       "examCenterManager",
+      "provinceTransferExpert",
+      "districtTransferExpert",
+      "transferApplicant",
     ];
     const requiresDistrict = [
       "districtEducationExpert",
       "districtTechExpert",
       "districtEvalExpert",
+      "districtRegistrationExpert",
       "examCenterManager",
+      "districtTransferExpert",
+      "transferApplicant",
     ];
     const requiresExamCenter = ["examCenterManager"];
 
@@ -941,6 +962,13 @@ export default function UsersPage() {
                 کارشناس ثبت نام منطقه
               </option>
               <option value="examCenterManager">مدیر واحد سازمانی</option>
+              <option value="transferApplicant">متقاضی انتقال</option>
+              <option value="districtTransferExpert">
+                کارشناس امور اداری منطقه
+              </option>
+              <option value="provinceTransferExpert">
+                کارشناس امور اداری استان
+              </option>
             </select>
           </div>
           <div>
@@ -1268,6 +1296,13 @@ export default function UsersPage() {
                       کارشناس فناوری منطقه
                     </option>
                     <option value="examCenterManager">مدیر واحد سازمانی</option>
+                    <option value="transferApplicant">متقاضی انتقال</option>
+                    <option value="districtTransferExpert">
+                      کارشناس امور اداری منطقه
+                    </option>
+                    <option value="provinceTransferExpert">
+                      کارشناس امور اداری استان
+                    </option>
                   </select>
                 </div>
               </div>
@@ -1284,6 +1319,9 @@ export default function UsersPage() {
                 "districtEvalExpert",
                 "districtRegistrationExpert",
                 "examCenterManager",
+                "provinceTransferExpert",
+                "districtTransferExpert",
+                "transferApplicant",
               ].includes(newUser.role) && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1316,6 +1354,8 @@ export default function UsersPage() {
                 "districtEvalExpert",
                 "districtRegistrationExpert",
                 "examCenterManager",
+                "districtTransferExpert",
+                "transferApplicant",
               ].includes(newUser.role) &&
                 newUser.province && (
                   <div>
@@ -1480,6 +1520,13 @@ export default function UsersPage() {
                       کارشناس فناوری منطقه
                     </option>
                     <option value="examCenterManager">مدیر واحد سازمانی</option>
+                    <option value="transferApplicant">متقاضی انتقال</option>
+                    <option value="districtTransferExpert">
+                      کارشناس امور اداری منطقه
+                    </option>
+                    <option value="provinceTransferExpert">
+                      کارشناس امور اداری استان
+                    </option>
                   </select>
                 </div>
               </div>
@@ -1496,6 +1543,9 @@ export default function UsersPage() {
                 "provinceRegistrationExpert",
                 "districtRegistrationExpert",
                 "examCenterManager",
+                "provinceTransferExpert",
+                "districtTransferExpert",
+                "transferApplicant",
               ].includes(editingUser.role) && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1528,6 +1578,8 @@ export default function UsersPage() {
                 "districtEvalExpert",
                 "districtRegistrationExpert",
                 "examCenterManager",
+                "districtTransferExpert",
+                "transferApplicant",
               ].includes(editingUser.role) &&
                 editingUser.province && (
                   <div>

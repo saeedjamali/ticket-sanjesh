@@ -15,9 +15,9 @@ class AuthService {
 
       // Find user
       const user = await User.findOne({ nationalId })
-        .populate("province", "name")
-        .populate("district", "name")
-        .populate("examCenter", "name");
+        .populate("province", "name code")
+        .populate("district", "name code")
+        .populate("examCenter", "name code");
 
       console.log("user in AuthService Login---->", user);
       // Check if user exists
@@ -95,7 +95,9 @@ class AuthService {
 
       // Get user
       const user = await User.findById(decoded.userId)
-        .populate("province district examCenter")
+        .populate("province", "name code")
+        .populate("district", "name code")
+        .populate("examCenter", "name code")
         .lean();
 
       if (!user) {
@@ -108,14 +110,15 @@ class AuthService {
 
       // Format user data
       return {
+        userId: user._id.toString(),
         id: user._id.toString(),
         fullName: user.fullName,
         nationalId: user.nationalId,
         role: user.role,
         isActive: user.isActive || true,
-        province: user.province ? user.province._id.toString() : null,
-        district: user.district ? user.district._id.toString() : null,
-        examCenter: user.examCenter ? user.examCenter._id.toString() : null,
+        province: user.province,
+        district: user.district,
+        examCenter: user.examCenter,
         academicYear: user.academicYear || "1402-1403",
         phoneVerified: user.phoneVerified,
         phone: user.phone,

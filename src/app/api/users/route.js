@@ -77,7 +77,10 @@ export async function GET(request) {
         // کارشناسان استان فقط می‌توانند کاربران استان خود را ببینند
         query.province = userAuth.province;
         query.role = { $nin: [ROLES.SYSTEM_ADMIN, ROLES.GENERAL_MANAGER] };
-      } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT || userAuth.role === ROLES.DISTRICT_REGISTRATION_EXPERT ) {
+      } else if (
+        userAuth.role === ROLES.DISTRICT_TECH_EXPERT ||
+        userAuth.role === ROLES.DISTRICT_REGISTRATION_EXPERT
+      ) {
         // کارشناسان منطقه فقط می‌توانند کاربران منطقه خود را ببینند
         query.district = userAuth.district;
         query.role = {
@@ -178,18 +181,21 @@ export async function POST(request) {
           ROLES.PROVINCE_TECH_EXPERT,
           ROLES.PROVINCE_EVAL_EXPERT,
           ROLES.PROVINCE_REGISTRATION_EXPERT,
+          ROLES.PROVINCE_TRANSFER_EXPERT,
         ].includes(data.role)
       ) {
         hasPermission = true;
       }
     } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
-      // کارشناس فناوری استان می‌تواند کارشناسان منطقه را ایجاد کند
+      // کارشناس فناوری استان می‌تواند کارشناسان منطقه و متقاضیان انتقال را ایجاد کند
       if (
         [
           ROLES.DISTRICT_EDUCATION_EXPERT,
           ROLES.DISTRICT_TECH_EXPERT,
           ROLES.DISTRICT_EVAL_EXPERT,
           ROLES.DISTRICT_REGISTRATION_EXPERT,
+          ROLES.DISTRICT_TRANSFER_EXPERT,
+          ROLES.TRANSFER_APPLICANT,
         ].includes(data.role)
       ) {
         hasPermission = true;
@@ -230,6 +236,8 @@ export async function POST(request) {
       ROLES.DISTRICT_EVAL_EXPERT,
       ROLES.DISTRICT_REGISTRATION_EXPERT,
       ROLES.EXAM_CENTER_MANAGER,
+      ROLES.PROVINCE_TRANSFER_EXPERT,
+      ROLES.DISTRICT_TRANSFER_EXPERT,
     ];
 
     const requiresDistrict = [
@@ -238,6 +246,8 @@ export async function POST(request) {
       ROLES.DISTRICT_EVAL_EXPERT,
       ROLES.DISTRICT_REGISTRATION_EXPERT,
       ROLES.EXAM_CENTER_MANAGER,
+      ROLES.DISTRICT_TRANSFER_EXPERT,
+      ROLES.TRANSFER_APPLICANT,
     ];
 
     const requiresExamCenter = [ROLES.EXAM_CENTER_MANAGER];
@@ -296,7 +306,7 @@ export async function POST(request) {
       academicYear: academicYear.name,
     });
     //console.log("hashedPassword 22---->", hashedPassword);
-   // console.log("user---->", user);
+    // console.log("user---->", user);
     if (requiresExamCenter.includes(data.role)) {
       await ExamCenter.findByIdAndUpdate(data.examCenter, {
         manager: user._id,
@@ -560,7 +570,7 @@ export async function PATCH(request) {
           ROLES.DISTRICT_EDUCATION_EXPERT,
           ROLES.DISTRICT_TECH_EXPERT,
           ROLES.DISTRICT_EVAL_EXPERT,
-           ROLES.DISTRICT_REGISTRATION_EXPERT
+          ROLES.DISTRICT_REGISTRATION_EXPERT,
         ].includes(user.role)
       ) {
         hasPermission = true;
@@ -570,7 +580,10 @@ export async function PATCH(request) {
           hasPermission = false;
         }
       }
-    } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT || userAuth.role === ROLES.DISTRICT_REGISTRATION_EXPERT) {
+    } else if (
+      userAuth.role === ROLES.DISTRICT_TECH_EXPERT ||
+      userAuth.role === ROLES.DISTRICT_REGISTRATION_EXPERT
+    ) {
       // District tech expert can change exam center managers' passwords
       if (user.role === ROLES.EXAM_CENTER_MANAGER) {
         hasPermission = true;

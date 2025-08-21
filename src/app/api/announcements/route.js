@@ -218,7 +218,7 @@ export async function POST(request) {
       // Handle form data request
       const formData = await request.formData();
 
-      console.log("formData--------------->", formData);
+      // console.log("formData--------------->", formData);
       // Process the form data fields
       const title = formData.get("title");
       const content = formData.get("content");

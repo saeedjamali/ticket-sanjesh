@@ -41,6 +41,8 @@ export default function CreateAnnouncementPage() {
         "provinceEducationExpert",
         "provinceTechExpert",
         "provinceEvalExpert",
+        "provinceRegistrationExpert",
+        "provinceTransferExpert",
       ].includes(user.role)
     ) {
       toast.error("شما دسترسی به ایجاد اطلاعیه ندارید");
@@ -409,6 +411,72 @@ export default function CreateAnnouncementPage() {
                   </div>
                 )}
 
+                {/* Show district registration expert only for province registration expert */}
+                {user.role === "provinceRegistrationExpert" && (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="role-district-registration"
+                      value="districtRegistrationExpert"
+                      checked={formData.targetRoles.includes(
+                        "districtRegistrationExpert"
+                      )}
+                      onChange={handleRoleChange}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="role-district-registration"
+                      className="mr-2 text-sm text-gray-700"
+                    >
+                      کارشناس ثبت نام منطقه
+                    </label>
+                  </div>
+                )}
+
+                {/* Show district transfer expert only for province transfer expert */}
+                {user.role === "provinceTransferExpert" && (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="role-district-transfer"
+                      value="districtTransferExpert"
+                      checked={formData.targetRoles.includes(
+                        "districtTransferExpert"
+                      )}
+                      onChange={handleRoleChange}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="role-district-transfer"
+                      className="mr-2 text-sm text-gray-700"
+                    >
+                      کارشناس امور اداری منطقه
+                    </label>
+                  </div>
+                )}
+
+                {/* Show transfer applicant for province transfer expert */}
+                {user.role === "provinceTransferExpert" && (
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="role-transfer-applicant"
+                      value="transferApplicant"
+                      checked={formData.targetRoles.includes(
+                        "transferApplicant"
+                      )}
+                      onChange={handleRoleChange}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    />
+                    <label
+                      htmlFor="role-transfer-applicant"
+                      className="mr-2 text-sm text-gray-700"
+                    >
+                      متقاضی انتقال
+                    </label>
+                  </div>
+                )}
+
                 {/* Show all district roles for general manager */}
                 {user.role === "generalManager" && (
                   <>
@@ -466,6 +534,60 @@ export default function CreateAnnouncementPage() {
                         کارشناس ارزیابی منطقه
                       </label>
                     </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="role-district-registration-gm"
+                        value="districtRegistrationExpert"
+                        checked={formData.targetRoles.includes(
+                          "districtRegistrationExpert"
+                        )}
+                        onChange={handleRoleChange}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="role-district-registration-gm"
+                        className="mr-2 text-sm text-gray-700"
+                      >
+                        کارشناس ثبت نام منطقه
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="role-district-transfer-gm"
+                        value="districtTransferExpert"
+                        checked={formData.targetRoles.includes(
+                          "districtTransferExpert"
+                        )}
+                        onChange={handleRoleChange}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="role-district-transfer-gm"
+                        className="mr-2 text-sm text-gray-700"
+                      >
+                        کارشناس امور اداری منطقه
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="role-transfer-applicant-gm"
+                        value="transferApplicant"
+                        checked={formData.targetRoles.includes(
+                          "transferApplicant"
+                        )}
+                        onChange={handleRoleChange}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="role-transfer-applicant-gm"
+                        className="mr-2 text-sm text-gray-700"
+                      >
+                        متقاضی انتقال
+                      </label>
+                    </div>
                   </>
                 )}
 
@@ -474,6 +596,8 @@ export default function CreateAnnouncementPage() {
                   "provinceEducationExpert",
                   "provinceTechExpert",
                   "provinceEvalExpert",
+                  "provinceRegistrationExpert",
+                  "provinceTransferExpert",
                   "generalManager",
                 ].includes(user.role) && (
                   <div className="flex items-center">

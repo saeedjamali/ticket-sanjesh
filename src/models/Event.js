@@ -41,6 +41,15 @@ const eventSchema = new mongoose.Schema(
             "systemAdmin",
             "generalManager",
             "examCenterManager",
+            "transferApplicant",
+            "provinceEvalExpert",
+            "districtEvalExpert",
+            "provinceTechExpert",
+            "districtTechExpert",
+            "provinceRegistrationExpert",
+            "districtRegistrationExpert",
+            "provinceTransferExpert",
+            "districtTransferExpert",
             "all",
           ];
           return roles.every((role) => validRoles.includes(role));
@@ -102,7 +111,16 @@ eventSchema.statics.getActiveEvents = function (
   userRole,
   userProvince,
   userDistrict,
-  userExamCenter
+  userExamCenter,
+  transferApplicant,
+  provinceEvalExpert,
+  districtEvalExpert,
+  provinceTechExpert,
+  districtTechExpert,
+  provinceRegistrationExpert,
+  districtRegistrationExpert,
+  provinceTransferExpert,
+  districtTransferExpert,
 ) {
   const now = new Date();
   const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000);

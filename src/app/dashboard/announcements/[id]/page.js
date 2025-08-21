@@ -247,6 +247,13 @@ export default function AnnouncementDetailPage() {
       districtTechExpert: "کارشناس فناوری منطقه",
       districtEvalExpert: "کارشناس ارزیابی منطقه",
       examCenterManager: "مدیر واحد سازمانی",
+      transferApplicant: "کاربر متقاضی انتقال",
+      provinceEvalExpert: "کارشناس سنجش استان",
+      districtEvalExpert: "کارشناس سنجش منطقه",
+      provinceTechExpert: "کارشناس فناوری استان",
+      districtTechExpert: "کارشناس فناوری منطقه",
+      provinceRegistrationExpert: "کارشناس ثبت نام استان",
+      districtRegistrationExpert: "کارشناس ثبت نام منطقه",
     };
     return roles[role] || role;
   };
