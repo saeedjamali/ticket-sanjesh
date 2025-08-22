@@ -231,23 +231,99 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
     required: true,
     default: 1,
   },
-  requestStatus: {
+  // گردش کار وضعیت درخواست - آرایه‌ای از تغییرات وضعیت
+  requestStatusWorkflow: [
+    {
+      status: {
+        type: String,
+        enum: [
+          "user_no_action", // عدم اقدام کاربر
+          "awaiting_user_approval", // در انتظار تایید کاربر
+          "user_approval", // تایید کاربر
+          "source_review", // در حال بررسی مبدا
+          "exception_eligibility_approval", // تایید مشمولیت استثنا
+          "source_approval", // تایید مبدا
+          "source_rejection", // رد مبدا
+          "province_review", // در حال بررسی توسط استان
+          "province_approval", // تایید استان
+          "province_rejection", // رد استان
+          "destination_review", // در حال بررسی مقصد
+          "destination_approval", // تایید مقصد
+          "destination_rejection", // رد مقصد
+        ],
+        required: true,
+      },
+      changedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+      changedAt: {
+        type: Date,
+        required: true,
+        default: Date.now,
+      },
+      previousStatus: {
+        type: String,
+        enum: [
+          "user_no_action",
+          "awaiting_user_approval",
+          "user_approval",
+          "source_review",
+          "exception_eligibility_approval",
+          "source_approval",
+          "source_rejection",
+          "province_review",
+          "province_approval",
+          "province_rejection",
+          "destination_review",
+          "destination_approval",
+          "destination_rejection",
+        ],
+        default: null,
+      },
+      reason: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      metadata: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {},
+      },
+      userAgent: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      ipAddress: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+    },
+  ],
+
+  // وضعیت فعلی درخواست (برای سهولت دسترسی و کوئری)
+  currentRequestStatus: {
     type: String,
     enum: [
-      "awaiting_user_approval", // در انتظار تایید کاربر
-      "source_review", // در حال بررسی مبدا
-      "exception_eligibility_approval", // تایید مشمولیت استثنا
-      "source_approval", // تایید مبدا
-      "source_rejection", // رد مبدا
-      "province_review", // در حال بررسی توسط استان
-      "province_approval", // تایید استان
-      "province_rejection", // رد استان
-      "destination_review", // در حال بررسی مقصد
-      "destination_approval", // تایید مقصد
-      "destination_rejection", // رد مقصد
+      "user_no_action",
+      "awaiting_user_approval",
+      "user_approval",
+      "source_review",
+      "exception_eligibility_approval",
+      "source_approval",
+      "source_rejection",
+      "province_review",
+      "province_approval",
+      "province_rejection",
+      "destination_review",
+      "destination_approval",
+      "destination_rejection",
     ],
     required: true,
-    default: "awaiting_user_approval",
+    default: "user_no_action",
   },
 
   // کمیسیون پزشکی
@@ -308,10 +384,12 @@ TransferApplicantSpecSchema.pre("save", function (next) {
 TransferApplicantSpecSchema.index({ personnelCode: 1 });
 TransferApplicantSpecSchema.index({ nationalId: 1 });
 TransferApplicantSpecSchema.index({ currentTransferStatus: 1 });
-TransferApplicantSpecSchema.index({ requestStatus: 1 });
+TransferApplicantSpecSchema.index({ currentRequestStatus: 1 }); // تغییر از requestStatus به currentRequestStatus
 TransferApplicantSpecSchema.index({ sourceDistrictCode: 1 });
 TransferApplicantSpecSchema.index({ currentWorkPlaceCode: 1 });
 TransferApplicantSpecSchema.index({ isActive: 1 });
+TransferApplicantSpecSchema.index({ "requestStatusWorkflow.status": 1 });
+TransferApplicantSpecSchema.index({ "requestStatusWorkflow.changedAt": 1 });
 
 // تابع helper برای دریافت متن وضعیت انتقال فعلی
 TransferApplicantSpecSchema.methods.getCurrentTransferStatusText = function () {
@@ -326,9 +404,11 @@ TransferApplicantSpecSchema.methods.getCurrentTransferStatusText = function () {
 
 // تابع helper برای دریافت متن وضعیت درخواست
 TransferApplicantSpecSchema.methods.getRequestStatusText = function (status) {
-  const statusToCheck = status || this.requestStatus;
+  const statusToCheck = status || this.currentRequestStatus;
   const statusMap = {
+    user_no_action: "در انتظار اقدام کاربر",
     awaiting_user_approval: "در انتظار تایید کاربر",
+    user_approval: "تایید کاربر",
     source_review: "در حال بررسی مبدا",
     exception_eligibility_approval: "تایید مشمولیت استثنا",
     source_approval: "تایید مبدا",
@@ -392,6 +472,66 @@ TransferApplicantSpecSchema.methods.getLatestLog = function () {
 TransferApplicantSpecSchema.methods.getStatusTimeline = function () {
   return this.statusLog.sort(
     (a, b) => new Date(a.performedAt) - new Date(b.performedAt)
+  );
+};
+
+// اضافه کردن متد برای تغییر وضعیت درخواست
+TransferApplicantSpecSchema.methods.changeRequestStatus = function (
+  statusData
+) {
+  const previousStatus = this.currentRequestStatus;
+  const newStatus = statusData.status;
+
+  // اضافه کردن به workflow
+  this.requestStatusWorkflow.push({
+    status: newStatus,
+    changedBy: statusData.changedBy,
+    changedAt: statusData.changedAt || new Date(),
+    previousStatus: previousStatus,
+    reason: statusData.reason || "",
+    metadata: statusData.metadata || {},
+    userAgent: statusData.userAgent || "",
+    ipAddress: statusData.ipAddress || "",
+  });
+
+  // به‌روزرسانی وضعیت فعلی
+  this.currentRequestStatus = newStatus;
+
+  // اضافه کردن به statusLog برای سازگاری با سیستم قبلی
+  this.addStatusLog({
+    fromStatus: previousStatus,
+    toStatus: newStatus,
+    actionType: "status_change",
+    performedBy: statusData.changedBy,
+    comment:
+      statusData.reason ||
+      `تغییر وضعیت از ${this.getRequestStatusText(
+        previousStatus
+      )} به ${this.getRequestStatusText(newStatus)}`,
+    metadata: {
+      ...statusData.metadata,
+      workflowChange: true,
+    },
+  });
+};
+
+// اضافه کردن متد برای دریافت آخرین وضعیت
+TransferApplicantSpecSchema.methods.getLatestStatus = function () {
+  if (this.requestStatusWorkflow.length === 0) {
+    return {
+      status: this.currentRequestStatus,
+      changedAt: this.createdAt,
+      changedBy: null,
+    };
+  }
+
+  return this.requestStatusWorkflow[this.requestStatusWorkflow.length - 1];
+};
+
+// اضافه کردن متد برای دریافت تاریخچه وضعیت‌ها
+TransferApplicantSpecSchema.methods.getStatusHistory = function () {
+  return this.requestStatusWorkflow.sort(
+    (a, b) => new Date(a.changedAt) - new Date(b.changedAt)
   );
 };
 

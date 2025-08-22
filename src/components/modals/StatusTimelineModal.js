@@ -117,6 +117,90 @@ export default function StatusTimelineModal({
     }
   };
 
+  // تابع ترجمه وضعیت‌ها به فارسی
+  const getStatusText = (status) => {
+    const statusMap = {
+      // وضعیت‌های درخواست
+      user_no_action: "بدون اقدام کاربر",
+      awaiting_user_approval: "در انتظار تایید کاربر",
+      user_approval: "تایید کاربر",
+      pending: "در انتظار بررسی",
+      under_review: "در حال بررسی",
+      approved: "تایید شده",
+      rejected: "رد شده",
+      completed: "تکمیل شده",
+      cancelled: "لغو شده",
+
+      // وضعیت‌های انتقال
+      no_transfer: "بدون انتقال",
+      temporary_transfer: "انتقال موقت",
+      permanent_transfer: "انتقال دائم",
+      transfer_pending: "انتقال در انتظار",
+      transfer_approved: "انتقال تایید شده",
+      transfer_rejected: "انتقال رد شده",
+      transfer_completed: "انتقال تکمیل شده",
+
+      // سایر وضعیت‌ها
+      active: "فعال",
+      inactive: "غیرفعال",
+      suspended: "تعلیق",
+      terminated: "خاتمه یافته",
+    };
+
+    return statusMap[status] || status;
+  };
+
+  // تابع ترجمه کلیدهای metadata
+  const getMetadataKeyText = (key) => {
+    const keyMap = {
+      originalStatus: "وضعیت قبلی",
+      newStatus: "وضعیت جدید",
+      changedByRole: "نقش تغییر دهنده",
+      updateMethod: "روش بروزرسانی",
+      updatedFields: "فیلدهای ویرایش شده",
+      reason: "دلیل",
+      comment: "توضیحات",
+      step: "مرحله",
+      actionType: "نوع عملیات",
+      userAgent: "مرورگر",
+      ipAddress: "آی‌پی",
+      previousValue: "مقدار قبلی",
+      newValue: "مقدار جدید",
+      fieldName: "نام فیلد",
+      changeType: "نوع تغییر",
+    };
+    return keyMap[key] || key;
+  };
+
+  // تابع ترجمه مقادیر metadata
+  const getMetadataValueText = (key, value) => {
+    if (value === null || value === undefined) {
+      return "خالی";
+    }
+
+    // اگر کلید مربوط به وضعیت است، ترجمه کن
+    if (
+      key.toLowerCase().includes("status") ||
+      key === "originalStatus" ||
+      key === "newStatus"
+    ) {
+      return getStatusText(value);
+    }
+
+    // اگر آرایه است، عناصر را جدا کن
+    if (Array.isArray(value)) {
+      return value.join(", ");
+    }
+
+    // اگر آبجکت است، JSON string کن
+    if (typeof value === "object") {
+      return JSON.stringify(value, null, 2);
+    }
+
+    // سایر موارد
+    return String(value);
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat("fa-IR", {
@@ -199,8 +283,9 @@ export default function StatusTimelineModal({
                           </h4>
                           {entry.fromStatus && entry.toStatus && (
                             <p className="text-sm text-gray-600 forced-color-text-gray">
-                              از &quot;{entry.fromStatus}&quot; به &quot;
-                              {entry.toStatus}&quot;
+                              از &quot;{getStatusText(entry.fromStatus)}&quot;
+                              به &quot;
+                              {getStatusText(entry.toStatus)}&quot;
                             </p>
                           )}
                         </div>
@@ -235,9 +320,23 @@ export default function StatusTimelineModal({
                               جزئیات بیشتر
                             </summary>
                             <div className="mt-2 p-3 bg-gray-100 rounded-md forced-color-bg-white">
-                              <pre className="text-xs text-gray-600 forced-color-text-gray whitespace-pre-wrap">
-                                {JSON.stringify(entry.metadata, null, 2)}
-                              </pre>
+                              <div className="text-xs text-gray-600 forced-color-text-gray space-y-1">
+                                {Object.entries(entry.metadata).map(
+                                  ([key, value]) => (
+                                    <div
+                                      key={key}
+                                      className="flex justify-between"
+                                    >
+                                      <span className="font-medium">
+                                        {getMetadataKeyText(key)}:
+                                      </span>
+                                      <span className="text-left">
+                                        {getMetadataValueText(key, value)}
+                                      </span>
+                                    </div>
+                                  )
+                                )}
+                              </div>
                             </div>
                           </details>
                         )}

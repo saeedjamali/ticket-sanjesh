@@ -230,7 +230,7 @@ export default function TransferApplicantSpecsPage() {
             debouncedSearchTerm.length >= 4 && { search: debouncedSearchTerm }),
           ...(statusFilter && { status: statusFilter }),
           ...(filters.requestStatus && {
-            requestStatus: filters.requestStatus,
+            currentRequestStatus: filters.requestStatus, // استفاده از فیلد جدید
           }),
           ...(filters.employmentType && {
             employmentType: filters.employmentType,
@@ -241,6 +241,7 @@ export default function TransferApplicantSpecsPage() {
             user?.district && {
               currentWorkPlaceCode: user.district,
             }),
+          // نوت: فیلتر استانی برای کارشناس استان در سمت سرور اعمال می‌شود
         });
 
         const response = await fetch(
@@ -438,13 +439,33 @@ export default function TransferApplicantSpecsPage() {
           </span>
         );
       case "requestStatus":
+        // استفاده از currentRequestStatus جدید
+        const currentStatus = spec.currentRequestStatus || spec.requestStatus;
         const reqStatus = helpers.requestStatuses.find(
-          (status) => status.value === spec.requestStatus
+          (status) => status.value === currentStatus
         );
+
+        // نمایش تاریخچه workflow در tooltip
+        const hasWorkflow =
+          spec.requestStatusWorkflow && spec.requestStatusWorkflow.length > 0;
+        const workflowTooltip = hasWorkflow
+          ? `تاریخچه تغییرات: ${spec.requestStatusWorkflow.length} مورد`
+          : "";
+
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-            {reqStatus?.label || spec.requestStatus}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"
+              title={workflowTooltip}
+            >
+              {reqStatus?.label || currentStatus}
+            </span>
+            {hasWorkflow && (
+              <span className="text-xs text-gray-500 bg-gray-100 px-1 py-0.5 rounded">
+                {spec.requestStatusWorkflow.length}
+              </span>
+            )}
+          </div>
         );
       case "medicalCommissionCode":
         return spec.medicalCommissionCode || "-";
@@ -490,13 +511,20 @@ export default function TransferApplicantSpecsPage() {
         // اضافه کردن فیلدهای اجباری منطقه
         currentWorkPlaceCode: user?.district?.code,
         sourceDistrictCode: user?.district?.code,
+        // اضافه کردن وضعیت درخواست
+        currentRequestStatus: formData.requestStatus,
       };
 
       const url = editingSpec
-        ? `/api/transfer-applicant-specs/${editingSpec._id}`
+        ? `/api/transfer-applicant-specs`
         : `/api/transfer-applicant-specs`;
 
       const method = editingSpec ? "PUT" : "POST";
+
+      // اضافه کردن id برای ویرایش
+      const payload = editingSpec
+        ? { ...allowedData, id: editingSpec._id }
+        : allowedData;
 
       const response = await fetch(url, {
         method: method,
@@ -505,7 +533,7 @@ export default function TransferApplicantSpecsPage() {
           Authorization: `Bearer ${accessToken}`,
         },
         credentials: "include",
-        body: JSON.stringify(allowedData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -570,9 +598,16 @@ export default function TransferApplicantSpecsPage() {
         delete cleanedFormData.finalDestination;
       }
 
+      // تبدیل requestStatus به currentRequestStatus برای API
+      const apiFormData = { ...cleanedFormData };
+      if (apiFormData.requestStatus) {
+        apiFormData.currentRequestStatus = apiFormData.requestStatus;
+        delete apiFormData.requestStatus;
+      }
+
       const payload = editingSpec
-        ? { ...cleanedFormData, id: editingSpec._id }
-        : cleanedFormData;
+        ? { ...apiFormData, id: editingSpec._id }
+        : apiFormData;
 
       const response = await fetch(url, {
         method,
@@ -702,7 +737,7 @@ export default function TransferApplicantSpecsPage() {
             transferType: "permanent_preferred",
           },
       currentTransferStatus: spec.currentTransferStatus,
-      requestStatus: spec.requestStatus,
+      requestStatus: spec.currentRequestStatus || spec.requestStatus, // استفاده از فیلد جدید
       medicalCommissionCode: spec.medicalCommissionCode || "",
       medicalCommissionVerdict: spec.medicalCommissionVerdict || "",
       finalDestination: spec.finalDestination
@@ -1185,6 +1220,22 @@ export default function TransferApplicantSpecsPage() {
   const getRequestStatusText = (status) => {
     const statusType = helpers.requestStatuses.find((s) => s.value === status);
     return statusType ? statusType.label : status;
+  };
+
+  // تابع جدید برای نمایش تاریخچه workflow
+  const getWorkflowHistory = (workflow) => {
+    if (!workflow || workflow.length === 0) return [];
+
+    return workflow
+      .sort((a, b) => new Date(a.changedAt) - new Date(b.changedAt))
+      .map((item, index) => ({
+        ...item,
+        statusText: getRequestStatusText(item.status),
+        previousStatusText: item.previousStatus
+          ? getRequestStatusText(item.previousStatus)
+          : null,
+        isLatest: index === workflow.length - 1,
+      }));
   };
 
   // تابع helper برای فیلتر کردن مناطق قابل انتخاب برای اولویت‌ها
@@ -2727,7 +2778,6 @@ export default function TransferApplicantSpecsPage() {
                                 })
                               }
                               className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
-                              disabled={isDistrictExpert}
                             >
                               {helpers.requestStatuses?.map((status) => (
                                 <option key={status.value} value={status.value}>

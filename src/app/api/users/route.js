@@ -38,6 +38,11 @@ export async function GET(request) {
     const isActive = searchParams.get("isActive");
     const search = searchParams.get("search");
 
+    // پارامترهای pagination
+    const page = parseInt(searchParams.get("page")) || 1;
+    const limit = parseInt(searchParams.get("limit")) || 10;
+    const skip = (page - 1) * limit;
+
     const query = {};
 
     if (role) {
@@ -95,12 +100,18 @@ export async function GET(request) {
       }
     }
 
+    // دریافت تعداد کل کاربران برای محاسبه تعداد صفحات
+    const totalUsers = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalUsers / limit);
+
     const users = await User.find(query)
       .select("-password")
       .populate("province", "name")
       .populate("district", "name")
       .populate("examCenter", "name")
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean();
 
     // تبدیل ObjectId‌ها به رشته
@@ -130,6 +141,14 @@ export async function GET(request) {
     return NextResponse.json({
       success: true,
       users: formattedUsers,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalUsers,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
     });
   } catch (error) {
     console.error("Error in GET /api/users:", error);

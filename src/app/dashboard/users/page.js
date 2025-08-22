@@ -12,18 +12,44 @@ export default function UsersPage() {
   const [examCenters, setExamCenters] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // State برای pagination
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalUsers: 0,
+    limit: 10,
+    hasNextPage: false,
+    hasPrevPage: false,
+  });
   const router = useRouter();
   const { ROLES } = require("@/lib/permissions");
   const { user: currentUser } = useUserContext();
 
   // Load data from API
-  const fetchData = async () => {
+  const fetchData = async (page = 1, limit = 10, resetData = false) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Fetch users
-      const usersResponse = await fetch("/api/users", {
+      // ساختن query parameters برای pagination و فیلترها
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...(searchFilters.searchText && { search: searchFilters.searchText }),
+        ...(searchFilters.role && { role: searchFilters.role }),
+        ...(searchFilters.isActive !== "all" && {
+          isActive: searchFilters.isActive === "active",
+        }),
+        ...(searchFilters.province && { province: searchFilters.province }),
+        ...(searchFilters.district && { district: searchFilters.district }),
+        ...(searchFilters.examCenter && {
+          examCenter: searchFilters.examCenter,
+        }),
+      });
+
+      // Fetch users with pagination
+      const usersResponse = await fetch(`/api/users?${queryParams}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -47,7 +73,18 @@ export default function UsersPage() {
         throw new Error(usersData.error || "خطا در دریافت اطلاعات کاربران");
       }
 
+      // بروزرسانی users و pagination info
       setUsers(usersData.users || []);
+      setPagination(
+        usersData.pagination || {
+          currentPage: 1,
+          totalPages: 1,
+          totalUsers: 0,
+          limit: 10,
+          hasNextPage: false,
+          hasPrevPage: false,
+        }
+      );
 
       // Fetch provinces
       const provincesResponse = await fetch("/api/provinces", {
@@ -141,8 +178,22 @@ export default function UsersPage() {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(1, 10, true);
   }, []);
+
+  // useEffect برای fetch کردن users وقتی فیلترها تغییر می‌کنند
+  const handleSearch = () => {
+    fetchData(1, pagination.limit, true);
+  };
+
+  // توابع pagination
+  const handlePageChange = (newPage) => {
+    fetchData(newPage, pagination.limit);
+  };
+
+  const handleLimitChange = (newLimit) => {
+    fetchData(1, newLimit, true);
+  };
 
   // فیلترهای جستجو
   const [searchFilters, setSearchFilters] = useState({
@@ -280,52 +331,7 @@ export default function UsersPage() {
     }
   };
 
-  // اعمال فیلترها روی لیست کاربران
-  const filteredUsers = users.filter((user) => {
-    // فیلتر متن جستجو
-    if (searchFilters.searchText) {
-      const searchLower = searchFilters.searchText.toLowerCase();
-      if (
-        !user.fullName?.toLowerCase().includes(searchLower) &&
-        !user.nationalId.includes(searchFilters.searchText)
-      ) {
-        return false;
-      }
-    }
-
-    // فیلتر نقش
-    if (searchFilters.role && user.role !== searchFilters.role) {
-      return false;
-    }
-
-    // فیلتر وضعیت فعال بودن
-    if (searchFilters.isActive !== "all") {
-      const isActiveFilter = searchFilters.isActive === "active";
-      if (user.isActive !== isActiveFilter) {
-        return false;
-      }
-    }
-
-    // فیلتر استان
-    if (searchFilters.province && user.province !== searchFilters.province) {
-      return false;
-    }
-
-    // فیلتر منطقه
-    if (searchFilters.district && user.district !== searchFilters.district) {
-      return false;
-    }
-
-    // فیلتر واحد سازمانی
-    if (
-      searchFilters.examCenter &&
-      user.examCenter !== searchFilters.examCenter
-    ) {
-      return false;
-    }
-
-    return true;
-  });
+  // حالا filtering در سمت server انجام می‌شود، پس نیازی به client-side filtering نیست
 
   // تغییر ورودی‌های فرم‌ها
   const handleInputChange = (form, e) => {
@@ -679,8 +685,8 @@ export default function UsersPage() {
 
       const newUserData = await response.json();
 
-      // Add the new user to the local state
-      setUsers([...users, newUserData]);
+      // پس از افزودن کاربر، لیست را دوباره لود کن
+      await fetchData(pagination.currentPage, pagination.limit);
       handleCloseAllForms();
       alert("کاربر جدید با موفقیت ایجاد شد");
     } catch (error) {
@@ -771,12 +777,8 @@ export default function UsersPage() {
 
       const updatedUserData = await response.json();
 
-      // Update the user in the local state
-      setUsers(
-        users.map((user) =>
-          user._id === updatedUserData._id ? updatedUserData : user
-        )
-      );
+      // پس از ویرایش کاربر، لیست را دوباره لود کن
+      await fetchData(pagination.currentPage, pagination.limit);
       handleCloseAllForms();
       alert("اطلاعات کاربر با موفقیت بروزرسانی شد");
     } catch (error) {
@@ -869,12 +871,8 @@ export default function UsersPage() {
 
       const updatedUserData = await response.json();
 
-      // Update the user in the local state
-      setUsers(
-        users.map((user) =>
-          user._id === updatedUserData._id ? updatedUserData : user
-        )
-      );
+      // پس از تغییر وضعیت کاربر، لیست را دوباره لود کن
+      await fetchData(pagination.currentPage, pagination.limit);
 
       const status = updatedUserData.isActive ? "فعال" : "غیرفعال";
       alert(`کاربر با موفقیت ${status} شد`);
@@ -983,194 +981,288 @@ export default function UsersPage() {
               <option value="inactive">غیرفعال</option>
             </select>
           </div>
-          <button className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md forced-bg-gray-200 forced-hover-bg-gray-300 forced-text-gray-700 forced-hover-text-gray-700">
-            فیلتر
+          <button
+            onClick={handleSearch}
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md disabled:opacity-50"
+          >
+            {isLoading ? "جستجو..." : "جستجو"}
           </button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 forced-table">
-            <thead className="bg-gray-100 forced-bg-gray-100">
-              <tr>
-                <th
-                  className="py-3 px-6 border-b text-center forced-text-gray-700
+          {isLoading && (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="mr-2 text-gray-600">در حال بارگذاری...</span>
+            </div>
+          )}
+
+          {!isLoading && (
+            <table className="min-w-full bg-white border border-gray-200 forced-table">
+              <thead className="bg-gray-100 forced-bg-gray-100">
+                <tr>
+                  <th
+                    className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
-                >
-                  نام و نام خانوادگی
-                </th>
-                <th
-                  className="py-3 px-6 border-b text-center forced-text-gray-700
+                  >
+                    نام و نام خانوادگی
+                  </th>
+                  <th
+                    className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
-                >
-                  کد ملی
-                </th>
-                <th
-                  className="py-3 px-6 border-b text-center forced-text-gray-700
+                  >
+                    کد ملی
+                  </th>
+                  <th
+                    className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
-                >
-                  نقش
-                </th>
-                <th
-                  className="py-3 px-6 border-b text-center forced-text-gray-700
+                  >
+                    نقش
+                  </th>
+                  <th
+                    className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
-                >
-                  استان
-                </th>
-                <th
-                  className="py-3 px-6 border-b text-center forced-text-gray-700
+                  >
+                    استان
+                  </th>
+                  <th
+                    className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
-                >
-                  منطقه
-                </th>
-                <th
-                  className="py-3 px-6 border-b text-center
+                  >
+                    منطقه
+                  </th>
+                  <th
+                    className="py-3 px-6 border-b text-center
                 "
-                >
-                  واحد سازمانی
-                </th>
-                <th
-                  className="py-3 px-6 border-b text-center forced-text-gray-700        
+                  >
+                    واحد سازمانی
+                  </th>
+                  <th
+                    className="py-3 px-6 border-b text-center forced-text-gray-700        
                 "
-                >
-                  وضعیت
-                </th>
-                <th
-                  className="py-3 px-6 border-b text-center forced-text-gray-700
+                  >
+                    وضعیت
+                  </th>
+                  <th
+                    className="py-3 px-6 border-b text-center forced-text-gray-700
                 "
-                >
-                  عملیات
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50 forced-bg-white">
-                  <td className="py-4 px-6 border-b text-center forced-text-gray-700  ">
-                    {user.fullName}
-                  </td>
-                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
-                    {user.nationalId}
-                  </td>
-                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
-                    {getRoleName(user.role)}
-                  </td>
-                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
-                    {user.province && typeof user.province === "object"
-                      ? user.province.name
-                      : Array.isArray(provinces)
-                      ? provinces.find((p) => p._id === user.province)?.name ||
-                        "-"
-                      : "-"}
-                  </td>
-                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
-                    {user.district && typeof user.district === "object"
-                      ? user.district.name
-                      : Array.isArray(districts)
-                      ? districts.find((d) => d._id === user.district)?.name ||
-                        "-"
-                      : "-"}
-                  </td>
-                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
-                    {user.examCenter && typeof user.examCenter === "object"
-                      ? user.examCenter.name
-                      : Array.isArray(examCenters)
-                      ? examCenters.find((c) => c._id === user.examCenter)
-                          ?.name || "-"
-                      : "-"}
-                  </td>
-                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        user.isActive
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {user.isActive ? "فعال" : "غیرفعال"}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 border-b text-center forced-text-gray-700">
-                    <div className="flex space-x-2 space-x-reverse">
-                      <button
-                        onClick={() => handleShowEditForm(user)}
-                        className="text-blue-600 hover:text-blue-800 forced-text-blue-600 forced-hover-text-blue-800"
-                        title="ویرایش"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleShowChangePasswordForm(user)}
-                        className="text-yellow-600 hover:text-yellow-800 forced-text-yellow-600 forced-hover-text-yellow-800"
-                        title="تغییر رمز عبور"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleToggleUserStatus(user._id)}
-                        className={`${
-                          user.isActive
-                            ? "text-red-600 hover:text-red-800 forced-text-red-600 forced-hover-text-red-800"
-                            : "text-green-600 hover:text-green-800 forced-text-green-600 forced-hover-text-green-800"
-                        }`}
-                        title={user.isActive ? "غیرفعال کردن" : "فعال کردن"}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d={
-                              user.isActive
-                                ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-                                : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            }
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
+                  >
+                    عملیات
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr
+                    key={user._id}
+                    className="hover:bg-gray-50 forced-bg-white"
+                  >
+                    <td className="py-4 px-6 border-b text-center forced-text-gray-700  ">
+                      {user.fullName}
+                    </td>
+                    <td className="py-4 px-6 border-b text-center forced-text-gray-700">
+                      {user.nationalId}
+                    </td>
+                    <td className="py-4 px-6 border-b text-center forced-text-gray-700">
+                      {getRoleName(user.role)}
+                    </td>
+                    <td className="py-4 px-6 border-b text-center forced-text-gray-700">
+                      {user.province && typeof user.province === "object"
+                        ? user.province.name
+                        : Array.isArray(provinces)
+                        ? provinces.find((p) => p._id === user.province)
+                            ?.name || "-"
+                        : "-"}
+                    </td>
+                    <td className="py-4 px-6 border-b text-center forced-text-gray-700">
+                      {user.district && typeof user.district === "object"
+                        ? user.district.name
+                        : Array.isArray(districts)
+                        ? districts.find((d) => d._id === user.district)
+                            ?.name || "-"
+                        : "-"}
+                    </td>
+                    <td className="py-4 px-6 border-b text-center forced-text-gray-700">
+                      {user.examCenter && typeof user.examCenter === "object"
+                        ? user.examCenter.name
+                        : Array.isArray(examCenters)
+                        ? examCenters.find((c) => c._id === user.examCenter)
+                            ?.name || "-"
+                        : "-"}
+                    </td>
+                    <td className="py-4 px-6 border-b text-center forced-text-gray-700">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          user.isActive
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {user.isActive ? "فعال" : "غیرفعال"}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 border-b text-center forced-text-gray-700">
+                      <div className="flex space-x-2 space-x-reverse">
+                        <button
+                          onClick={() => handleShowEditForm(user)}
+                          className="text-blue-600 hover:text-blue-800 forced-text-blue-600 forced-hover-text-blue-800"
+                          title="ویرایش"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleShowChangePasswordForm(user)}
+                          className="text-yellow-600 hover:text-yellow-800 forced-text-yellow-600 forced-hover-text-yellow-800"
+                          title="تغییر رمز عبور"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleToggleUserStatus(user._id)}
+                          className={`${
+                            user.isActive
+                              ? "text-red-600 hover:text-red-800 forced-text-red-600 forced-hover-text-red-800"
+                              : "text-green-600 hover:text-green-800 forced-text-green-600 forced-hover-text-green-800"
+                          }`}
+                          title={user.isActive ? "غیرفعال کردن" : "فعال کردن"}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d={
+                                user.isActive
+                                  ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                                  : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              }
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
-        <div className="mt-4 flex justify-between items-center">
-          <p className="text-sm text-gray-600">
-            نمایش {filteredUsers.length} از {users.length} کاربر
-          </p>
+        {/* Pagination Info */}
+        <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-gray-600">
+              نمایش {(pagination.currentPage - 1) * pagination.limit + 1} تا{" "}
+              {Math.min(
+                pagination.currentPage * pagination.limit,
+                pagination.totalUsers
+              )}{" "}
+              از {pagination.totalUsers} کاربر
+            </p>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">تعداد در هر صفحه:</label>
+              <select
+                value={pagination.limit}
+                onChange={(e) => handleLimitChange(parseInt(e.target.value))}
+                className="border rounded px-2 py-1 text-sm"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Pagination Controls */}
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                disabled={!pagination.hasPrevPage || isLoading}
+                className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300"
+              >
+                قبلی
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from(
+                  { length: Math.min(5, pagination.totalPages) },
+                  (_, i) => {
+                    let pageNum;
+                    if (pagination.totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (pagination.currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (
+                      pagination.currentPage >=
+                      pagination.totalPages - 2
+                    ) {
+                      pageNum = pagination.totalPages - 4 + i;
+                    } else {
+                      pageNum = pagination.currentPage - 2 + i;
+                    }
+
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        disabled={isLoading}
+                        className={`px-3 py-1 rounded ${
+                          pageNum === pagination.currentPage
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        } disabled:opacity-50`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                disabled={!pagination.hasNextPage || isLoading}
+                className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300"
+              >
+                بعدی
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -402,18 +402,24 @@ export async function POST(request) {
         // ایجاد مشخصات پرسنل
         const newSpec = new TransferApplicantSpec(specData);
 
-        // اضافه کردن log اولیه ایجاد
-        newSpec.addStatusLog({
-          toStatus: newSpec.requestStatus || "awaiting_user_approval",
-          actionType: "created",
-          performedBy: userAuth.userId,
-          comment: "ایجاد مشخصات پرسنل از طریق Excel",
+        // تنظیم وضعیت اولیه با استفاده از workflow جدید
+        newSpec.changeRequestStatus({
+          status: "user_no_action",
+          changedBy: userAuth.id,
+          reason: "ایجاد مشخصات پرسنل از طریق Excel",
           metadata: {
             personnelCode: newSpec.personnelCode,
             nationalId: newSpec.nationalId,
             uploadSource: "excel",
             rowNumber: rowNumber,
+            createdBy: userAuth.role,
+            creationMethod: "excel_upload",
           },
+          userAgent: request.headers.get("user-agent") || "",
+          ipAddress:
+            request.headers.get("x-forwarded-for") ||
+            request.headers.get("x-real-ip") ||
+            "",
         });
 
         await newSpec.save();

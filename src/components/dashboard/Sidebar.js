@@ -57,7 +57,9 @@ const icons = {
   transferRequests: <FaExchangeAlt className="h-5 w-5" />,
   transferSettings: <FaCogs className="h-5 w-5" />,
   transferApplicantSpecs: <FaIdCard className="h-5 w-5" />, // Added for transfer applicant specs
+  correctionRequests: <FaEdit className="h-5 w-5" />, // Added for correction requests
   transfer: <FaArrowRight className="h-5 w-5" />, // Added for transfer request
+  culturalCouple: <FaUsers className="h-5 w-5" />, // Added for cultural couple requests
 };
 
 export default function Sidebar({ user, children }) {

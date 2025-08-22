@@ -560,26 +560,32 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   {!isEditingPhone ? (
-                    <button
-                      onClick={() => setIsEditingPhone(true)}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-200 shadow-sm hover:shadow"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-4 w-4 ml-1"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                    user?.role === "transferApplicant" ? (
+                      <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+                        ویرایش غیرفعال
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setIsEditingPhone(true)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-200 shadow-sm hover:shadow"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                        />
-                      </svg>
-                      {userInfo?.phone ? "ویرایش شماره" : "ثبت شماره"}
-                    </button>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 ml-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                          />
+                        </svg>
+                        {userInfo?.phone ? "ویرایش شماره" : "ثبت شماره"}
+                      </button>
+                    )
                   ) : (
                     <button
                       type="button"
@@ -617,7 +623,35 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {isEditingPhone && (
+              {/* نمایش پیام برای کاربران transferApplicant */}
+              {user?.role === "transferApplicant" && (
+                <div className="p-4 pt-0 border-t border-purple-100 mt-3">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="flex items-start">
+                      <svg
+                        className="h-5 w-5 text-yellow-600 mt-0.5 ml-2 flex-shrink-0"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                        />
+                      </svg>
+                      <div className="text-sm text-yellow-800">
+                        <p className="font-medium">توجه:</p>
+                        <p className="mt-1">کاربران متقاضی انتقال نمی‌توانند شماره موبایل خود را ویرایش کنند.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isEditingPhone && user?.role !== "transferApplicant" && (
                 <div className="p-4 pt-0 border-t border-purple-100 mt-3">
                   <div className="flex flex-col space-y-3">
                     <div className="flex w-full rounded-lg overflow-hidden border border-gray-300 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500 bg-white transition-all duration-200 text-gray-800 placeholder:text-gray-400">

@@ -14,6 +14,14 @@ export async function PUT(request) {
       );
     }
 
+    // بررسی دسترسی - کاربران transferApplicant نمی‌توانند شماره موبایل خود را ویرایش کنند
+    if (user.role === "transferApplicant") {
+      return NextResponse.json(
+        { success: false, message: "کاربران متقاضی انتقال نمی‌توانند شماره موبایل خود را ویرایش کنند" },
+        { status: 403 }
+      );
+    }
+
     await connectDB();
 
     // دریافت اطلاعات از درخواست

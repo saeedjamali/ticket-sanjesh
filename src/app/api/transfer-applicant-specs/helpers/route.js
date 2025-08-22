@@ -83,7 +83,9 @@ export async function GET(request) {
         { value: 4, label: "رد درخواست توسط منطقه مبدا" },
       ],
       requestStatuses: [
+        { value: "user_no_action", label: "عدم اقدام کاربر" },
         { value: "awaiting_user_approval", label: "در انتظار تایید کاربر" },
+        { value: "user_approval", label: "تایید کاربر" },
         { value: "source_review", label: "در حال بررسی مبدا" },
         {
           value: "exception_eligibility_approval",

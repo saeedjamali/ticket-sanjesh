@@ -42,6 +42,7 @@ export async function GET(request) {
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
     const requestStatus = searchParams.get("requestStatus") || "";
+    const currentRequestStatus = searchParams.get("currentRequestStatus") || "";
     const employmentType = searchParams.get("employmentType") || "";
     const gender = searchParams.get("gender") || "";
     const currentWorkPlaceCode = searchParams.get("currentWorkPlaceCode") || "";
@@ -66,13 +67,18 @@ export async function GET(request) {
       } else if (status === "inactive") {
         query.isActive = false;
       } else {
-        query.requestStatus = status;
+        query.currentRequestStatus = status;
       }
     }
 
     // فیلتر وضعیت درخواست مستقل
     if (requestStatus) {
-      query.requestStatus = requestStatus;
+      query.currentRequestStatus = requestStatus;
+    }
+
+    // فیلتر وضعیت درخواست جدید (از فرانت‌اند)
+    if (currentRequestStatus) {
+      query.currentRequestStatus = currentRequestStatus;
     }
 
     // فیلتر نوع استخدام
@@ -91,13 +97,20 @@ export async function GET(request) {
     // Debug log
     console.log("API Filters:", {
       requestStatus,
+      currentRequestStatus,
       employmentType,
       gender,
       currentWorkPlaceCode,
       status,
       search,
+      userRole: userAuth.role,
+      userProvince: userAuth.province,
+      userDistrict: userAuth.district,
     });
-    console.log("Final Query:", query);
+    console.log(
+      "Final Query (before role filters):",
+      JSON.stringify(query, null, 2)
+    );
 
     // فیلتر استانی برای کارشناس امور اداری استان
     if (userAuth.role === ROLES.PROVINCE_TRANSFER_EXPERT && userAuth.province) {
@@ -112,10 +125,23 @@ export async function GET(request) {
       }).select("code");
       const districtCodes = provinceDistricts.map((d) => d.code);
 
-      query.$or = [
+      // ترکیب فیلتر استانی با جستجوی موجود
+      const provinceFilter = [
         { sourceDistrictCode: { $in: districtCodes } },
         { currentWorkPlaceCode: { $in: districtCodes } },
       ];
+
+      if (query.$or) {
+        // اگر جستجو وجود دارد، آن را با فیلتر استانی ترکیب کنیم
+        query.$and = [
+          { $or: query.$or }, // شرایط جستجو
+          { $or: provinceFilter }, // شرایط استانی
+        ];
+        delete query.$or;
+      } else {
+        // اگر جستجو وجود ندارد، فقط فیلتر استانی را اعمال کنیم
+        query.$or = provinceFilter;
+      }
     }
 
     // فیلتر منطقه‌ای برای کارشناس امور اداری منطقه
@@ -130,6 +156,12 @@ export async function GET(request) {
         query.currentWorkPlaceCode = districtCode;
       }
     }
+
+    // Debug log نهایی
+    console.log(
+      "Final Query (after role filters):",
+      JSON.stringify(query, null, 2)
+    );
 
     const skip = (page - 1) * limit;
 
@@ -287,16 +319,22 @@ export async function POST(request) {
       createdBy: userAuth.userId,
     });
 
-    // اضافه کردن log اولیه ایجاد
-    newSpec.addStatusLog({
-      toStatus: newSpec.requestStatus || "awaiting_user_approval",
-      actionType: "created",
-      performedBy: userAuth.userId,
-      comment: "ایجاد مشخصات پرسنل",
+    // تنظیم وضعیت اولیه با استفاده از workflow جدید
+    newSpec.changeRequestStatus({
+      status: "user_no_action",
+      changedBy: userAuth.id,
+      reason: "ایجاد مشخصات پرسنل",
       metadata: {
         personnelCode: newSpec.personnelCode,
         nationalId: newSpec.nationalId,
+        createdBy: userAuth.role,
+        creationMethod: "manual",
       },
+      userAgent: request.headers.get("user-agent") || "",
+      ipAddress:
+        request.headers.get("x-forwarded-for") ||
+        request.headers.get("x-real-ip") ||
+        "",
     });
 
     await newSpec.save();
@@ -462,7 +500,7 @@ export async function PUT(request) {
 
     // track کردن تغییرات مهم
     const originalData = {
-      requestStatus: spec.requestStatus,
+      currentRequestStatus: spec.currentRequestStatus,
       currentTransferStatus: spec.currentTransferStatus,
       isActive: spec.isActive,
     };
@@ -497,21 +535,27 @@ export async function PUT(request) {
 
     // بررسی تغییرات و اضافه کردن log مناسب
     if (
-      updateData.requestStatus &&
-      updateData.requestStatus !== originalData.requestStatus
+      updateData.currentRequestStatus &&
+      updateData.currentRequestStatus !== originalData.currentRequestStatus
     ) {
-      spec.addStatusLog({
-        fromStatus: originalData.requestStatus,
-        toStatus: updateData.requestStatus,
-        actionType: "status_change",
-        performedBy: userAuth.userId,
-        comment: `تغییر وضعیت درخواست از ${spec.getRequestStatusText(
-          originalData.requestStatus
-        )} به ${spec.getRequestStatusText(updateData.requestStatus)}`,
+      // استفاده از workflow جدید برای تغییر وضعیت
+      spec.changeRequestStatus({
+        status: updateData.currentRequestStatus,
+        changedBy: userAuth.id,
+        reason: `تغییر وضعیت درخواست از ${spec.getRequestStatusText(
+          originalData.currentRequestStatus
+        )} به ${spec.getRequestStatusText(updateData.currentRequestStatus)}`,
         metadata: {
-          originalStatus: originalData.requestStatus,
-          newStatus: updateData.requestStatus,
+          originalStatus: originalData.currentRequestStatus,
+          newStatus: updateData.currentRequestStatus,
+          changedByRole: userAuth.role,
+          updateMethod: "manual_edit",
         },
+        userAgent: request.headers.get("user-agent") || "",
+        ipAddress:
+          request.headers.get("x-forwarded-for") ||
+          request.headers.get("x-real-ip") ||
+          "",
       });
     }
 
@@ -551,12 +595,12 @@ export async function PUT(request) {
 
     // اگر تغییر خاصی نبود، یک log کلی update اضافه کن
     if (
-      !updateData.requestStatus &&
+      !updateData.currentRequestStatus &&
       !updateData.currentTransferStatus &&
       updateData.isActive === undefined
     ) {
       spec.addStatusLog({
-        toStatus: spec.requestStatus || "updated",
+        toStatus: spec.currentRequestStatus || "updated",
         actionType: "updated",
         performedBy: userAuth.userId,
         comment: "ویرایش مشخصات پرسنل",

@@ -570,6 +570,36 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       requiresPhoneVerification: true, // فیلد جدید برای نشان دادن نیاز به احراز هویت
     });
   }
+
+  // منوی درخواست‌های اصلاح مشخصات - برای کارشناس منطقه
+  if (role === ROLES.DISTRICT_TRANSFER_EXPERT) {
+    activeMenuItems.push({
+      label: "درخواست‌های اصلاح مشخصات",
+      path: "/dashboard/district-correction-requests",
+      icon: "correctionRequests",
+    });
+  }
+
+  // منوی درخواست‌های اصلاح مشخصات - برای کارشناس استان
+  if (role === ROLES.PROVINCE_TRANSFER_EXPERT) {
+    activeMenuItems.push({
+      label: "درخواست‌های اصلاح مشخصات",
+      path: "/dashboard/province-correction-requests",
+      icon: "correctionRequests",
+    });
+  }
+
+  // منوی درخواست‌های زوج فرهنگی - برای کارشناس امور اداری منطقه و استان
+  if (
+    role === ROLES.DISTRICT_TRANSFER_EXPERT ||
+    role === ROLES.PROVINCE_TRANSFER_EXPERT
+  ) {
+    activeMenuItems.push({
+      label: "درخواست‌های زوج فرهنگی",
+      path: "/dashboard/cultural-couple-requests",
+      icon: "culturalCouple",
+    });
+  }
   activeMenuItems.push({
     label: "پروفایل ",
     path: "/dashboard/profile",
