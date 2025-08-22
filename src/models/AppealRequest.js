@@ -79,6 +79,56 @@ const AppealRequestSchema = new mongoose.Schema({
         required: true,
         trim: true,
       },
+
+      // اطلاعات بررسی کارشناس برای این دلیل
+      review: {
+        // وضعیت بررسی: pending, approved, rejected
+        status: {
+          type: String,
+          enum: ["pending", "approved", "rejected"],
+          default: "pending",
+        },
+
+        // کارشناس بررسی‌کننده
+        reviewedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: false,
+        },
+
+        // زمان بررسی
+        reviewedAt: {
+          type: Date,
+          required: false,
+        },
+
+        // توضیحات کارشناس برای این دلیل
+        expertComment: {
+          type: String,
+          trim: true,
+          required: false,
+        },
+
+        // نقش کارشناس بررسی‌کننده
+        reviewerRole: {
+          type: String,
+          enum: ["districtTransferExpert", "provinceTransferExpert"],
+          required: false,
+        },
+
+        // کد منطقه/استان کارشناس
+        reviewerLocationCode: {
+          type: String,
+          trim: true,
+          required: false,
+        },
+
+        // اطلاعات بیشتر (metadata)
+        metadata: {
+          type: mongoose.Schema.Types.Mixed,
+          default: {},
+        },
+      },
     },
   ],
 
@@ -193,6 +243,32 @@ const AppealRequestSchema = new mongoose.Schema({
     trim: true,
   },
 
+  // توضیحات کاربر (مرحله 3 - فرم ثبت درخواست تجدید نظر)
+  userComments: {
+    type: String,
+    trim: true,
+    required: false,
+  },
+
+  // تصاویر توضیحات کاربر (حداکثر 2 تصویر)
+  userCommentsImages: [
+    {
+      fileName: String,
+      originalName: String,
+      uploadedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
+
+  // توضیحات کارشناس (مراحل بررسی)
+  expertComments: {
+    type: String,
+    trim: true,
+    required: false,
+  },
+
   // اطلاعات بررسی
   reviewedBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -206,6 +282,50 @@ const AppealRequestSchema = new mongoose.Schema({
   reviewNotes: {
     type: String,
     trim: true,
+  },
+
+  // وضعیت کلی بررسی مستندات
+  overallReviewStatus: {
+    type: String,
+    enum: ["pending", "in_review", "completed"],
+    default: "pending",
+  },
+
+  // تایید/رد نهایی مشمولیت استثنا
+  eligibilityDecision: {
+    // تصمیم نهایی: approved, rejected
+    decision: {
+      type: String,
+      enum: ["approved", "rejected"],
+      required: false,
+    },
+
+    // کارشناس تصمیم‌گیرنده
+    decidedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
+
+    // زمان تصمیم‌گیری
+    decidedAt: {
+      type: Date,
+      required: false,
+    },
+
+    // توضیحات تصمیم نهایی
+    comment: {
+      type: String,
+      trim: true,
+      required: false,
+    },
+
+    // نقش تصمیم‌گیرنده
+    deciderRole: {
+      type: String,
+      enum: ["districtTransferExpert", "provinceTransferExpert"],
+      required: false,
+    },
   },
 
   createdAt: {

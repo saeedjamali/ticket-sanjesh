@@ -60,6 +60,7 @@ const icons = {
   correctionRequests: <FaEdit className="h-5 w-5" />, // Added for correction requests
   transfer: <FaArrowRight className="h-5 w-5" />, // Added for transfer request
   culturalCouple: <FaUsers className="h-5 w-5" />, // Added for cultural couple requests
+  documentReview: <FaClipboardList className="h-5 w-5" />, // Added for document review
 };
 
 export default function Sidebar({ user, children }) {

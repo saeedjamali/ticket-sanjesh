@@ -18,9 +18,11 @@ export async function GET(request) {
 
     // بررسی دسترسی
     if (
-      ![ROLES.SYSTEM_ADMIN, ROLES.PROVINCE_TRANSFER_EXPERT].includes(
-        userAuth.role
-      )
+      ![
+        ROLES.SYSTEM_ADMIN,
+        ROLES.PROVINCE_TRANSFER_EXPERT,
+        ROLES.DISTRICT_TRANSFER_EXPERT,
+      ].includes(userAuth.role)
     ) {
       return NextResponse.json(
         { success: false, error: "عدم دسترسی" },

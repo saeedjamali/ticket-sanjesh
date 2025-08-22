@@ -132,6 +132,17 @@ export default function StatusTimelineModal({
       cancelled: "لغو شده",
 
       // وضعیت‌های انتقال
+      source_review: "در حال بررسی مبدا",
+      exception_eligibility_approval: "تایید مشمولیت استثنا",
+      exception_eligibility_rejection: "رد مشمولیت استثنا",
+      source_approval: "تایید مبدا",
+      source_rejection: "رد مبدا",
+      province_review: "در حال بررسی توسط استان",
+      province_approval: "تایید استان",
+      province_rejection: "رد استان",
+      destination_review: "در حال بررسی مقصد",
+      destination_approval: "تایید مقصد",
+      destination_rejection: "رد مقصد",
       no_transfer: "بدون انتقال",
       temporary_transfer: "انتقال موقت",
       permanent_transfer: "انتقال دائم",
@@ -168,6 +179,38 @@ export default function StatusTimelineModal({
       newValue: "مقدار جدید",
       fieldName: "نام فیلد",
       changeType: "نوع تغییر",
+
+      // کلیدهای جدید مربوط به سیستم انتقال
+      reviewType: "نوع بررسی",
+      reviewerRole: "نقش بررسی‌کننده",
+      action: "عملیات",
+      selectedReasonIds: "شناسه دلایل انتخاب شده",
+      userComment: "نظر کاربر",
+      finalDecision: "تصمیم نهایی",
+      appealRequestId: "شناسه درخواست تجدیدنظر",
+      workflowChange: "تغییر گردش کار",
+      eligibilityDecision: "تصمیم مشمولیت",
+      sourceOpinion: "نظر مبدا",
+      provinceReview: "بررسی استان",
+      districtReview: "بررسی منطقه",
+      personnelCode: "کد پرسنلی",
+      nationalId: "کد ملی",
+      uploadSource: "منبع بارگذاری",
+      rowNumber: "شماره ردیف",
+      createdBy: "ایجاد شده توسط",
+      creationMethod: "روش ایجاد",
+      excel_upload: "بارگذاری اکسل",
+      manual_entry: "ورود دستی",
+      api_import: "وارد کردن از API",
+      system_generated: "تولید شده توسط سیستم",
+
+      // ترجمه مقادیر رایج
+      true: "بله",
+      false: "خیر",
+      excel: "اکسل",
+      manual: "دستی",
+      auto: "خودکار",
+      system: "سیستم",
     };
     return keyMap[key] || key;
   };
@@ -178,6 +221,47 @@ export default function StatusTimelineModal({
       return "خالی";
     }
 
+    // ترجمه مقادیر خاص
+    const valueMap = {
+      // مقادیر بولین
+      true: "بله",
+      false: "خیر",
+
+      // روش‌های ایجاد و بارگذاری
+      excel_upload: "بارگذاری اکسل",
+      manual_entry: "ورود دستی",
+      api_import: "وارد کردن از API",
+      system_generated: "تولید شده توسط سیستم",
+      excel: "اکسل",
+      manual: "دستی",
+      auto: "خودکار",
+      system: "سیستم",
+
+      // نوع بررسی
+      individual_reason_review: "بررسی دلایل فردی",
+      final_eligibility_review: "بررسی نهایی مشمولیت",
+      source_opinion: "نظر مبدا",
+      document_review: "بررسی مستندات",
+
+      // نقش‌های کاربری
+      districtTransferExpert: "کارشناس منطقه",
+      provinceTransferExpert: "کارشناس استان",
+      systemAdmin: "مدیر سیستم",
+      transferApplicant: "متقاضی انتقال",
+
+      // عملیات‌ها
+      approve: "تایید",
+      reject: "رد",
+      review: "بررسی",
+      submit: "ارسال",
+      update: "به‌روزرسانی",
+    };
+
+    // بررسی مقدار در نقشه ترجمه
+    if (valueMap[String(value)]) {
+      return valueMap[String(value)];
+    }
+
     // اگر کلید مربوط به وضعیت است، ترجمه کن
     if (
       key.toLowerCase().includes("status") ||
@@ -185,6 +269,11 @@ export default function StatusTimelineModal({
       key === "newStatus"
     ) {
       return getStatusText(value);
+    }
+
+    // اگر کلید مربوط به نقش است، ترجمه کن
+    if (key.toLowerCase().includes("role")) {
+      return valueMap[String(value)] || value;
     }
 
     // اگر آرایه است، عناصر را جدا کن

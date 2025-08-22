@@ -422,7 +422,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
     });
 
     activeMenuItems.push({
-      label: "مشخصات پرسنل انتقال",
+      label: "لیست متقاضیان انتقال  ",
       path: "/dashboard/transfer-applicant-specs",
       icon: "transferApplicantSpecs",
     });
@@ -431,7 +431,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
   // منوی مشخصات پرسنل انتقال - برای کارشناس امور اداری منطقه
   if (role === ROLES.DISTRICT_TRANSFER_EXPERT) {
     activeMenuItems.push({
-      label: "پرسنل منطقه",
+      label: "لیست متقاضیان انتقال منطقه",
       path: "/dashboard/transfer-applicant-specs",
       icon: "transferApplicantSpecs",
     });
@@ -598,6 +598,18 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "درخواست‌های زوج فرهنگی",
       path: "/dashboard/cultural-couple-requests",
       icon: "culturalCouple",
+    });
+  }
+
+  // منوی بررسی مستندات و تاییدات - برای کارشناس امور اداری منطقه و استان
+  if (
+    role === ROLES.DISTRICT_TRANSFER_EXPERT ||
+    role === ROLES.PROVINCE_TRANSFER_EXPERT
+  ) {
+    activeMenuItems.push({
+      label: "بررسی مستندات و تاییدات",
+      path: "/dashboard/document-review",
+      icon: "documentReview",
     });
   }
   activeMenuItems.push({

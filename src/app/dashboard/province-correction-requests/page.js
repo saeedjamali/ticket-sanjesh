@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
 import { toast } from "react-hot-toast";
 import { getFieldDisplayName } from "@/lib/fieldTranslations";
+import Image from "next/image";
 import {
   FaEye,
   FaReply,
@@ -27,16 +28,6 @@ export default function ProvinceCorrectionRequestsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-
-  // بررسی دسترسی
-  if (!userLoading && (!user || user.role !== "provinceTransferExpert")) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <div className="text-red-500 text-lg mb-4">عدم دسترسی</div>
-        <div className="text-gray-600">شما دسترسی به این صفحه ندارید.</div>
-      </div>
-    );
-  }
 
   // دریافت درخواست‌های اصلاح مشخصات
   const fetchRequests = async () => {
@@ -168,6 +159,16 @@ export default function ProvinceCorrectionRequestsPage() {
       fetchRequests();
     }
   }, [user]);
+
+  // بررسی دسترسی
+  if (!userLoading && (!user || user.role !== "provinceTransferExpert")) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="text-red-500 text-lg mb-4">عدم دسترسی</div>
+        <div className="text-gray-600">شما دسترسی به این صفحه ندارید.</div>
+      </div>
+    );
+  }
 
   if (userLoading) {
     return (
@@ -492,10 +493,14 @@ export default function ProvinceCorrectionRequestsPage() {
                       تصویر پیوست:
                     </span>
                     <div className="mt-2">
-                      <img
+                      <Image
                         src={`/api/auth/getimg/${selectedRequest.attachmentImage}`}
                         alt="تصویر پیوست"
+                        width={600}
+                        height={400}
                         className="max-w-full h-auto rounded-lg border"
+                        style={{ objectFit: "contain" }}
+                        unoptimized={true}
                       />
                     </div>
                   </div>

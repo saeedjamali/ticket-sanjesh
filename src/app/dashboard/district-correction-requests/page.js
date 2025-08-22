@@ -12,7 +12,10 @@ import {
   FaClock,
   FaFilter,
   FaSearch,
+  FaFileExcel,
+  FaSpinner,
 } from "react-icons/fa";
+import * as XLSX from "xlsx";
 
 export default function DistrictCorrectionRequestsPage() {
   const { user, userLoading } = useUser();
@@ -27,16 +30,7 @@ export default function DistrictCorrectionRequestsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-
-  // بررسی دسترسی
-  if (!userLoading && (!user || user.role !== "districtTransferExpert")) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <div className="text-red-500 text-lg mb-4">عدم دسترسی</div>
-        <div className="text-gray-600">شما دسترسی به این صفحه ندارید.</div>
-      </div>
-    );
-  }
+  const [exportingExcel, setExportingExcel] = useState(false);
 
   // دریافت درخواست‌های اصلاح مشخصات
   const fetchRequests = async () => {
@@ -57,6 +51,88 @@ export default function DistrictCorrectionRequestsPage() {
       toast.error("خطا در دریافت درخواست‌ها");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // تابع دریافت خروجی اکسل
+  const handleExportToExcel = async () => {
+    try {
+      setExportingExcel(true);
+
+      // آماده‌سازی داده‌ها برای اکسل
+      const excelData = filteredRequests.map((request, index) => ({
+        ردیف: index + 1,
+        "نام و نام خانوادگی": request.fullName || "-",
+        "کد ملی": request.nationalId || "-",
+        "کد پرسنلی": request.personnelCode || "-",
+        "شماره تماس": request.phone || "-",
+        "فیلد مورد اعتراض": getFieldDisplayName(request.disputedField) || "-",
+        "توضیحات درخواست": request.description || "-",
+        وضعیت: (() => {
+          switch (request.status) {
+            case "pending":
+              return "در انتظار";
+            case "under_review":
+              return "در حال بررسی";
+            case "approved":
+              return "تایید شده";
+            case "rejected":
+              return "رد شده";
+            default:
+              return "نامشخص";
+          }
+        })(),
+        "پاسخ کارشناس": request.expertResponse || "-",
+        "تاریخ درخواست": request.createdAt
+          ? new Date(request.createdAt).toLocaleDateString("fa-IR") +
+            " - " +
+            new Date(request.createdAt).toLocaleTimeString("fa-IR")
+          : "-",
+        "تاریخ پاسخ": request.respondedAt
+          ? new Date(request.respondedAt).toLocaleDateString("fa-IR") +
+            " - " +
+            new Date(request.respondedAt).toLocaleTimeString("fa-IR")
+          : "-",
+      }));
+
+      // ایجاد workbook
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(excelData);
+
+      // تنظیم عرض ستون‌ها
+      const columnWidths = [
+        { wch: 8 }, // ردیف
+        { wch: 25 }, // نام و نام خانوادگی
+        { wch: 15 }, // کد ملی
+        { wch: 15 }, // کد پرسنلی
+        { wch: 15 }, // شماره تماس
+        { wch: 20 }, // فیلد مورد اعتراض
+        { wch: 50 }, // توضیحات درخواست
+        { wch: 15 }, // وضعیت
+        { wch: 50 }, // پاسخ کارشناس
+        { wch: 20 }, // تاریخ درخواست
+        { wch: 20 }, // تاریخ پاسخ
+      ];
+      ws["!cols"] = columnWidths;
+
+      // اضافه کردن worksheet به workbook
+      XLSX.utils.book_append_sheet(wb, ws, "درخواست‌های اصلاح مشخصات");
+
+      // تولید نام فایل با تاریخ
+      const currentDate = new Date()
+        .toLocaleDateString("fa-IR")
+        .replace(/\//g, "-");
+      const fileName = `درخواست‌های-اصلاح-مشخصات-منطقه-${currentDate}.xlsx`;
+
+      // دانلود فایل
+      XLSX.writeFile(wb, fileName);
+
+      toast.success(`فایل اکسل با موفقیت دانلود شد: ${fileName}`);
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      toast.error("خطا در تولید فایل اکسل");
+    } finally {
+      setExportingExcel(false);
     }
   };
 
@@ -169,6 +245,16 @@ export default function DistrictCorrectionRequestsPage() {
     }
   }, [user]);
 
+  // بررسی دسترسی (بعد از فراخوانی هوک‌ها)
+  if (!userLoading && (!user || user.role !== "districtTransferExpert")) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="text-red-500 text-lg mb-4">عدم دسترسی</div>
+        <div className="text-gray-600">شما دسترسی به این صفحه ندارید.</div>
+      </div>
+    );
+  }
+
   if (userLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -230,6 +316,28 @@ export default function DistrictCorrectionRequestsPage() {
                 </select>
               </div>
 
+              {/* دکمه دریافت اکسل */}
+              <div className="md:w-48">
+                <button
+                  onClick={handleExportToExcel}
+                  disabled={exportingExcel || filteredRequests.length === 0}
+                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  title="دریافت خروجی اکسل"
+                >
+                  {exportingExcel ? (
+                    <>
+                      <FaSpinner className="h-4 w-4 animate-spin" />
+                      در حال تولید...
+                    </>
+                  ) : (
+                    <>
+                      <FaFileExcel className="h-4 w-4" />
+                      دریافت اکسل
+                    </>
+                  )}
+                </button>
+              </div>
+
               {/* تعداد نتایج */}
               <div className="flex items-center text-sm text-gray-600">
                 <FaFilter className="h-4 w-4 ml-2" />
@@ -284,7 +392,10 @@ export default function DistrictCorrectionRequestsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 text-right">
                   {filteredRequests.map((request) => (
-                    <tr key={request._id} className="hover:bg-gray-50 text-right">
+                    <tr
+                      key={request._id}
+                      className="hover:bg-gray-50 text-right"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="text-right">
                           <div className="text-sm font-medium text-gray-900">
@@ -328,7 +439,7 @@ export default function DistrictCorrectionRequestsPage() {
                           <button
                             onClick={() => setSelectedRequest(request)}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors"
-                          > 
+                          >
                             مشاهده
                           </button>
                           {["pending", "under_review"].includes(

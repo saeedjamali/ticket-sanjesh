@@ -15,8 +15,14 @@ export async function GET(request, { params }) {
       );
     }
 
-    // بررسی دسترسی - فقط کاربران transferApplicant
-    if (userAuth.role !== "transferApplicant") {
+    // بررسی دسترسی - کاربران transferApplicant و کارشناسان
+    const allowedRoles = [
+      "transferApplicant",
+      "districtTransferExpert",
+      "provinceTransferExpert",
+    ];
+
+    if (!allowedRoles.includes(userAuth.role)) {
       return NextResponse.json(
         { success: false, error: "عدم دسترسی" },
         { status: 403 }

@@ -11,6 +11,7 @@ import { useUserContext } from "@/context/UserContext";
 import { ROLES } from "@/lib/permissions";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import PasswordGuideModal from "@/components/auth/PasswordGuideModal";
+import WebsiteVisitStats from "@/components/dashboard/WebsiteVisitStats";
 
 export default function DashboardPage() {
   const { user, loading, checkAuth } = useUserContext();
@@ -74,7 +75,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 pb-16">
-      <h1 className="heading-2 mb-4 sm:mb-6 text-gray-800">داشبورد</h1>
+      {/* هدر صفحه با آمار بازدید */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 sm:mb-6">
+        <h1 className="heading-2 text-gray-800">داشبورد</h1>
+        
+        {/* کامپوننت آمار بازدید - کوچک و در گوشه */}
+        <div className="sm:max-w-xs w-full sm:w-auto">
+          <WebsiteVisitStats />
+        </div>
+      </div>
 
       {/* هشدار تأیید شماره موبایل - فقط اگر فیلدهای مربوطه وجود داشته باشند و شماره تأیید نشده باشد */}
       {user &&

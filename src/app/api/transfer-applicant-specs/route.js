@@ -46,6 +46,8 @@ export async function GET(request) {
     const employmentType = searchParams.get("employmentType") || "";
     const gender = searchParams.get("gender") || "";
     const currentWorkPlaceCode = searchParams.get("currentWorkPlaceCode") || "";
+    const nationalId = searchParams.get("nationalId") || "";
+    const personnelCode = searchParams.get("personnelCode") || "";
 
     // ساخت query
     let query = {};
@@ -94,6 +96,16 @@ export async function GET(request) {
       query.currentWorkPlaceCode = currentWorkPlaceCode;
     }
 
+    // فیلتر کد ملی مشخص
+    if (nationalId) {
+      query.nationalId = nationalId;
+    }
+
+    // فیلتر کد پرسنلی مشخص
+    if (personnelCode) {
+      query.personnelCode = personnelCode;
+    }
+
     // Debug log
     console.log("API Filters:", {
       requestStatus,
@@ -101,6 +113,8 @@ export async function GET(request) {
       employmentType,
       gender,
       currentWorkPlaceCode,
+      nationalId,
+      personnelCode,
       status,
       search,
       userRole: userAuth.role,
@@ -112,8 +126,13 @@ export async function GET(request) {
       JSON.stringify(query, null, 2)
     );
 
-    // فیلتر استانی برای کارشناس امور اداری استان
-    if (userAuth.role === ROLES.PROVINCE_TRANSFER_EXPERT && userAuth.province) {
+    // فیلتر استانی برای کارشناس امور اداری استان (اگر nationalId یا personnelCode مشخص نشده باشد)
+    if (
+      userAuth.role === ROLES.PROVINCE_TRANSFER_EXPERT &&
+      userAuth.province &&
+      !nationalId &&
+      !personnelCode
+    ) {
       // اگر province یک object است، _id آن را استخراج کنیم
       const userProvinceId =
         typeof userAuth.province === "object" && userAuth.province._id
@@ -144,8 +163,13 @@ export async function GET(request) {
       }
     }
 
-    // فیلتر منطقه‌ای برای کارشناس امور اداری منطقه
-    if (userAuth.role === ROLES.DISTRICT_TRANSFER_EXPERT && userAuth.district) {
+    // فیلتر منطقه‌ای برای کارشناس امور اداری منطقه (اگر nationalId یا personnelCode مشخص نشده باشد)
+    if (
+      userAuth.role === ROLES.DISTRICT_TRANSFER_EXPERT &&
+      userAuth.district &&
+      !nationalId &&
+      !personnelCode
+    ) {
       // اگر district یک object است، code آن را استخراج کنیم
       const districtCode =
         typeof userAuth.district === "object" && userAuth.district.code

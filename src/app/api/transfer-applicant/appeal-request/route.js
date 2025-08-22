@@ -38,6 +38,8 @@ export async function POST(request) {
       currentStep,
       status = "draft",
       notes,
+      userComments,
+      userCommentsImages,
     } = body;
 
     // اعتبارسنجی ورودی‌ها
@@ -152,6 +154,8 @@ export async function POST(request) {
       existingRequest.currentStep = currentStep || 3;
       existingRequest.status = status;
       existingRequest.notes = notes;
+      existingRequest.userComments = userComments;
+      existingRequest.userCommentsImages = userCommentsImages || [];
       existingRequest.personnelCode =
         userAuth.personnelCode || userSpecs.personnelCode || null;
       existingRequest.districtCode = districtCode;
@@ -178,6 +182,8 @@ export async function POST(request) {
         currentStep: currentStep || 3,
         status: status,
         notes: notes,
+        userComments: userComments,
+        userCommentsImages: userCommentsImages || [],
       });
 
       appealRequest = await appealRequest.save();
@@ -337,6 +343,8 @@ export async function GET(request) {
         createdAt: request.createdAt,
         submittedAt: request.submittedAt,
         notes: request.notes,
+        userComments: request.userComments,
+        userCommentsImages: request.userCommentsImages,
       })),
     });
   } catch (error) {

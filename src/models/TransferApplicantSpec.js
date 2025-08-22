@@ -242,6 +242,7 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
           "user_approval", // تایید کاربر
           "source_review", // در حال بررسی مبدا
           "exception_eligibility_approval", // تایید مشمولیت استثنا
+          "exception_eligibility_rejection", // رد مشمولیت استثنا
           "source_approval", // تایید مبدا
           "source_rejection", // رد مبدا
           "province_review", // در حال بررسی توسط استان
@@ -271,6 +272,7 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
           "user_approval",
           "source_review",
           "exception_eligibility_approval",
+          "exception_eligibility_rejection",
           "source_approval",
           "source_rejection",
           "province_review",
@@ -313,6 +315,7 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
       "user_approval",
       "source_review",
       "exception_eligibility_approval",
+      "exception_eligibility_rejection",
       "source_approval",
       "source_rejection",
       "province_review",
@@ -411,6 +414,7 @@ TransferApplicantSpecSchema.methods.getRequestStatusText = function (status) {
     user_approval: "تایید کاربر",
     source_review: "در حال بررسی مبدا",
     exception_eligibility_approval: "تایید مشمولیت استثنا",
+    exception_eligibility_rejection: "رد مشمولیت استثنا",
     source_approval: "تایید مبدا",
     source_rejection: "رد مبدا",
     province_review: "در حال بررسی توسط استان",

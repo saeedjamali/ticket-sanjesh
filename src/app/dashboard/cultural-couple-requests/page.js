@@ -20,7 +20,10 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaClock,
+  FaFileExcel,
+  FaDownload,
 } from "react-icons/fa";
+import * as XLSX from "xlsx";
 
 export default function CulturalCoupleRequestsPage() {
   const { user, loading: userLoading } = useUserContext();
@@ -36,6 +39,7 @@ export default function CulturalCoupleRequestsPage() {
     decision: "", // 'approve' or 'reject'
   });
   const [submitting, setSubmitting] = useState(false);
+  const [exportingExcel, setExportingExcel] = useState(false);
 
   // دریافت لیست درخواست‌های زوج فرهنگی
   const fetchRequests = async () => {
@@ -57,6 +61,86 @@ export default function CulturalCoupleRequestsPage() {
       toast.error("خطا در دریافت درخواست‌ها");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // تابع دریافت خروجی اکسل
+  const handleExportToExcel = async () => {
+    try {
+      setExportingExcel(true);
+
+      // آماده‌سازی داده‌ها برای اکسل
+      const excelData = filteredRequests.map((request, index) => ({
+        ردیف: index + 1,
+        "نام متقاضی": request.fullName || "-",
+        "کد ملی متقاضی": request.nationalId || "-",
+        "کد پرسنلی متقاضی": request.personnelCode || "-",
+        "شماره تماس متقاضی": request.phone || "-",
+        "نام همسر": request.culturalCoupleInfo?.spouseFullName || "-",
+        "کد پرسنلی همسر": request.culturalCoupleInfo?.personnelCode || "-",
+        "کد منطقه همسر": request.culturalCoupleInfo?.districtCode || "-",
+        "نام منطقه همسر": request.culturalCoupleInfo?.districtName || "-",
+        "نظر منطقه همسر":
+          request.culturalCoupleInfo?.spouseDistrictOpinion || "-",
+        "توضیحات منطقه همسر":
+          request.culturalCoupleInfo?.spouseDistrictDescription || "-",
+        "تصمیم منطقه همسر":
+          request.culturalCoupleInfo?.spouseDistrictDecision === "approve"
+            ? "تایید"
+            : request.culturalCoupleInfo?.spouseDistrictDecision === "reject"
+            ? "رد"
+            : "-",
+        "وضعیت بررسی": request.culturalCoupleInfo?.spouseDistrictDecision
+          ? "بررسی شده"
+          : "در انتظار بررسی",
+        "تاریخ ایجاد": request.createdAt
+          ? new Date(request.createdAt).toLocaleDateString("fa-IR")
+          : "-",
+        "سال تحصیلی": request.academicYear || "-",
+      }));
+
+      // ایجاد workbook
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(excelData);
+
+      // تنظیم عرض ستون‌ها
+      const columnWidths = [
+        { wch: 8 }, // ردیف
+        { wch: 25 }, // نام متقاضی
+        { wch: 15 }, // کد ملی متقاضی
+        { wch: 15 }, // کد پرسنلی متقاضی
+        { wch: 15 }, // شماره تماس متقاضی
+        { wch: 25 }, // نام همسر
+        { wch: 15 }, // کد پرسنلی همسر
+        { wch: 12 }, // کد منطقه همسر
+        { wch: 20 }, // نام منطقه همسر
+        { wch: 30 }, // نظر منطقه همسر
+        { wch: 40 }, // توضیحات منطقه همسر
+        { wch: 15 }, // تصمیم منطقه همسر
+        { wch: 15 }, // وضعیت بررسی
+        { wch: 15 }, // تاریخ ایجاد
+        { wch: 12 }, // سال تحصیلی
+      ];
+      ws["!cols"] = columnWidths;
+
+      // اضافه کردن worksheet به workbook
+      XLSX.utils.book_append_sheet(wb, ws, "درخواست‌های زوج فرهنگی");
+
+      // تولید نام فایل با تاریخ
+      const currentDate = new Date()
+        .toLocaleDateString("fa-IR")
+        .replace(/\//g, "-");
+      const fileName = `درخواست‌های-زوج-فرهنگی-${currentDate}.xlsx`;
+
+      // دانلود فایل
+      XLSX.writeFile(wb, fileName);
+
+      toast.success(`فایل اکسل با موفقیت دانلود شد: ${fileName}`);
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      toast.error("خطا در تولید فایل اکسل");
+    } finally {
+      setExportingExcel(false);
     }
   };
 
@@ -213,7 +297,7 @@ export default function CulturalCoupleRequestsPage() {
 
         {/* فیلترها و جستجو */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* جستجو */}
             <div className="relative">
               <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -238,6 +322,28 @@ export default function CulturalCoupleRequestsPage() {
                 <option value="pending">در انتظار بررسی</option>
                 <option value="reviewed">بررسی شده</option>
               </select>
+            </div>
+
+            {/* دکمه دریافت اکسل */}
+            <div>
+              <button
+                onClick={handleExportToExcel}
+                disabled={exportingExcel || filteredRequests.length === 0}
+                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                title="دریافت خروجی اکسل"
+              >
+                {exportingExcel ? (
+                  <>
+                    <FaSpinner className="h-4 w-4 animate-spin" />
+                    در حال تولید...
+                  </>
+                ) : (
+                  <>
+                    <FaFileExcel className="h-4 w-4" />
+                    دریافت اکسل
+                  </>
+                )}
+              </button>
             </div>
 
             {/* آمار */}

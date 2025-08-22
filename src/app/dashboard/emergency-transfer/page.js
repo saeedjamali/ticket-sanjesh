@@ -22,6 +22,13 @@ import {
   FaUndo,
   FaClipboardList,
   FaInfoCircle,
+  FaTimesCircle,
+  FaEdit,
+  FaImage,
+  FaTrash,
+  FaDownload,
+  FaPlus,
+  FaUserFriends,
 } from "react-icons/fa";
 
 // کامپوننت نمایش فقط خواندنی درخواست
@@ -56,13 +63,37 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
     ];
 
     // اضافه کردن مراحل بر اساس وضعیت فعلی
-    if (currentStatus === "source_rejection") {
+    if (currentStatus === "exception_eligibility_rejection") {
+      baseSteps.push({
+        status: "exception_eligibility_rejection",
+        title: "رد مشمولیت استثنا",
+        description: "مشمولیت استثنا رد شد",
+      });
+    } else if (currentStatus === "source_rejection") {
       baseSteps.push({
         status: "source_rejection",
         title: "رد مبدا",
         description: "درخواست توسط منطقه مبدا رد شد",
       });
     } else {
+      // اضافه کردن مرحله تایید مشمولیت استثنا (اختیاری)
+      if (
+        currentStatus === "exception_eligibility_approval" ||
+        currentStatus === "source_approval" ||
+        currentStatus === "province_review" ||
+        currentStatus === "province_approval" ||
+        currentStatus === "province_rejection" ||
+        currentStatus === "destination_review" ||
+        currentStatus === "destination_approval" ||
+        currentStatus === "destination_rejection"
+      ) {
+        baseSteps.push({
+          status: "exception_eligibility_approval",
+          title: "تایید مشمولیت استثنا",
+          description: "مشمولیت استثنا تایید شد",
+        });
+      }
+
       baseSteps.push(
         {
           status: "source_approval",
@@ -117,7 +148,8 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       status.includes("approval") ||
       status === "approved" ||
       status === "completed" ||
-      status === "user_approval"
+      status === "user_approval" ||
+      status === "exception_eligibility_approval"
     ) {
       return {
         bg: "bg-green-100",
@@ -127,7 +159,11 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
         dot: "bg-green-500",
       };
     }
-    if (status.includes("rejection") || status === "rejected") {
+    if (
+      status.includes("rejection") ||
+      status === "rejected" ||
+      status === "exception_eligibility_rejection"
+    ) {
       return {
         bg: "bg-red-100",
         border: "border-red-300",
@@ -218,6 +254,8 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       rejected: "رد شده",
       completed: "تکمیل شده",
       source_review: "در حال بررسی مبدا",
+      exception_eligibility_approval: "تایید مشمولیت استثنا",
+      exception_eligibility_rejection: "رد مشمولیت استثنا",
       source_approval: "تایید مبدا",
       source_rejection: "رد مبدا",
       province_review: "در حال برسی توسط استان",
@@ -336,8 +374,175 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       approved: "bg-green-100 text-green-800 border-green-200",
       rejected: "bg-red-100 text-red-800 border-red-200",
       completed: "bg-purple-100 text-purple-800 border-purple-200",
+      source_review: "bg-blue-100 text-blue-800 border-blue-200",
+      exception_eligibility_approval:
+        "bg-green-100 text-green-800 border-green-200",
+      exception_eligibility_rejection: "bg-red-100 text-red-800 border-red-200",
+      source_approval: "bg-green-100 text-green-800 border-green-200",
+      source_rejection: "bg-red-100 text-red-800 border-red-200",
+      province_review: "bg-blue-100 text-blue-800 border-blue-200",
+      province_approval: "bg-green-100 text-green-800 border-green-200",
+      province_rejection: "bg-red-100 text-red-800 border-red-200",
+      destination_review: "bg-blue-100 text-blue-800 border-blue-200",
+      destination_approval: "bg-green-100 text-green-800 border-green-200",
+      destination_rejection: "bg-red-100 text-red-800 border-red-200",
     };
     return colorMap[status] || "bg-gray-100 text-gray-800 border-gray-200";
+  };
+
+  // تابع دریافت اطلاعات نمایش اعلان وضعیت
+  const getStatusNotification = (status) => {
+    const notifications = {
+      user_approval: {
+        bg: "bg-green-50 border-green-200",
+        iconBg: "bg-green-100",
+        iconColor: "text-green-600",
+        textColor: "text-green-800",
+        textColorSecondary: "text-green-700",
+        icon: "FaCheckCircle",
+        title: "درخواست شما با موفقیت ثبت و ارسال شده است",
+        message: "درخواست شما تایید شده و به مرحله بعد ارسال شده است.",
+      },
+      source_review: {
+        bg: "bg-blue-50 border-blue-200",
+        iconBg: "bg-blue-100",
+        iconColor: "text-blue-600",
+        textColor: "text-blue-800",
+        textColorSecondary: "text-blue-700",
+        icon: "FaClock",
+        title: "درخواست شما در حال بررسی توسط منطقه مبدا است",
+        message: "لطفاً منتظر نتیجه بررسی باشید.",
+      },
+      exception_eligibility_approval: {
+        bg: "bg-green-50 border-green-200",
+        iconBg: "bg-green-100",
+        iconColor: "text-green-600",
+        textColor: "text-green-800",
+        textColorSecondary: "text-green-700",
+        icon: "FaCheckCircle",
+        title: "مشمولیت استثنا شما تایید شده است",
+        message: "درخواست شما به مرحله بررسی نهایی ارسال شده است.",
+      },
+      exception_eligibility_rejection: {
+        bg: "bg-red-50 border-red-200",
+        iconBg: "bg-red-100",
+        iconColor: "text-red-600",
+        textColor: "text-red-800",
+        textColorSecondary: "text-red-700",
+        icon: "FaTimesCircle",
+        title: "مشمولیت استثنا شما رد شده است",
+        message: "متأسفانه شما واجد شرایط استثنا نمی‌باشید.",
+      },
+      source_approval: {
+        bg: "bg-green-50 border-green-200",
+        iconBg: "bg-green-100",
+        iconColor: "text-green-600",
+        textColor: "text-green-800",
+        textColorSecondary: "text-green-700",
+        icon: "FaCheckCircle",
+        title: "درخواست شما توسط منطقه مبدا تایید شده است",
+        message: "درخواست شما به استان برای بررسی ارسال شده است.",
+      },
+      source_rejection: {
+        bg: "bg-red-50 border-red-200",
+        iconBg: "bg-red-100",
+        iconColor: "text-red-600",
+        textColor: "text-red-800",
+        textColorSecondary: "text-red-700",
+        icon: "FaTimesCircle",
+        title: "درخواست شما توسط منطقه مبدا رد شده است",
+        message: "متأسفانه درخواست شما مورد تایید قرار نگرفت.",
+      },
+      province_review: {
+        bg: "bg-blue-50 border-blue-200",
+        iconBg: "bg-blue-100",
+        iconColor: "text-blue-600",
+        textColor: "text-blue-800",
+        textColorSecondary: "text-blue-700",
+        icon: "FaClock",
+        title: "درخواست شما در حال بررسی توسط استان است",
+        message: "لطفاً منتظر نتیجه بررسی باشید.",
+      },
+      province_approval: {
+        bg: "bg-green-50 border-green-200",
+        iconBg: "bg-green-100",
+        iconColor: "text-green-600",
+        textColor: "text-green-800",
+        textColorSecondary: "text-green-700",
+        icon: "FaCheckCircle",
+        title: "درخواست شما توسط استان تایید شده است",
+        message: "درخواست شما به منطقه مقصد برای بررسی نهایی ارسال شده است.",
+      },
+      province_rejection: {
+        bg: "bg-red-50 border-red-200",
+        iconBg: "bg-red-100",
+        iconColor: "text-red-600",
+        textColor: "text-red-800",
+        textColorSecondary: "text-red-700",
+        icon: "FaTimesCircle",
+        title: "درخواست شما توسط استان رد شده است",
+        message: "متأسفانه درخواست شما مورد تایید قرار نگرفت.",
+      },
+      destination_review: {
+        bg: "bg-blue-50 border-blue-200",
+        iconBg: "bg-blue-100",
+        iconColor: "text-blue-600",
+        textColor: "text-blue-800",
+        textColorSecondary: "text-blue-700",
+        icon: "FaClock",
+        title: "درخواست شما در حال بررسی نهایی توسط منطقه مقصد است",
+        message: "شما در آخرین مرحله بررسی قرار دارید.",
+      },
+      destination_approval: {
+        bg: "bg-purple-50 border-purple-200",
+        iconBg: "bg-purple-100",
+        iconColor: "text-purple-600",
+        textColor: "text-purple-800",
+        textColorSecondary: "text-purple-700",
+        icon: "FaCheckCircle",
+        title: "تبریک! درخواست شما تایید نهایی شده است",
+        message: "درخواست انتقال شما با موفقیت تایید شد.",
+      },
+      destination_rejection: {
+        bg: "bg-red-50 border-red-200",
+        iconBg: "bg-red-100",
+        iconColor: "text-red-600",
+        textColor: "text-red-800",
+        textColorSecondary: "text-red-700",
+        icon: "FaTimesCircle",
+        title: "درخواست شما توسط منطقه مقصد رد شده است",
+        message: "متأسفانه درخواست شما در مرحله نهایی رد شد.",
+      },
+    };
+
+    return (
+      notifications[status] || {
+        bg: "bg-gray-50 border-gray-200",
+        iconBg: "bg-gray-100",
+        iconColor: "text-gray-600",
+        textColor: "text-gray-800",
+        textColorSecondary: "text-gray-700",
+        icon: "FaInfoCircle",
+        title: "درخواست شما در حال پردازش است",
+        message: "درخواست شما در حال بررسی است و امکان تغییر آن وجود ندارد.",
+      }
+    );
+  };
+
+  // تابع رندر آیکون بر اساس نام
+  const renderIcon = (iconName, className) => {
+    switch (iconName) {
+      case "FaCheckCircle":
+        return <FaCheckCircle className={className} />;
+      case "FaClock":
+        return <FaClock className={className} />;
+      case "FaTimesCircle":
+        return <FaTimesCircle className={className} />;
+      case "FaInfoCircle":
+        return <FaInfoCircle className={className} />;
+      default:
+        return <FaInfoCircle className={className} />;
+    }
   };
 
   // تابع تبدیل شماره مرحله به فارسی
@@ -582,22 +787,52 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
         {userSpecs?.currentRequestStatus &&
           userSpecs.currentRequestStatus !== "user_no_action" &&
           userSpecs.currentRequestStatus !== "awaiting_user_approval" && (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+            <div
+              className={`${
+                getStatusNotification(userSpecs.currentRequestStatus).bg
+              } border rounded-xl p-4 mb-6`}
+            >
               <div className="flex items-center gap-3">
-                <div className="bg-green-100 p-2 rounded-lg">
-                  <FaCheckCircle className="h-6 w-6 text-green-600" />
+                <div
+                  className={`${
+                    getStatusNotification(userSpecs.currentRequestStatus).iconBg
+                  } p-2 rounded-lg`}
+                >
+                  {renderIcon(
+                    getStatusNotification(userSpecs.currentRequestStatus).icon,
+                    `h-6 w-6 ${
+                      getStatusNotification(userSpecs.currentRequestStatus)
+                        .iconColor
+                    }`
+                  )}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-green-800">
-                    درخواست شما با موفقیت ثبت و ارسال شده است
+                  <h3
+                    className={`font-semibold ${
+                      getStatusNotification(userSpecs.currentRequestStatus)
+                        .textColor
+                    }`}
+                  >
+                    {
+                      getStatusNotification(userSpecs.currentRequestStatus)
+                        .title
+                    }
                   </h3>
-                  <p className="text-green-700 text-sm mt-1">
+                  <p
+                    className={`${
+                      getStatusNotification(userSpecs.currentRequestStatus)
+                        .textColorSecondary
+                    } text-sm mt-1`}
+                  >
                     وضعیت فعلی:{" "}
                     <span className="font-medium">
                       {getStatusDisplayName(userSpecs.currentRequestStatus)}
                     </span>
                     <br />
-                    درخواست شما در حال بررسی است و امکان تغییر آن وجود ندارد.
+                    {
+                      getStatusNotification(userSpecs.currentRequestStatus)
+                        .message
+                    }
                   </p>
                 </div>
               </div>
@@ -869,6 +1104,147 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                                   </div>
                                 </div>
                               )}
+
+                            {/* نظر کارشناس منطقه/استان */}
+                            {reason.review &&
+                              reason.review.status !== "pending" && (
+                                <div className="mb-4">
+                                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wide block mb-2">
+                                    نظر کارشناس:
+                                  </span>
+                                  <div
+                                    className={`rounded-lg p-3 border ${
+                                      reason.review.status === "approved"
+                                        ? "bg-green-50 border-green-200"
+                                        : reason.review.status === "rejected"
+                                        ? "bg-red-50 border-red-200"
+                                        : "bg-yellow-50 border-yellow-200"
+                                    }`}
+                                  >
+                                    <div className="flex items-start gap-3">
+                                      <div
+                                        className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                                          reason.review.status === "approved"
+                                            ? "bg-green-500"
+                                            : reason.review.status ===
+                                              "rejected"
+                                            ? "bg-red-500"
+                                            : "bg-yellow-500"
+                                        }`}
+                                      >
+                                        {reason.review.status === "approved" ? (
+                                          <svg
+                                            className="w-4 h-4 text-white"
+                                            fill="currentColor"
+                                            viewBox="0 0 20 20"
+                                          >
+                                            <path
+                                              fillRule="evenodd"
+                                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                              clipRule="evenodd"
+                                            />
+                                          </svg>
+                                        ) : reason.review.status ===
+                                          "rejected" ? (
+                                          <svg
+                                            className="w-4 h-4 text-white"
+                                            fill="currentColor"
+                                            viewBox="0 0 20 20"
+                                          >
+                                            <path
+                                              fillRule="evenodd"
+                                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                              clipRule="evenodd"
+                                            />
+                                          </svg>
+                                        ) : (
+                                          <svg
+                                            className="w-4 h-4 text-white"
+                                            fill="currentColor"
+                                            viewBox="0 0 20 20"
+                                          >
+                                            <path
+                                              fillRule="evenodd"
+                                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                              clipRule="evenodd"
+                                            />
+                                          </svg>
+                                        )}
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <span
+                                            className={`font-medium text-sm ${
+                                              reason.review.status ===
+                                              "approved"
+                                                ? "text-green-800"
+                                                : reason.review.status ===
+                                                  "rejected"
+                                                ? "text-red-800"
+                                                : "text-yellow-800"
+                                            }`}
+                                          >
+                                            {reason.review.status === "approved"
+                                              ? "تایید شده"
+                                              : reason.review.status ===
+                                                "rejected"
+                                              ? "رد شده"
+                                              : "در انتظار بررسی"}
+                                          </span>
+                                          <span
+                                            className={`text-xs px-2 py-1 rounded-full ${
+                                              reason.review.reviewerRole ===
+                                              "districtTransferExpert"
+                                                ? "bg-blue-100 text-blue-700"
+                                                : "bg-purple-100 text-purple-700"
+                                            }`}
+                                          >
+                                            {reason.review.reviewerRole ===
+                                            "districtTransferExpert"
+                                              ? "کارشناس منطقه"
+                                              : "کارشناس استان"}
+                                          </span>
+                                        </div>
+
+                                        {reason.review.expertComment && (
+                                          <div className="mt-2">
+                                            <p
+                                              className={`text-sm leading-relaxed ${
+                                                reason.review.status ===
+                                                "approved"
+                                                  ? "text-green-700"
+                                                  : reason.review.status ===
+                                                    "rejected"
+                                                  ? "text-red-700"
+                                                  : "text-yellow-700"
+                                              }`}
+                                            >
+                                              {reason.review.expertComment}
+                                            </p>
+                                          </div>
+                                        )}
+
+                                        {reason.review.reviewedAt && (
+                                          <div className="mt-2 pt-2 border-t border-gray-200">
+                                            <span className="text-xs text-gray-500">
+                                              تاریخ بررسی:{" "}
+                                              {new Date(
+                                                reason.review.reviewedAt
+                                              ).toLocaleDateString("fa-IR", {
+                                                year: "numeric",
+                                                month: "long",
+                                                day: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                              })}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                           </div>
                         </div>
                       )
@@ -881,8 +1257,8 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                 {requestDetails.appealRequest.culturalCoupleInfo
                   ?.personnelCode && (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2">
-                      💑 اطلاعات زوج فرهنگی
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 border-b border-gray-200 pb-2 flex items-center gap-2">
+                      <FaUserFriends className="h-5 w-5" /> اطلاعات زوج فرهنگی
                     </h3>
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -920,12 +1296,89 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                           </div>
                         </div>
 
-                        {/* نظر و توضیحات منطقه خدمت همسر */}
+                        {/* نظر و توضیحات و تصمیم منطقه خدمت همسر */}
                         {(requestDetails.appealRequest.culturalCoupleInfo
                           ?.spouseDistrictOpinion ||
                           requestDetails.appealRequest.culturalCoupleInfo
-                            ?.spouseDistrictDescription) && (
+                            ?.spouseDistrictDescription ||
+                          requestDetails.appealRequest.culturalCoupleInfo
+                            ?.spouseDistrictDecision) && (
                           <div className="grid grid-cols-1 gap-4 mt-4">
+                            {/* تصمیم منطقه همسر */}
+                            {requestDetails.appealRequest.culturalCoupleInfo
+                              .spouseDistrictDecision && (
+                              <div>
+                                <label className="text-sm font-medium text-green-700 block mb-1">
+                                  تصمیم منطقه خدمت همسر:
+                                </label>
+                                <div
+                                  className={`rounded-lg p-3 border ${
+                                    requestDetails.appealRequest
+                                      .culturalCoupleInfo
+                                      .spouseDistrictDecision === "approve"
+                                      ? "bg-green-100 border-green-300"
+                                      : "bg-red-100 border-red-300"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                                        requestDetails.appealRequest
+                                          .culturalCoupleInfo
+                                          .spouseDistrictDecision === "approve"
+                                          ? "bg-green-500"
+                                          : "bg-red-500"
+                                      }`}
+                                    >
+                                      {requestDetails.appealRequest
+                                        .culturalCoupleInfo
+                                        .spouseDistrictDecision ===
+                                      "approve" ? (
+                                        <svg
+                                          className="w-3 h-3 text-white"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                      ) : (
+                                        <svg
+                                          className="w-3 h-3 text-white"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                      )}
+                                    </div>
+                                    <span
+                                      className={`font-medium ${
+                                        requestDetails.appealRequest
+                                          .culturalCoupleInfo
+                                          .spouseDistrictDecision === "approve"
+                                          ? "text-green-800"
+                                          : "text-red-800"
+                                      }`}
+                                    >
+                                      {requestDetails.appealRequest
+                                        .culturalCoupleInfo
+                                        .spouseDistrictDecision === "approve"
+                                        ? "تایید شده"
+                                        : "رد شده"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             {requestDetails.appealRequest.culturalCoupleInfo
                               .spouseDistrictOpinion && (
                               <div>
@@ -1044,6 +1497,107 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* توضیحات کاربر */}
+        {requestDetails?.appealRequest?.userComments && (
+          <div className="bg-white rounded-xl shadow-lg border border-blue-200 overflow-hidden mb-8">
+            <div className="bg-blue-50 p-4 border-b border-blue-200">
+              <h2 className="text-lg font-bold text-blue-800 flex items-center gap-2">
+                <FaEdit className="h-5 w-5" />
+                توضیحات تکمیلی کاربر
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {requestDetails.appealRequest.userComments}
+                </p>
+
+                {/* نمایش تصاویر پیوست */}
+                {((requestDetails.appealRequest.userCommentsImages &&
+                  requestDetails.appealRequest.userCommentsImages.length > 0) ||
+                  (requestDetails.appealRequest.uploadedDocuments
+                    ?.user_comments &&
+                    requestDetails.appealRequest.uploadedDocuments.user_comments
+                      .length > 0)) && (
+                  <div className="mt-4 pt-4 border-t border-gray-300">
+                    <h6 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                      <FaImage className="h-4 w-4" />
+                      تصاویر پیوست (
+                      {(requestDetails.appealRequest.userCommentsImages
+                        ?.length || 0) +
+                        (requestDetails.appealRequest.uploadedDocuments
+                          ?.user_comments?.length || 0)}
+                      )
+                    </h6>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* تصاویر از userCommentsImages */}
+                      {requestDetails.appealRequest.userCommentsImages?.map(
+                        (image, index) => (
+                          <div
+                            key={`user-comments-${index}`}
+                            className="bg-white border border-gray-200 rounded-lg p-3"
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <FaImage className="h-3 w-3 text-blue-600" />
+                              <span className="text-sm text-gray-700 truncate flex-1">
+                                {image.originalName}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 mb-2">
+                              {new Date(image.uploadedAt).toLocaleDateString(
+                                "fa-IR"
+                              )}
+                            </div>
+                            <a
+                              href={`/api/transfer-applicant/download-document/${image.fileName}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                            >
+                              <FaDownload className="h-3 w-3" />
+                              دانلود و مشاهده
+                            </a>
+                          </div>
+                        )
+                      )}
+                      {/* تصاویر از uploadedDocuments */}
+                      {requestDetails.appealRequest.uploadedDocuments?.user_comments?.map(
+                        (image, index) => (
+                          <div
+                            key={index}
+                            className="bg-white border border-gray-200 rounded-lg p-3"
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <FaImage className="h-3 w-3 text-blue-600" />
+                              <span className="text-sm text-gray-700 truncate flex-1">
+                                {image.originalName}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 mb-2">
+                              {new Date(image.uploadedAt).toLocaleDateString(
+                                "fa-IR"
+                              )}
+                            </div>
+                            <a
+                              href={`/api/transfer-applicant/download-document/${image.fileName}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-sm flex items-center gap-1"
+                            >
+                              <FaDownload className="h-3 w-3" />
+                              دانلود و مشاهده
+                            </a>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1350,6 +1904,8 @@ export default function EmergencyTransferPage() {
   });
   const [yearsWarnings, setYearsWarnings] = useState([]);
   const [districts, setDistricts] = useState([]);
+  const [userComments, setUserComments] = useState(""); // توضیحات کاربر
+  const [userCommentsImages, setUserCommentsImages] = useState([]); // تصاویر توضیحات کاربر
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [savingRequest, setSavingRequest] = useState(false);
   const [uploadingDocument, setUploadingDocument] = useState(false);
@@ -1410,13 +1966,37 @@ export default function EmergencyTransferPage() {
     ];
 
     // اضافه کردن مراحل بر اساس وضعیت فعلی
-    if (currentStatus === "source_rejection") {
+    if (currentStatus === "exception_eligibility_rejection") {
+      baseSteps.push({
+        status: "exception_eligibility_rejection",
+        title: "رد مشمولیت استثنا",
+        description: "مشمولیت استثنا رد شد",
+      });
+    } else if (currentStatus === "source_rejection") {
       baseSteps.push({
         status: "source_rejection",
         title: "رد مبدا",
         description: "درخواست توسط منطقه مبدا رد شد",
       });
     } else {
+      // اضافه کردن مرحله تایید مشمولیت استثنا (اختیاری)
+      if (
+        currentStatus === "exception_eligibility_approval" ||
+        currentStatus === "source_approval" ||
+        currentStatus === "province_review" ||
+        currentStatus === "province_approval" ||
+        currentStatus === "province_rejection" ||
+        currentStatus === "destination_review" ||
+        currentStatus === "destination_approval" ||
+        currentStatus === "destination_rejection"
+      ) {
+        baseSteps.push({
+          status: "exception_eligibility_approval",
+          title: "تایید مشمولیت استثنا",
+          description: "مشمولیت استثنا تایید شد",
+        });
+      }
+
       baseSteps.push(
         {
           status: "source_approval",
@@ -1507,6 +2087,8 @@ export default function EmergencyTransferPage() {
       rejected: "رد شده",
       completed: "تکمیل شده",
       source_review: "در حال بررسی مبدا",
+      exception_eligibility_approval: "تایید مشمولیت استثنا",
+      exception_eligibility_rejection: "رد مشمولیت استثنا",
       source_approval: "تایید مبدا",
       source_rejection: "رد مبدا",
       province_review: "در حال برسی توسط استان",
@@ -1672,7 +2254,14 @@ export default function EmergencyTransferPage() {
             transferType: transferTypes[p.priority] || p.transferType,
           })),
           yearsWarnings: yearsWarnings,
-          uploadedDocuments: uploadedDocuments,
+          uploadedDocuments: {
+            ...uploadedDocuments,
+            ...(userCommentsImages.length > 0 && {
+              user_comments: userCommentsImages,
+            }),
+          },
+          userComments: userComments.trim() || null,
+          userCommentsImages: userCommentsImages,
           finalConfirmation: true,
         }),
       });
@@ -2193,12 +2782,19 @@ export default function EmergencyTransferPage() {
 
       const requestData = {
         selectedReasons: Array.from(selectedReasons),
-        uploadedDocuments: uploadedDocuments,
+        uploadedDocuments: {
+          ...uploadedDocuments,
+          ...(userCommentsImages.length > 0 && {
+            user_comments: userCommentsImages,
+          }),
+        },
         culturalCoupleInfo:
           culturalCoupleInfo.personnelCode || culturalCoupleInfo.districtCode
             ? culturalCoupleInfo
             : null,
         yearsWarnings: yearsWarnings,
+        userComments: userComments.trim() || null, // توضیحات کاربر
+        userCommentsImages: userCommentsImages, // تصاویر توضیحات کاربر
         currentStep: currentStep,
         status: status,
       };
@@ -2234,7 +2830,12 @@ export default function EmergencyTransferPage() {
   };
 
   // بارگذاری مدارک
-  const handleDocumentUpload = async (reasonId, fileIndex, file) => {
+  const handleDocumentUpload = async (
+    reasonId,
+    fileIndex,
+    file,
+    isCommentsImage = false
+  ) => {
     if (!file) return;
 
     // اعتبارسنجی فرمت فایل
@@ -2250,10 +2851,11 @@ export default function EmergencyTransferPage() {
       return;
     }
 
-    // اعتبارسنجی حجم فایل (حداکثر 1 مگابایت)
-    const maxSize = 1 * 1024 * 1024; // 1MB
+    // اعتبارسنجی حجم فایل
+    const maxSize = isCommentsImage ? 5 * 1024 * 1024 : 1 * 1024 * 1024; // 5MB برای تصاویر توضیحات، 1MB برای مدارک
     if (file.size > maxSize) {
-      toast.error("حجم فایل نباید بیشتر از 1 مگابایت باشد");
+      const maxSizeText = isCommentsImage ? "5 مگابایت" : "1 مگابایت";
+      toast.error(`حجم فایل نباید بیشتر از ${maxSizeText} باشد`);
       return;
     }
 
@@ -2271,22 +2873,32 @@ export default function EmergencyTransferPage() {
       const data = await response.json();
 
       if (data.success) {
-        // اضافه کردن فایل به لیست مدارک
-        setUploadedDocuments((prev) => {
-          const reasonDocs = prev[reasonId] || [];
-          const newDocs = [...reasonDocs];
-          newDocs[fileIndex] = {
+        if (isCommentsImage) {
+          // اضافه کردن تصویر به لیست تصاویر توضیحات کاربر
+          const newImage = {
             fileName: data.fileName,
             originalName: file.name,
             uploadedAt: new Date(),
           };
-          return {
-            ...prev,
-            [reasonId]: newDocs,
-          };
-        });
-
-        toast.success("فایل با موفقیت بارگذاری شد");
+          setUserCommentsImages((prev) => [...prev, newImage]);
+          toast.success("تصویر با موفقیت بارگذاری شد");
+        } else {
+          // اضافه کردن فایل به لیست مدارک
+          setUploadedDocuments((prev) => {
+            const reasonDocs = prev[reasonId] || [];
+            const newDocs = [...reasonDocs];
+            newDocs[fileIndex] = {
+              fileName: data.fileName,
+              originalName: file.name,
+              uploadedAt: new Date(),
+            };
+            return {
+              ...prev,
+              [reasonId]: newDocs,
+            };
+          });
+          toast.success("فایل با موفقیت بارگذاری شد");
+        }
       } else {
         toast.error(data.error || "خطا در بارگذاری فایل");
       }
@@ -2485,6 +3097,31 @@ export default function EmergencyTransferPage() {
     } finally {
       setSavingStep4(false);
     }
+  };
+
+  // بارگذاری تصویر توضیحات کاربر
+  const handleUploadCommentsImage = async (file) => {
+    if (!file) return;
+
+    // بررسی تعداد تصاویر (حداکثر 2)
+    if (userCommentsImages.length >= 2) {
+      toast.error("حداکثر 2 تصویر قابل بارگذاری است");
+      return;
+    }
+
+    // استفاده از تابع موجود بارگذاری مدارک
+    // از reasonId خاص برای توضیحات کاربر استفاده می‌کنیم
+    const commentsReasonId = "user_comments";
+    const fileIndex = userCommentsImages.length;
+
+    // فراخوانی تابع موجود
+    await handleDocumentUpload(commentsReasonId, fileIndex, file, true);
+  };
+
+  // حذف تصویر توضیحات کاربر
+  const handleRemoveCommentsImage = (index) => {
+    setUserCommentsImages((prev) => prev.filter((_, i) => i !== index));
+    toast.success("تصویر حذف شد");
   };
 
   // رفتن به مرحله بعد
@@ -3872,7 +4509,7 @@ export default function EmergencyTransferPage() {
                                   </div>
 
                                   {/* نظر منطقه خدمت همسر */}
-                                  <div>
+                                  {/* <div>
                                     <label className="block text-sm font-medium text-green-700 mb-2">
                                       نظر منطقه خدمت همسر{" "}
                                       <span className="text-gray-400 text-xs">
@@ -3893,10 +4530,10 @@ export default function EmergencyTransferPage() {
                                       placeholder="نظر منطقه خدمت همسر را وارد کنید"
                                       className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     />
-                                  </div>
+                                  </div> */}
 
                                   {/* توضیح منطقه خدمت همسر */}
-                                  <div>
+                                  {/* <div>
                                     <label className="block text-sm font-medium text-green-700 mb-2">
                                       توضیح منطقه خدمت همسر{" "}
                                       <span className="text-gray-400 text-xs">
@@ -3918,7 +4555,7 @@ export default function EmergencyTransferPage() {
                                       rows={3}
                                       className="w-full px-3 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
                                     />
-                                  </div>
+                                  </div> */}
                                 </div>
                               </div>
                             )}
@@ -3928,6 +4565,123 @@ export default function EmergencyTransferPage() {
                   ))}
                 </div>
               )}
+
+              {/* فیلد توضیحات کاربر */}
+              <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
+                  <FaEdit className="h-5 w-5" />
+                  توضیحات تکمیلی (اختیاری)
+                </h4>
+                <p className="text-blue-700 text-sm mb-4 leading-relaxed">
+                  در صورت نیاز، می‌توانید توضیحات تکمیلی درباره درخواست انتقال
+                  خود در این قسمت ارائه دهید. این توضیحات به کارشناسان کمک
+                  می‌کند تا درخواست شما را بهتر بررسی کنند.
+                </p>
+                <textarea
+                  value={userComments}
+                  onChange={(e) => setUserComments(e.target.value)}
+                  placeholder="توضیحات تکمیلی خود را در اینجا بنویسید..."
+                  className="w-full px-4 py-3 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-gray-700"
+                  rows={4}
+                  maxLength={1000}
+                />
+                <div className="text-xs text-blue-600 mt-2 text-left">
+                  {userComments.length}/1000 کاراکتر
+                </div>
+
+                {/* بخش بارگذاری تصاویر */}
+                <div className="mt-4 pt-4 border-t border-blue-200">
+                  <h5 className="text-md font-medium text-blue-800 mb-3 flex items-center gap-2">
+                    <FaImage className="h-4 w-4" />
+                    تصاویر پیوست (اختیاری - حداکثر 2 تصویر)
+                  </h5>
+
+                  {/* نمایش تصاویر بارگذاری شده */}
+                  {userCommentsImages.length > 0 && (
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      {userCommentsImages.map((image, index) => (
+                        <div
+                          key={index}
+                          className="relative bg-white border border-blue-200 rounded-lg p-3"
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <FaImage className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm text-gray-700 truncate flex-1">
+                              {image.originalName}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500 mb-2">
+                            {new Date(image.uploadedAt).toLocaleDateString(
+                              "fa-IR"
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <a
+                              href={`/api/transfer-applicant/download-document/${image.fileName}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                            >
+                              <FaDownload className="h-3 w-3" />
+                              مشاهده
+                            </a>
+                            <button
+                              onClick={() => handleRemoveCommentsImage(index)}
+                              className="text-red-600 hover:text-red-800 text-xs flex items-center gap-1"
+                            >
+                              <FaTrash className="h-3 w-3" />
+                              حذف
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* دکمه بارگذاری تصویر */}
+                  {userCommentsImages.length < 2 && (
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            handleUploadCommentsImage(file);
+                          }
+                          e.target.value = "";
+                        }}
+                        className="hidden"
+                        id="commentsImageUpload"
+                        disabled={uploadingDocument}
+                      />
+                      <label
+                        htmlFor="commentsImageUpload"
+                        className={`inline-flex items-center gap-2 px-4 py-2 border border-blue-300 rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 cursor-pointer transition-colors ${
+                          uploadingDocument
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                      >
+                        {uploadingDocument ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            در حال بارگذاری...
+                          </>
+                        ) : (
+                          <>
+                            <FaPlus className="h-4 w-4" />
+                            افزودن تصویر ({userCommentsImages.length}/2)
+                          </>
+                        )}
+                      </label>
+                      <p className="text-xs text-blue-600 mt-1">
+                        فرمت‌های مجاز: JPG، PNG | حداکثر حجم: 5MB
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* دکمه‌های ناوبری */}
               <div className="flex gap-3 justify-center mt-8">
@@ -4639,8 +5393,18 @@ export default function EmergencyTransferPage() {
                                   className="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
                                 >
                                   <p className="text-yellow-800 text-sm">
-                                    {warning}
+                                    {typeof warning === "string"
+                                      ? warning
+                                      : warning.message}
                                   </p>
+                                  {typeof warning === "object" &&
+                                    warning.userYears !== undefined && (
+                                      <div className="mt-2 text-xs text-yellow-600">
+                                        سنوات کاربر: {warning.userYears} سال |
+                                        سنوات مورد نیاز: {warning.requiredYears}{" "}
+                                        سال
+                                      </div>
+                                    )}
                                 </div>
                               ))}
                             </div>
@@ -4900,6 +5664,66 @@ export default function EmergencyTransferPage() {
                   </div>
                 </div>
               </div>
+
+              {/* توضیحات کاربر */}
+              {userComments && (
+                <div className="mb-8">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg shadow-sm">
+                    <div className="bg-blue-100 px-6 py-4 border-b border-blue-200">
+                      <h3 className="text-lg font-semibold text-blue-800 flex items-center gap-2">
+                        <FaEdit className="h-5 w-5" />
+                        توضیحات تکمیلی کاربر
+                      </h3>
+                    </div>
+                    <div className="p-6">
+                      <div className="bg-white rounded-lg p-4 border border-blue-200">
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                          {userComments}
+                        </p>
+
+                        {/* نمایش تصاویر پیوست */}
+                        {userCommentsImages.length > 0 && (
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <h6 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                              <FaImage className="h-4 w-4" />
+                              تصاویر پیوست ({userCommentsImages.length})
+                            </h6>
+                            <div className="grid grid-cols-2 gap-3">
+                              {userCommentsImages.map((image, index) => (
+                                <div
+                                  key={index}
+                                  className="bg-gray-50 border border-gray-200 rounded-lg p-3"
+                                >
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <FaImage className="h-3 w-3 text-blue-600" />
+                                    <span className="text-xs text-gray-700 truncate flex-1">
+                                      {image.originalName}
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mb-2">
+                                    {new Date(
+                                      image.uploadedAt
+                                    ).toLocaleDateString("fa-IR")}
+                                  </div>
+                                  <a
+                                    href={`/api/transfer-applicant/download-document/${image.fileName}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                                  >
+                                    <FaDownload className="h-3 w-3" />
+                                    مشاهده تصویر
+                                  </a>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* چک‌باکس تایید */}
               <div className="mb-8">
