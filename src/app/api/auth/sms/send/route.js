@@ -12,17 +12,15 @@ export async function POST(req) {
     // احراز هویت کاربر
     const user = await authService.validateToken(req);
     if (!user) {
-      return Response.json(
-        { message: "لطفا وارد شوید", status: 401 }
-      );
+      return Response.json({ message: "لطفا وارد شوید", status: 401 });
     }
 
     // بررسی دسترسی - کاربران transferApplicant نمی‌توانند کد تأیید درخواست کنند
-    if (user.role === "transferApplicant") {
-      return Response.json(
-        { message: "کاربران متقاضی انتقال نمی‌توانند شماره موبایل خود را ویرایش کنند", status: 403 }
-      );
-    }
+    // if (user.role === "transferApplicant") {
+    //   return Response.json(
+    //     { message: "کاربران متقاضی انتقال نمی‌توانند شماره موبایل خود را ویرایش کنند", status: 403 }
+    //   );
+    // }
 
     await dbConnect();
     const body = await req.json();

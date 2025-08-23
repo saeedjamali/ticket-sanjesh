@@ -328,6 +328,64 @@ const AppealRequestSchema = new mongoose.Schema({
     },
   },
 
+  // سیستم گفتگو بین کارشناس منطقه و متقاضی
+  chatMessages: [
+    {
+      messageId: {
+        type: String,
+        required: true,
+        default: () => new mongoose.Types.ObjectId().toString(),
+      },
+      senderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+      senderRole: {
+        type: String,
+        enum: ["transferApplicant", "districtTransferExpert"],
+        required: true,
+      },
+      message: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      image: {
+        type: String, // مسیر فایل تصویر
+        required: false,
+      },
+      sentAt: {
+        type: Date,
+        default: Date.now,
+      },
+      isRead: {
+        type: Boolean,
+        default: false,
+      },
+    },
+  ],
+
+  // وضعیت گفتگو
+  chatStatus: {
+    type: String,
+    enum: ["open", "closed"],
+    default: "open",
+  },
+
+  // آخرین پیام گفتگو
+  lastChatActivity: {
+    type: Date,
+    default: null,
+  },
+
+  // کارشناس منطقه مسئول گفتگو
+  chatAssignedExpert: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,

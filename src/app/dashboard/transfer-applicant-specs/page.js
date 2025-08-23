@@ -32,6 +32,7 @@ import {
 
 export default function TransferApplicantSpecsPage() {
   const { user, loading: userLoading } = useUserContext();
+  console.log("user f--->", user);
 
   // States
   const [specs, setSpecs] = useState([]);
@@ -1137,6 +1138,100 @@ export default function TransferApplicantSpecsPage() {
     XLSX.writeFile(workbook, "نمونه_مشخصات_پرسنل_کامل.xlsx");
   };
 
+  // Export آمار وضعیت‌ها برای کارشناس استان
+  const exportStatistics = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/transfer-applicant-specs/statistics");
+      const result = await response.json();
+
+      if (!result.success) {
+        toast.error(result.error || "خطا در دریافت آمار");
+        return;
+      }
+
+      const { statistics, statuses, workPlaceData } = result.data;
+
+      // Debug: چاپ داده‌های دریافتی
+      console.log("API Response:", result.data);
+      console.log("Statuses:", statuses);
+      console.log("WorkPlace Data:", workPlaceData);
+      console.log("Statistics:", statistics);
+
+      // تبدیل وضعیت‌ها به فارسی
+      const statusMap = {
+        user_no_action: "عدم اقدام کاربر",
+        awaiting_user_approval: "در انتظار تایید کاربر",
+        user_approval: "تایید کاربر",
+        source_review: "در حال بررسی مبدا",
+        exception_eligibility_approval: "تایید مشمولیت استثنا",
+        exception_eligibility_rejection: "رد مشمولیت استثنا",
+        source_approval: "تایید مبدا",
+        source_rejection: "رد مبدا",
+        province_review: "در حال بررسی استان",
+        province_approval: "تایید استان",
+        province_rejection: "رد استان",
+        destination_review: "در حال بررسی مقصد",
+        destination_approval: "تایید مقصد",
+        destination_rejection: "رد مقصد",
+      };
+
+      console.log("Total statuses received:", statuses.length);
+      console.log("Status list:", statuses);
+
+      const statusHeaders = statuses.map(
+        (status) => statusMap[status] || status
+      );
+
+      // ایجاد header row با کد و نام منطقه جداگانه
+      const headerRow = ["کد منطقه", "نام منطقه", ...statusHeaders];
+
+      console.log("Header Row:", headerRow);
+
+      // ایجاد rows داده‌ها
+      const dataRows = workPlaceData.map((district) => {
+        const row = [district.code, district.name];
+        statuses.forEach((status) => {
+          row.push(statistics[district.code][status] || 0);
+        });
+        console.log("Data Row for", district.name, ":", row);
+        return row;
+      });
+
+      // ترکیب header و data
+      const excelData = [headerRow, ...dataRows];
+      console.log("Final Excel Data:", excelData);
+
+      // ایجاد worksheet
+      const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+
+      // تنظیم عرض ستون‌ها
+      const columnWidths = [
+        { wch: 12 }, // کد منطقه
+        { wch: 25 }, // نام منطقه
+        ...statuses.map(() => ({ wch: 15 })), // وضعیت‌ها
+      ];
+      worksheet["!cols"] = columnWidths;
+
+      // ایجاد workbook
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "آمار وضعیت‌ها");
+
+      // دانلود فایل
+      const fileName = `آمار_وضعیت_مناطق_${new Date()
+        .toLocaleDateString("fa-IR")
+        .replace(/\//g, "_")}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      toast.success("فایل آمار با موفقیت دانلود شد");
+    } catch (error) {
+      console.error("خطا در export آمار:", error);
+      toast.error("خطا در تولید فایل آمار");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingSpec(null);
@@ -1396,13 +1491,27 @@ export default function TransferApplicantSpecsPage() {
             </div>
             {(user?.role === "systemAdmin" ||
               user?.role === "provinceTransferExpert") && (
-              <button
-                onClick={downloadTemplate}
-                className="bg-orange-500/80 hover:bg-orange-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20 text-sm"
-              >
-                <FaDownload className="h-4 w-4" />
-                دانلود نمونه اکسل
-              </button>
+              <>
+                <button
+                  onClick={downloadTemplate}
+                  className="bg-orange-500/80 hover:bg-orange-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20 text-sm"
+                >
+                  <FaDownload className="h-4 w-4" />
+                  دانلود نمونه اکسل
+                </button>
+
+                {/* دکمه آمار فقط برای کارشناس استان */}
+                {user?.role === "provinceTransferExpert" && (
+                  <button
+                    onClick={exportStatistics}
+                    disabled={loading}
+                    className="bg-purple-500/80 hover:bg-purple-500 disabled:bg-purple-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20 text-sm"
+                  >
+                    <FaFileExcel className="h-4 w-4" />
+                    {loading ? "در حال تولید..." : "آمار وضعیت‌ها"}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

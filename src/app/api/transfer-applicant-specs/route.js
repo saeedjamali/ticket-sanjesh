@@ -257,7 +257,7 @@ export async function POST(request) {
     }
 
     const data = await request.json();
-
+    console.log("data--->", data);
     // اعتبارسنجی فیلدهای ضروری
     const requiredFields = [
       "firstName",
@@ -373,9 +373,9 @@ export async function POST(request) {
 
         if (!existingUser) {
           // دریافت اطلاعات منطقه برای تعیین province و district
-          const district = await District.findById(
-            data.currentWorkPlaceCode
-          ).populate("province");
+          const district = await District.findOne({
+            code: data.currentWorkPlaceCode,
+          }).populate("province");
 
           if (!district) {
             console.warn(

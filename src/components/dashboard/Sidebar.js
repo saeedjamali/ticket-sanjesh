@@ -1,10 +1,11 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getMenuItemsByRole } from "@/lib/permissions";
 import { usePendingFormsCount } from "@/hooks/usePendingFormsCount";
 import { useSmartSchoolStatus } from "@/hooks/useSmartSchoolStatus";
+import { toast } from "react-hot-toast";
 import {
   FaTicketAlt,
   FaUsers,
@@ -65,12 +66,25 @@ const icons = {
 
 export default function Sidebar({ user, children }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { count: pendingFormsCount } = usePendingFormsCount();
   const { hasSmartSchoolData, isLoading: smartSchoolLoading } =
     useSmartSchoolStatus(user);
   const menuItems = getMenuItemsByRole(user?.role || "", pendingFormsCount);
   const { isOpen, toggleSidebar, openSubmenu, toggleSubmenu, isMobile } =
     useSidebar();
+
+  // تابع برای بررسی احراز هویت و هدایت
+  const handleMenuClick = (item, e) => {
+    if (item.requiresPhoneVerification && !user?.phoneVerified) {
+      e.preventDefault();
+      toast.error("برای دسترسی به این بخش ابتدا باید احراز هویت کنید");
+      router.push("/dashboard/profile");
+      if (window.innerWidth < 1024) toggleSidebar();
+      return false;
+    }
+    return true;
+  };
 
   return (
     <div className="flex flex-col lg:flex-row">
@@ -257,7 +271,8 @@ export default function Sidebar({ user, children }) {
                           ? "menu-item-phone-unverified"
                           : ""
                       }`}
-                      onClick={() => {
+                      onClick={(e) => {
+                        if (!handleMenuClick(item, e)) return;
                         if (window.innerWidth < 1024) toggleSidebar();
                       }}
                     >

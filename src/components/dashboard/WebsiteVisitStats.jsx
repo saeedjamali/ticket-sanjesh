@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  FaEye, 
-  FaChevronDown, 
+import {
+  FaEye,
+  FaChevronDown,
   FaChevronUp,
   FaCalendarDay,
   FaCalendarWeek,
@@ -19,10 +19,10 @@ export default function WebsiteVisitStats() {
 
   const fetchStats = async () => {
     if (loading) return; // جلوگیری از درخواست‌های مکرر
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch("/api/stats/website-visits", {
         method: "GET",
@@ -30,9 +30,9 @@ export default function WebsiteVisitStats() {
           "Content-Type": "application/json",
         },
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setStats(data.data);
       } else {
@@ -65,7 +65,7 @@ export default function WebsiteVisitStats() {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       {/* هدر کوچک - همیشه نمایش */}
-      <div 
+      <div
         className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 transition-colors"
         onClick={toggleExpanded}
       >
@@ -75,13 +75,13 @@ export default function WebsiteVisitStats() {
           </div>
           <span className="text-sm font-medium text-gray-700">آمار بازدید</span>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {/* نمایش سریع آمار روزانه */}
           <span className="text-xs text-gray-500">
             {stats ? formatNumber(stats.daily) : "---"}
           </span>
-          
+
           {expanded ? (
             <FaChevronUp className="h-3 w-3 text-gray-400" />
           ) : (
@@ -101,7 +101,7 @@ export default function WebsiteVisitStats() {
           ) : error ? (
             <div className="text-center py-4">
               <p className="text-xs text-red-600 mb-2">{error}</p>
-              <button 
+              <button
                 onClick={fetchStats}
                 className="text-xs text-blue-600 hover:text-blue-800 underline"
               >
@@ -121,7 +121,7 @@ export default function WebsiteVisitStats() {
                     {formatNumber(stats.daily)}
                   </span>
                 </div>
-                
+
                 <div className="bg-white rounded-md p-2 text-center">
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <FaCalendarWeek className="h-2.5 w-2.5 text-blue-500" />
@@ -131,7 +131,7 @@ export default function WebsiteVisitStats() {
                     {formatNumber(stats.weekly)}
                   </span>
                 </div>
-                
+
                 <div className="bg-white rounded-md p-2 text-center">
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <FaCalendar className="h-2.5 w-2.5 text-purple-500" />
@@ -141,7 +141,7 @@ export default function WebsiteVisitStats() {
                     {formatNumber(stats.monthly)}
                   </span>
                 </div>
-                
+
                 <div className="bg-white rounded-md p-2 text-center">
                   <div className="flex items-center justify-center gap-1 mb-1">
                     <FaCalendarAlt className="h-2.5 w-2.5 text-orange-500" />
@@ -152,7 +152,7 @@ export default function WebsiteVisitStats() {
                   </span>
                 </div>
               </div>
-              
+
               {/* آخرین بروزرسانی */}
               <div className="text-center pt-1 border-t border-gray-200">
                 <span className="text-xs text-gray-500">

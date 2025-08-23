@@ -38,6 +38,9 @@ export async function GET(request) {
       selectedReasons: { $exists: true, $ne: [] }, // فقط درخواست‌هایی که دلایل انتخاب شده دارند
     };
 
+    console.log("document-review API - user role:", user.role);
+    console.log("document-review API - user district:", user.district);
+
     // بر اساس نقش کاربر، فیلتر کردن درخواست‌ها
     if (user.role === "districtTransferExpert") {
       // برای کارشناس منطقه: فقط درخواست‌هایی که districtCode برابر کد منطقه کاربر است
@@ -96,8 +99,9 @@ export async function GET(request) {
         path: "selectedReasons.reasonId",
         model: "TransferReason",
         select:
-          "title description reasonCode category requiresDocuments requiresAdminApproval requiresDocumentUpload isCulturalCouple",
+          "title description reasonCode category requiresDocuments requiresAdminApproval requiresDocumentUpload isCulturalCouple hasYearsLimit yearsLimit",
       })
+      .populate("chatMessages.senderId", "firstName lastName")
       .sort({ createdAt: -1 })
       .select({
         fullName: 1,
@@ -116,24 +120,90 @@ export async function GET(request) {
         provinceCode: 1,
         createdAt: 1,
         updatedAt: 1,
+        chatMessages: 1,
+        chatStatus: 1,
       });
 
-    // دریافت currentRequestStatus از TransferApplicantSpec برای هر درخواست
-    const requestsWithStatus = await Promise.all(
-      requests.map(async (req) => {
-        let currentRequestStatus = null;
+    // دریافت currentRequestStatus از TransferApplicantSpec برای هر درخواست و فیلتر کردن بر اساس منطقه
+    const requestsWithStatusAndFiltered = [];
 
-        // جستجو بر اساس personnelCode
-        if (req.personnelCode) {
-          const transferApplicantSpec = await TransferApplicantSpec.findOne({
-            personnelCode: req.personnelCode,
-          }).select("currentRequestStatus");
+    console.log(
+      "document-review API - Total requests before filtering:",
+      requests.length
+    );
 
-          currentRequestStatus =
-            transferApplicantSpec?.currentRequestStatus || null;
+    for (const req of requests) {
+      let currentRequestStatus = null;
+      let transferApplicantSpec = null;
+
+      console.log(
+        "document-review API - Processing request:",
+        req._id,
+        "personnelCode:",
+        req.personnelCode
+      );
+
+      // جستجو بر اساس personnelCode
+      if (req.personnelCode) {
+        transferApplicantSpec = await TransferApplicantSpec.findOne({
+          personnelCode: req.personnelCode,
+        }).select("currentRequestStatus currentWorkPlaceCode");
+
+        console.log(
+          "document-review API - TransferSpec found:",
+          !!transferApplicantSpec
+        );
+        if (transferApplicantSpec) {
+          console.log(
+            "document-review API - currentWorkPlaceCode:",
+            transferApplicantSpec.currentWorkPlaceCode
+          );
         }
 
-        return {
+        currentRequestStatus =
+          transferApplicantSpec?.currentRequestStatus || null;
+      }
+
+      // فیلتر کردن بر اساس نقش کاربر
+      let shouldInclude = false;
+
+      if (user.role === "districtTransferExpert") {
+        // برای کارشناس منطقه: بررسی currentWorkPlaceCode
+        let userDistrictCode;
+        if (typeof user.district === "object" && user.district?.code) {
+          userDistrictCode = user.district.code;
+        } else if (typeof user.district === "string") {
+          const district = await District.findById(user.district);
+          userDistrictCode = district?.code;
+        }
+
+        console.log(
+          "document-review API - Comparing:",
+          transferApplicantSpec?.currentWorkPlaceCode,
+          "vs",
+          userDistrictCode
+        );
+
+        if (transferApplicantSpec?.currentWorkPlaceCode === userDistrictCode) {
+          shouldInclude = true;
+          console.log(
+            "document-review API - Request included for district expert"
+          );
+        } else {
+          console.log(
+            "document-review API - Request excluded for district expert"
+          );
+        }
+      } else if (user.role === "provinceTransferExpert") {
+        // برای کارشناس استان: بررسی provinceCode درخواست
+        shouldInclude = true; // قبلاً فیلتر شده
+        console.log(
+          "document-review API - Request included for province expert"
+        );
+      }
+
+      if (shouldInclude) {
+        requestsWithStatusAndFiltered.push({
           ...req.toObject(),
           _id: req._id.toString(),
           uploadedDocuments: Object.fromEntries(
@@ -142,13 +212,18 @@ export async function GET(request) {
           currentRequestStatus, // اضافه کردن وضعیت فعلی
           createdAt: req.createdAt.toISOString(),
           updatedAt: req.updatedAt.toISOString(),
-        };
-      })
+        });
+      }
+    }
+
+    console.log(
+      "document-review API - Total requests after filtering:",
+      requestsWithStatusAndFiltered.length
     );
 
     return NextResponse.json({
       success: true,
-      requests: requestsWithStatus,
+      requests: requestsWithStatusAndFiltered,
       userRole: user.role,
     });
   } catch (error) {

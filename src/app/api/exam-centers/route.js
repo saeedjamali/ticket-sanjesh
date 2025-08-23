@@ -21,7 +21,7 @@ export async function GET(request) {
     await connectDB();
 
     const user = await authService.validateToken(request);
-    console.log("GET /api/exam-centers - user:", user);
+    // console.log("GET /api/exam-centers - user:", user);
 
     if (!user) {
       return NextResponse.json(
@@ -39,7 +39,7 @@ export async function GET(request) {
       Object.fromEntries(searchParams)
     );
     console.log("GET /api/exam-centers - district param:", districtParam);
-    console.log("GET /api/exam-centers - user role:", user.role);
+    // console.log("GET /api/exam-centers - user role:", user.role);
 
     let query = {};
 

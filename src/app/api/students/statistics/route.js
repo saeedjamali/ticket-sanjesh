@@ -5,6 +5,7 @@ import CourseGrade from "@/models/CourseGrade";
 import CourseBranchField from "@/models/CourseBranchField";
 import { authService } from "@/lib/auth/authService";
 import { ROLES } from "@/lib/permissions";
+import dbConnect from "@/lib/dbConnect";
 
 export async function GET(request) {
   try {
@@ -25,7 +26,7 @@ export async function GET(request) {
       );
     }
 
-    await connectDB();
+    await dbConnect();
 
     const { searchParams } = new URL(request.url);
 

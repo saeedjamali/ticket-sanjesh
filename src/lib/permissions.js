@@ -405,18 +405,22 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "تنظیمات انتقالات",
       path: "/dashboard/transfer-settings",
       icon: "transferSettings",
+      requiresPhoneVerification: true,
       submenu: [
         {
           label: "تذکرات اولیه",
           path: "/dashboard/transfer-settings/preliminary-notices",
+          requiresPhoneVerification: true,
         },
         {
           label: "علل انتقال",
           path: "/dashboard/transfer-settings/transfer-reasons",
+          requiresPhoneVerification: true,
         },
         {
           label: "دلایل موافقت/مخالفت",
           path: "/dashboard/transfer-settings/approval-reasons",
+          requiresPhoneVerification: true,
         },
       ],
     });
@@ -425,6 +429,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "لیست متقاضیان انتقال  ",
       path: "/dashboard/transfer-applicant-specs",
       icon: "transferApplicantSpecs",
+      requiresPhoneVerification: role === ROLES.PROVINCE_TRANSFER_EXPERT,
     });
   }
 
@@ -434,6 +439,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "لیست متقاضیان انتقال منطقه",
       path: "/dashboard/transfer-applicant-specs",
       icon: "transferApplicantSpecs",
+      requiresPhoneVerification: true,
     });
   }
 
@@ -567,7 +573,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "درخواست انتقال",
       path: "/dashboard/emergency-transfer",
       icon: "transfer",
-      requiresPhoneVerification: true, // فیلد جدید برای نشان دادن نیاز به احراز هویت
+      // requiresPhoneVerification: true, // فیلد جدید برای نشان دادن نیاز به احراز هویت
     });
   }
 
@@ -577,6 +583,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "درخواست‌های اصلاح مشخصات",
       path: "/dashboard/district-correction-requests",
       icon: "correctionRequests",
+      requiresPhoneVerification: true,
     });
   }
 
@@ -586,6 +593,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "درخواست‌های اصلاح مشخصات",
       path: "/dashboard/province-correction-requests",
       icon: "correctionRequests",
+      requiresPhoneVerification: true,
     });
   }
 
@@ -598,6 +606,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "درخواست‌های زوج فرهنگی",
       path: "/dashboard/cultural-couple-requests",
       icon: "culturalCouple",
+      requiresPhoneVerification: true,
     });
   }
 
@@ -610,6 +619,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "بررسی مستندات و تاییدات",
       path: "/dashboard/document-review",
       icon: "documentReview",
+      requiresPhoneVerification: true,
     });
   }
   activeMenuItems.push({

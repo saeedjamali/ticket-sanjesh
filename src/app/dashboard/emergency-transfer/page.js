@@ -31,6 +31,8 @@ import {
   FaUserFriends,
 } from "react-icons/fa";
 
+import ChatBox from "@/components/chat/ChatBox";
+
 // کامپوننت نمایش فقط خواندنی درخواست
 function ReadOnlyRequestView({ userSpecs, onBack }) {
   const [requestDetails, setRequestDetails] = useState(null);
@@ -650,9 +652,19 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
             <div className="bg-white rounded-xl shadow-lg border border-blue-200 p-4 mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-gray-800">پیشرفت درخواست</h3>
-                <span className="text-sm text-gray-600">
-                  وضعیت: {getStatusDisplayName(userSpecs.currentRequestStatus)}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600">
+                    وضعیت:{" "}
+                    {getStatusDisplayName(userSpecs.currentRequestStatus)}
+                  </span>
+                  {/* دکمه گفتگو با کارشناس */}
+                  {requestDetails?.appealRequest?._id && (
+                    <ChatBox
+                      appealRequestId={requestDetails.appealRequest._id}
+                      userRole="transferApplicant"
+                    />
+                  )}
+                </div>
               </div>
 
               {/* Progress Steps */}
@@ -2852,9 +2864,9 @@ export default function EmergencyTransferPage() {
     }
 
     // اعتبارسنجی حجم فایل
-    const maxSize = isCommentsImage ? 5 * 1024 * 1024 : 1 * 1024 * 1024; // 5MB برای تصاویر توضیحات، 1MB برای مدارک
+    const maxSize = isCommentsImage ? 2 * 1024 * 1024 : 1 * 1024 * 1024; // 2MB برای تصاویر توضیحات، 1MB برای مدارک
     if (file.size > maxSize) {
-      const maxSizeText = isCommentsImage ? "5 مگابایت" : "1 مگابایت";
+      const maxSizeText = isCommentsImage ? "2 مگابایت" : "1 مگابایت";
       toast.error(`حجم فایل نباید بیشتر از ${maxSizeText} باشد`);
       return;
     }
@@ -5925,7 +5937,7 @@ export default function EmergencyTransferPage() {
                                 : "کلیک کنید تا تصویر انتخاب کنید"}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              حداکثر 5 مگابایت - فرمت‌های JPG، PNG
+                              حداکثر 2 مگابایت - فرمت‌های JPG، PNG
                             </p>
                           </div>
                         </label>

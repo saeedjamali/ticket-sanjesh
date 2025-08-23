@@ -58,7 +58,6 @@ export default function UsersPage() {
         cache: "no-store",
       });
 
-      console.log("usersResponse--->", usersResponse);
       if (!usersResponse.ok) {
         const errorData = await usersResponse.json();
         if (usersResponse.status === 401) {
@@ -826,13 +825,13 @@ export default function UsersPage() {
           password: passwordChange.newPassword,
         }),
       });
-      console.log("response--->", response);
+      // console.log("response--->", response);
 
       if (!response.ok) {
         const errorData = await response.json();
         console.error("Password change error:", errorData);
         throw new Error(errorData.error || "خطا در تغییر رمز عبور");
-      }
+      }123456 
 
       handleCloseAllForms();
       alert("رمز عبور کاربر با موفقیت تغییر یافت");

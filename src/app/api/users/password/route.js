@@ -18,7 +18,6 @@ export async function PATCH(request) {
     await connectDB();
 
     const data = await request.json();
-    console.log("data----->", data);
     // Validate required fields
     if (!data.id || !data.password) {
       return NextResponse.json(
@@ -55,9 +54,11 @@ export async function PATCH(request) {
     } else if (userAuth.role === ROLES.PROVINCE_TECH_EXPERT) {
       // Province tech expert can change district experts' passwords
       if (
-        [ROLES.DISTRICT_EDUCATION_EXPERT, ROLES.DISTRICT_TECH_EXPERT,ROLES.DISTRICT_REGISTRATION_EXPERT].includes(
-          user.role
-        )
+        [
+          ROLES.DISTRICT_EDUCATION_EXPERT,
+          ROLES.DISTRICT_TECH_EXPERT,
+          ROLES.DISTRICT_REGISTRATION_EXPERT,
+        ].includes(user.role)
       ) {
         hasPermission = true;
 
@@ -66,13 +67,19 @@ export async function PATCH(request) {
           hasPermission = false;
         }
       }
-    } else if (userAuth.role === ROLES.DISTRICT_TECH_EXPERT || userAuth.role === ROLES.DISTRICT_REGISTRATION_EXPERT) {
+    } else if (
+      userAuth.role === ROLES.DISTRICT_TECH_EXPERT ||
+      userAuth.role === ROLES.DISTRICT_REGISTRATION_EXPERT
+    ) {
       // District tech expert can change exam center managers' passwords
-      if (user.role === ROLES.EXAM_CENTER_MANAGER) {
+      if (
+        user.role === ROLES.EXAM_CENTER_MANAGER ||
+        user.role === ROLES.TRANSFER_APPLICANT
+      ) {
         hasPermission = true;
 
         // Must be for their own district
-        if (user.district.toString() !== userAuth.district) {
+        if (user.district.toString() !== userAuth.district._id.toString()) {
           hasPermission = false;
         }
       }

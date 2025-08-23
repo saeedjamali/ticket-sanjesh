@@ -29,7 +29,7 @@ export async function GET(request) {
       );
     }
 
-    await connectDB();
+    await dbConnect();
 
     const { searchParams } = new URL(request.url);
 
@@ -314,4 +314,3 @@ export async function GET(request) {
     );
   }
 }
- 

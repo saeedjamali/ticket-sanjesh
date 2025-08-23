@@ -215,6 +215,7 @@ export async function POST(request) {
           ROLES.DISTRICT_REGISTRATION_EXPERT,
           ROLES.DISTRICT_TRANSFER_EXPERT,
           ROLES.TRANSFER_APPLICANT,
+          ROLES.PROVINCE_TRANSFER_EXPERT,
         ].includes(data.role)
       ) {
         hasPermission = true;
@@ -257,6 +258,7 @@ export async function POST(request) {
       ROLES.EXAM_CENTER_MANAGER,
       ROLES.PROVINCE_TRANSFER_EXPERT,
       ROLES.DISTRICT_TRANSFER_EXPERT,
+      ROLES.TRANSFER_APPLICANT,
     ];
 
     const requiresDistrict = [
@@ -595,7 +597,7 @@ export async function PATCH(request) {
         hasPermission = true;
 
         // Must be for their own province
-        if (user.province.toString() !== userAuth.province) {
+        if (user.province.toString() !== userAuth.province._id.toString()) {
           hasPermission = false;
         }
       }
@@ -604,7 +606,10 @@ export async function PATCH(request) {
       userAuth.role === ROLES.DISTRICT_REGISTRATION_EXPERT
     ) {
       // District tech expert can change exam center managers' passwords
-      if (user.role === ROLES.EXAM_CENTER_MANAGER) {
+      if (
+        user.role === ROLES.EXAM_CENTER_MANAGER ||
+        user.role === ROLES.TRANSFER_APPLICANT
+      ) {
         hasPermission = true;
 
         // Must be for their own district
