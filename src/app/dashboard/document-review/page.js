@@ -101,7 +101,7 @@ export default function DocumentReviewPage() {
       color: "bg-yellow-500",
       icon: FaClock,
     },
-    
+
     {
       value: "source_review",
       label: "بررسی مبدا",
@@ -701,7 +701,7 @@ export default function DocumentReviewPage() {
       request.personnelCode?.includes(searchTerm);
 
     const matchesStatus =
-      statusFilter === "all" || request.overallReviewStatus === statusFilter;
+      statusFilter === "all" || request.currentRequestStatus === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -1611,7 +1611,6 @@ export default function DocumentReviewPage() {
                           </div>
                         </div>
                       </td>
-                   
 
                       {/* ستون پیام‌ها */}
                       <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -2013,7 +2012,7 @@ export default function DocumentReviewPage() {
                                           <>
                                             <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
                                             <span className="text-xs text-gray-600">
-                                               کارشناس بدون نیاز به تایید
+                                              کارشناس بدون نیاز به تایید
                                             </span>
                                           </>
                                         )}

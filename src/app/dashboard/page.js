@@ -81,7 +81,7 @@ export default function DashboardPage() {
         
         {/* کامپوننت آمار بازدید - کوچک و در گوشه */}
         <div className="sm:max-w-xs w-full sm:w-auto">
-          <WebsiteVisitStats />
+          {/* <WebsiteVisitStats /> */}
         </div>
       </div>
 
