@@ -11,6 +11,7 @@ import {
   FaUser,
   FaUserTie,
   FaCircle,
+  FaDownload,
 } from "react-icons/fa";
 
 export default function ChatBox({ appealRequestId, userRole }) {
@@ -22,8 +23,51 @@ export default function ChatBox({ appealRequestId, userRole }) {
   const [loading, setLoading] = useState(false);
   const [chatStatus, setChatStatus] = useState("open");
   const [unreadCount, setUnreadCount] = useState(0);
+  const [expertUnreadCount, setExpertUnreadCount] = useState(0);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // دانلود تصویر
+  const downloadImage = (imageSrc, messageId) => {
+    try {
+      // اگر تصویر به صورت base64 است
+      if (imageSrc.startsWith("data:")) {
+        const link = document.createElement("a");
+        link.href = imageSrc;
+        const fileExtension = imageSrc.split(",")[0].includes("jpeg")
+          ? "jpg"
+          : "png";
+        link.download = `chat-image-${
+          messageId || Date.now()
+        }.${fileExtension}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("تصویر دانلود شد");
+      } else {
+        // اگر تصویر از سرور است (URL)
+        fetch(imageSrc)
+          .then((response) => response.blob())
+          .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `chat-image-${messageId || Date.now()}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success("تصویر دانلود شد");
+          })
+          .catch(() => {
+            toast.error("خطا در دانلود تصویر");
+          });
+      }
+    } catch (error) {
+      console.error("خطا در دانلود تصویر:", error);
+      toast.error("خطا در دانلود تصویر");
+    }
+  };
 
   // بارگذاری پیام‌ها
   const loadMessages = async () => {
@@ -37,12 +81,19 @@ export default function ChatBox({ appealRequestId, userRole }) {
         setMessages(result.data.messages || []);
         setChatStatus(result.data.chatStatus || "open");
 
-        // شمارش پیام‌های خوانده نشده
+        // شمارش پیام‌های خوانده نشده (کارشناس به متقاضی)
         const unread =
           result.data.messages?.filter(
             (msg) => !msg.isRead && msg.senderRole !== userRole
           ).length || 0;
         setUnreadCount(unread);
+
+        // شمارش پیام‌های خوانده نشده کارشناس (متقاضی به کارشناس)
+        const expertUnread =
+          result.data.messages?.filter(
+            (msg) => !msg.isRead && msg.senderRole === userRole
+          ).length || 0;
+        setExpertUnreadCount(expertUnread);
       }
     } catch (error) {
       console.error("خطا در بارگذاری پیام‌ها:", error);
@@ -168,7 +219,14 @@ export default function ChatBox({ appealRequestId, userRole }) {
         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors relative"
       >
         <FaComments className="h-4 w-4" />
-        گفتگو با کارشناس
+        <div className="flex flex-col">
+          <span>گفتگو با کارشناس</span>
+          {expertUnreadCount > 0 && (
+            <span className="text-xs text-blue-200">
+              {expertUnreadCount} پیام در انتظار پاسخ کارشناس
+            </span>
+          )}
+        </div>
         {unreadCount > 0 && (
           <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
             {unreadCount}
@@ -240,11 +298,25 @@ export default function ChatBox({ appealRequestId, userRole }) {
 
                       {/* تصویر */}
                       {msg.image && (
-                        <img
-                          src={msg.image}
-                          alt="تصویر پیام"
-                          className="w-full rounded mb-2 max-h-32 object-cover"
-                        />
+                        <div className="relative mb-2">
+                          <img
+                            src={msg.image}
+                            alt="تصویر پیام"
+                            className="w-full rounded max-h-32 object-cover cursor-pointer"
+                            onClick={() =>
+                              downloadImage(msg.image, msg.messageId)
+                            }
+                          />
+                          <button
+                            onClick={() =>
+                              downloadImage(msg.image, msg.messageId)
+                            }
+                            className="absolute top-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-1 rounded-full text-xs transition-all"
+                            title="دانلود تصویر"
+                          >
+                            <FaDownload className="w-3 h-3" />
+                          </button>
+                        </div>
                       )}
 
                       {/* متن پیام */}
@@ -338,4 +410,3 @@ export default function ChatBox({ appealRequestId, userRole }) {
     </>
   );
 }
-

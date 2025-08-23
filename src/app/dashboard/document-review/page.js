@@ -22,8 +22,6 @@ import {
   FaThumbsDown,
   FaFileExcel,
   FaSpinner,
-  FaChevronDown,
-  FaChevronUp,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import ChatButton from "@/components/chat/ChatButton";
@@ -35,7 +33,6 @@ export default function DocumentReviewPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [showStatCards, setShowStatCards] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewData, setReviewData] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -70,21 +67,11 @@ export default function DocumentReviewPage() {
       source_rejection: 0,
       province_approval: 0,
       province_rejection: 0,
-      user_approval: 0,
     };
 
     appealRequests.forEach((request) => {
-      // برای کاشی user_approval از currentRequestStatus استفاده می‌کنیم
-      // برای بقیه از overallReviewStatus استفاده می‌کنیم
-
-      // شمارش user_approval از currentRequestStatus
-      if (request.currentRequestStatus === "user_approval") {
-        counts.user_approval++;
-      }
-
-      // شمارش سایر وضعیت‌ها از overallReviewStatus
       const status = request.overallReviewStatus || "pending";
-      if (counts.hasOwnProperty(status) && status !== "user_approval") {
+      if (counts.hasOwnProperty(status)) {
         counts[status]++;
       }
     });
@@ -103,8 +90,8 @@ export default function DocumentReviewPage() {
       icon: FaFileAlt,
     },
     {
-      value: "user_approval",
-      label: "تایید کاربر و در انتظار بررسی منطقه",
+      value: "pending",
+      label: "در انتظار بررسی",
       color: "bg-yellow-500",
       icon: FaClock,
     },
@@ -378,7 +365,7 @@ export default function DocumentReviewPage() {
           );
           // استفاده از فقط عنوان دلیل برای ستون
           const columnName =
-            reason.reasonTitle || reason.title || `بند ${reason.reasonCode}`;
+            reason.reasonTitle || reason.title || `دلیل ${reason.reasonCode}`;
           reasonsColumns[columnName] = selectedReason ? "دارد" : "ندارد";
         });
 
@@ -639,11 +626,6 @@ export default function DocumentReviewPage() {
               " - " +
               new Date(request.createdAt).toLocaleTimeString("fa-IR")
             : "-",
-          "آخرین بروزرسانی": request.updatedAt
-            ? new Date(request.updatedAt).toLocaleDateString("fa-IR") +
-              " - " +
-              new Date(request.updatedAt).toLocaleTimeString("fa-IR")
-            : "-",
         };
       });
 
@@ -686,7 +668,6 @@ export default function DocumentReviewPage() {
         { wch: 15 }, // نوع استخدام
         { wch: 15 }, // سال تحصیلی
         { wch: 25 }, // تاریخ درخواست
-        { wch: 25 }, // آخرین بروزرسانی
       ];
       ws["!cols"] = columnWidths;
 
@@ -718,17 +699,8 @@ export default function DocumentReviewPage() {
       request.nationalId?.includes(searchTerm) ||
       request.personnelCode?.includes(searchTerm);
 
-    let matchesStatus = false;
-
-    if (statusFilter === "all") {
-      matchesStatus = true;
-    } else if (statusFilter === "user_approval") {
-      // برای فیلتر user_approval از currentRequestStatus استفاده می‌کنیم
-      matchesStatus = request.currentRequestStatus === "user_approval";
-    } else {
-      // برای سایر فیلترها از overallReviewStatus استفاده می‌کنیم
-      matchesStatus = request.overallReviewStatus === statusFilter;
-    }
+    const matchesStatus =
+      statusFilter === "all" || request.overallReviewStatus === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -882,41 +854,8 @@ export default function DocumentReviewPage() {
   };
 
   // باز کردن مودال بررسی
-  const openReviewModal = async (request) => {
-    // دریافت transferSpec برای بررسی سنوات
-    let enrichedRequest = { ...request };
-    try {
-      const response = await fetch(
-        `/api/transfer-applicant-specs?nationalId=${request.nationalId}`,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-      const data = await response.json();
-
-      if (data.success) {
-        let transferSpec = null;
-        if (data.specs && Array.isArray(data.specs)) {
-          transferSpec = data.specs.find(
-            (spec) => String(spec.nationalId) === String(request.nationalId)
-          );
-        } else if (data.data && Array.isArray(data.data)) {
-          transferSpec = data.data.find(
-            (spec) => String(spec.nationalId) === String(request.nationalId)
-          );
-        } else if (data.spec) {
-          transferSpec = data.spec;
-        }
-
-        if (transferSpec) {
-          enrichedRequest.transferSpec = transferSpec;
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching transferSpec for modal:", error);
-    }
-
-    setSelectedRequest(enrichedRequest);
+  const openReviewModal = (request) => {
+    setSelectedRequest(request);
     setShowReviewModal(true);
     // مقداردهی اولیه reviewData از ساختار جدید
     const initialReviewData = {};
@@ -937,121 +876,196 @@ export default function DocumentReviewPage() {
   // محاسبه وضعیت دکمه‌های تایید/رد مشمولیت
   const getEligibilityButtonsState = (request) => {
     if (!request?.selectedReasons?.length) {
-      return { showButtons: false, canApprove: false, canReject: false };
-    }
-
-    // بررسی دلایلی که نیاز به تایید کارشناس ندارند
-    const reasonsNotRequiringApproval = request.selectedReasons.filter(
-      (reason) => {
-        const populatedReason = reason?.reasonId;
-        return populatedReason?.requiresAdminApproval === false;
-      }
-    );
-
-    // بررسی دلایلی که نیاز به تایید کارشناس دارند
-    const reasonsRequiringApproval = request.selectedReasons.filter(
-      (reason) => {
-        const populatedReason = reason?.reasonId;
-        return populatedReason?.requiresAdminApproval === true;
-      }
-    );
-
-    // بررسی دلایلی که نیاز به تایید کارشناس دارند ولی هنوز تصمیم نگرفته‌اند
-    const pendingApprovalReasons = reasonsRequiringApproval.filter((reason) => {
-      // بررسی از فیلد review در خود reason
-      const reviewStatus = reason.review?.status;
-      return (
-        !reviewStatus ||
-        reviewStatus === "pending" ||
-        (reviewStatus !== "approved" && reviewStatus !== "rejected")
-      );
-    });
-
-    // اگر دلایلی وجود دارند که نیاز به تایید کارشناس دارند ولی هنوز تصمیم نگرفته‌اند
-    if (pendingApprovalReasons.length > 0) {
       return {
-        showButtons: true,
+        showButtons: false,
         canApprove: false,
         canReject: false,
-        pendingApprovalReasons: pendingApprovalReasons.length,
-        totalReasonsRequiringApproval: reasonsRequiringApproval.length,
-        reasonsNotRequiringApproval: reasonsNotRequiringApproval.length,
-        totalReasons: request.selectedReasons.length,
-        warning: `${pendingApprovalReasons.length} بند نیاز به تصمیم‌گیری کارشناس دارد`,
+        message: "هیچ دلیلی انتخاب نشده است",
       };
     }
 
-    // همه دلایل نیازمند تصمیم گرفته شده‌اند - بررسی وضعیت‌ها
-    if (reasonsRequiringApproval.length > 0) {
-      // بررسی دلایل تایید شده و رد شده
-      const approvedReasons = reasonsRequiringApproval.filter(
-        (reason) => reason.review?.status === "approved"
-      );
-      const rejectedReasons = reasonsRequiringApproval.filter(
-        (reason) => reason.review?.status === "rejected"
-      );
+    // تقسیم دلایل بر اساس نیاز به تایید کارشناس
+    const reasonsRequiringApproval = request.selectedReasons.filter(
+      (reason) => reason?.reasonId?.requiresAdminApproval === true
+    );
 
-      // اگر همه دلایل نیازمند رد شده‌اند
-      if (rejectedReasons.length === reasonsRequiringApproval.length) {
-        return {
-          showButtons: true,
-          canApprove: true, // دکمه فعال ولی پیام نمایش داده می‌شود
-          canReject: true,
-          reasonsNotRequiringApproval: reasonsNotRequiringApproval.length,
-          totalReasons: request.selectedReasons.length,
-          approvalWarning: "همه بندهای نیازمند توسط کارشناس رد شده‌اند",
-        };
-      }
+    const reasonsNotRequiringApproval = request.selectedReasons.filter(
+      (reason) => reason?.reasonId?.requiresAdminApproval === false
+    );
 
-      // اگر همه دلایل نیازمند تایید شده‌اند
-      if (approvedReasons.length === reasonsRequiringApproval.length) {
+    // اگر هیچ دلیلی نیاز به تایید کارشناس ندارد
+    if (reasonsRequiringApproval.length === 0) {
+      return {
+        showButtons: true,
+        canApprove: true,
+        canReject: true,
+        message: "تمام دلایل نیاز به تایید کارشناس ندارند",
+      };
+    }
+
+    // بررسی وضعیت دلایلی که نیاز به تایید کارشناس دارند
+    const pendingReasons = reasonsRequiringApproval.filter(
+      (reason) => reason?.review?.status === "pending"
+    );
+
+    const approvedReasons = reasonsRequiringApproval.filter(
+      (reason) => reason?.review?.status === "approved"
+    );
+
+    const rejectedReasons = reasonsRequiringApproval.filter(
+      (reason) => reason?.review?.status === "rejected"
+    );
+
+    // اگر بندی هنوز بررسی نشده (pending)
+    if (pendingReasons.length > 0) {
+      // اگر بندی بدون نیاز به تایید کارشناس وجود دارد، دکمه‌ها فعال باشند
+      if (reasonsNotRequiringApproval.length > 0) {
         return {
           showButtons: true,
           canApprove: true,
-          canReject: true, // دکمه فعال ولی پیام نمایش داده می‌شود
-          reasonsNotRequiringApproval: reasonsNotRequiringApproval.length,
-          totalReasons: request.selectedReasons.length,
-          rejectionWarning: "همه بندهای نیازمند توسط کارشناس تایید شده‌اند",
+          canReject: true,
+          message: `${pendingReasons.length} بند هنوز بررسی نشده، اما ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`,
+          hasPendingButAllowDecision: true,
         };
       }
-
-      // حالت ترکیبی - بعضی تایید، بعضی رد
+      // اگر همه بندها نیاز به تایید کارشناس دارند و بعضی pending هستند
       return {
-        showButtons: true,
-        canApprove: true,
-        canReject: true,
-        reasonsNotRequiringApproval: reasonsNotRequiringApproval.length,
-        totalReasons: request.selectedReasons.length,
+        showButtons: false,
+        canApprove: false,
+        canReject: false,
+        message: `${pendingReasons.length} بند هنوز بررسی نشده و منتظر تایید/رد کارشناس است`,
       };
     }
 
-    // فقط دلایل غیرنیازمند وجود دارند
-    if (reasonsNotRequiringApproval.length > 0) {
+    // اگر همه بندهای نیازمند تایید رد شده‌اند
+    if (rejectedReasons.length === reasonsRequiringApproval.length) {
+      // اگر بندی بدون نیاز به تایید کارشناس وجود دارد، دکمه‌ها فعال باشند
+      if (reasonsNotRequiringApproval.length > 0) {
+        return {
+          showButtons: true,
+          canApprove: true,
+          canReject: true,
+          message: `تمام بندهای نیازمند تایید رد شده‌اند، اما ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`,
+          allRequiredRejectedButHasNonRequired: true,
+        };
+      }
+      // اگر همه بندها نیاز به تایید کارشناس دارند و همه رد شده‌اند
       return {
         showButtons: true,
-        canApprove: true,
+        canApprove: false,
         canReject: true,
-        reasonsNotRequiringApproval: reasonsNotRequiringApproval.length,
-        totalReasons: request.selectedReasons.length,
+        message: "تمام بندهای نیازمند تایید رد شده‌اند",
+        allRejected: true,
       };
     }
 
-    return { showButtons: false, canApprove: false, canReject: false };
+    // اگر همه بندهای نیازمند تایید تایید شده‌اند
+    if (approvedReasons.length === reasonsRequiringApproval.length) {
+      // اگر بندی بدون نیاز به تایید کارشناس وجود دارد، دکمه‌ها فعال باشند
+      if (reasonsNotRequiringApproval.length > 0) {
+        return {
+          showButtons: true,
+          canApprove: true,
+          canReject: true,
+          message: `تمام بندهای نیازمند تایید تایید شده‌اند، اما ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`,
+          allRequiredApprovedButHasNonRequired: true,
+        };
+      }
+      // اگر همه بندها نیاز به تایید کارشناس دارند و همه تایید شده‌اند
+      return {
+        showButtons: true,
+        canApprove: true,
+        canReject: false,
+        message: "تمام بندهای نیازمند تایید تایید شده‌اند",
+        allApproved: true,
+      };
+    }
+
+    // اگر ترکیبی از تایید و رد وجود دارد
+    return {
+      showButtons: true,
+      canApprove: true,
+      canReject: true,
+      message: `${approvedReasons.length} بند تایید و ${
+        rejectedReasons.length
+      } بند رد شده است${
+        reasonsNotRequiringApproval.length > 0
+          ? ` و ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`
+          : ""
+      }`,
+    };
   };
 
   // تایید/رد مشمولیت
   const handleEligibilityDecision = async (action, comment = "") => {
     if (!selectedRequest) return;
 
-    // نمایش پیام‌های هشدار در صورت وجود
-    const buttonsState = getEligibilityButtonsState(selectedRequest);
+    // بررسی وضعیت دکمه‌ها قبل از ارسال درخواست
+    const buttonState = getEligibilityButtonsState(selectedRequest);
 
-    if (action === "approve" && buttonsState.approvalWarning) {
-      toast.warning(buttonsState.approvalWarning);
+    // اگر تمام بندهای نیازمند تایید رد شده و می‌خواهد تایید کند (بدون بند غیرنیازمند)
+    if (action === "approve" && buttonState.allRejected) {
+      toast.error(
+        "امکان تایید مشمولیت وجود ندارد زیرا تمام بندهای نیازمند تایید رد شده‌اند"
+      );
+      return;
     }
 
-    if (action === "reject" && buttonsState.rejectionWarning) {
-      toast.warning(buttonsState.rejectionWarning);
+    // اگر تمام بندهای نیازمند تایید تایید شده و می‌خواهد رد کند (بدون بند غیرنیازمند)
+    if (action === "reject" && buttonState.allApproved) {
+      toast.error(
+        "امکان رد مشمولیت وجود ندارد زیرا تمام بندهای نیازمند تایید تایید شده‌اند"
+      );
+      return;
+    }
+
+    // هشدارهای اضافی برای حالات خاص
+    if (
+      action === "approve" &&
+      buttonState.allRequiredRejectedButHasNonRequired
+    ) {
+      toast(
+        "توجه: تمام بندهای نیازمند تایید رد شده‌اند، اما تایید مشمولیت بر اساس بندهای غیرنیازمند انجام می‌شود",
+        {
+          icon: "⚠️",
+          style: {
+            borderLeft: "4px solid #f59e0b",
+            backgroundColor: "#fef3c7",
+            color: "#92400e",
+          },
+        }
+      );
+    }
+
+    if (
+      action === "reject" &&
+      buttonState.allRequiredApprovedButHasNonRequired
+    ) {
+      toast(
+        "توجه: تمام بندهای نیازمند تایید تایید شده‌اند، اما رد مشمولیت بر اساس بندهای غیرنیازمند انجام می‌شود",
+        {
+          icon: "⚠️",
+          style: {
+            borderLeft: "4px solid #f59e0b",
+            backgroundColor: "#fef3c7",
+            color: "#92400e",
+          },
+        }
+      );
+    }
+
+    if (buttonState.hasPendingButAllowDecision) {
+      toast(
+        "توجه: برخی بندها هنوز بررسی نشده‌اند، اما تصمیم‌گیری بر اساس بندهای غیرنیازمند انجام می‌شود",
+        {
+          icon: "ℹ️",
+          style: {
+            borderLeft: "4px solid #3b82f6",
+            backgroundColor: "#dbeafe",
+            color: "#1e40af",
+          },
+        }
+      );
     }
 
     try {
@@ -1230,7 +1244,7 @@ export default function DocumentReviewPage() {
       under_review: "در حال بررسی",
 
       // وضعیت‌های کاربر
-      user_no_action: "در انتظار اقدام کاربر",
+      user_no_action: "عدم اقدام کاربر",
       awaiting_user_approval: "در انتظار تایید کاربر",
       user_approval: "تایید کاربر",
 
@@ -1240,11 +1254,11 @@ export default function DocumentReviewPage() {
       exception_eligibility_rejection: "رد مشمولیت استثنا",
 
       // وضعیت‌های نظر مبدا
-      source_approval: "تایید مبدا",
-      source_rejection: "رد مبدا",
+      source_approval: "موافقت مبدا",
+      source_rejection: "مخالفت مبدا",
 
       // وضعیت‌های استان
-      province_review: "در حال بررسی توسط استان",
+      province_review: "در حال بررسی استان",
       province_approval: "تایید استان",
       province_rejection: "رد استان",
 
@@ -1262,30 +1276,6 @@ export default function DocumentReviewPage() {
     };
 
     return statusMap[status] || status;
-  };
-
-  // بررسی محدودیت سنوات برای یک دلیل
-  const checkYearsLimit = (reason, userEffectiveYears) => {
-    const populatedReason = reason?.reasonId;
-
-    if (
-      !populatedReason ||
-      !populatedReason.hasYearsLimit ||
-      !populatedReason.yearsLimit
-    ) {
-      return { hasWarning: false };
-    }
-
-    if (userEffectiveYears < populatedReason.yearsLimit) {
-      return {
-        hasWarning: true,
-        userYears: userEffectiveYears,
-        requiredYears: populatedReason.yearsLimit,
-        message: `برای این بند حداقل ${populatedReason.yearsLimit} سال سنوات لازم است، اما پرسنل ${userEffectiveYears} سال سنوات دارد.`,
-      };
-    }
-
-    return { hasWarning: false };
   };
 
   useEffect(() => {
@@ -1337,38 +1327,21 @@ export default function DocumentReviewPage() {
           </div>
 
           {/* کاشی‌های وضعیت */}
-          <div className="bg-gray-50 border-b border-gray-200">
-            <div
-              className="p-6 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => setShowStatCards(!showStatCards)}
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-800">
-                  آمار وضعیت درخواست‌ها
-                </h2>
-                <div className="flex items-center text-gray-600">
-                  {showStatCards ? (
-                    <FaChevronUp className="h-5 w-5" />
-                  ) : (
-                    <FaChevronDown className="h-5 w-5" />
-                  )}
-                </div>
-              </div>
-            </div>
+          <div className="p-6 bg-gray-50 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              آمار وضعیت درخواست‌ها
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {statusOptions.map((status) => {
+                const IconComponent = status.icon;
+                const count = statusCounts[status.value] || 0;
+                const isActive = statusFilter === status.value;
 
-            {showStatCards && (
-              <div className="px-6 pb-6">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                  {statusOptions.map((status) => {
-                    const IconComponent = status.icon;
-                    const count = statusCounts[status.value] || 0;
-                    const isActive = statusFilter === status.value;
-
-                    return (
-                      <div
-                        key={status.value}
-                        onClick={() => setStatusFilter(status.value)}
-                        className={`
+                return (
+                  <div
+                    key={status.value}
+                    onClick={() => setStatusFilter(status.value)}
+                    className={`
                       cursor-pointer rounded-xl border-2 transition-all duration-200 transform hover:scale-105
                       ${
                         isActive
@@ -1376,38 +1349,36 @@ export default function DocumentReviewPage() {
                           : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                       }
                     `}
-                      >
-                        <div className="p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <div
-                              className={`p-2 rounded-lg ${status.color} text-white`}
-                            >
-                              <IconComponent className="h-4 w-4" />
-                            </div>
-                            <span
-                              className={`text-2xl font-bold ${
-                                isActive ? "text-blue-600" : "text-gray-700"
-                              }`}
-                            >
-                              {count}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <p
-                              className={`text-sm font-medium ${
-                                isActive ? "text-blue-700" : "text-gray-600"
-                              }`}
-                            >
-                              {status.label}
-                            </p>
-                          </div>
+                  >
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div
+                          className={`p-2 rounded-lg ${status.color} text-white`}
+                        >
+                          <IconComponent className="h-4 w-4" />
                         </div>
+                        <span
+                          className={`text-2xl font-bold ${
+                            isActive ? "text-blue-600" : "text-gray-700"
+                          }`}
+                        >
+                          {count}
+                        </span>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                      <div className="text-right">
+                        <p
+                          className={`text-sm font-medium ${
+                            isActive ? "text-blue-700" : "text-gray-600"
+                          }`}
+                        >
+                          {status.label}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Filters */}
@@ -1511,10 +1482,10 @@ export default function DocumentReviewPage() {
                       تاریخ درخواست
                     </th>
                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      آخرین بروزرسانی
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       وضعیت بررسی
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      آخرین بروزرسانی
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       پیام‌ها
@@ -1547,7 +1518,7 @@ export default function DocumentReviewPage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="text-sm text-gray-900">
-                          {request.selectedReasons?.length || 0} بند انتخابی
+                          {request.selectedReasons?.length || 0} دلیل انتخابی
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
                           {request.selectedReasons
@@ -1604,28 +1575,6 @@ export default function DocumentReviewPage() {
                           </div>
                         </div>
                       </td>
-
-                      {/* ستون آخرین بروزرسانی */}
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                        <div className="space-y-1">
-                          <div>
-                            {new Date(request.updatedAt).toLocaleDateString(
-                              "fa-IR"
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {new Date(request.updatedAt).toLocaleTimeString(
-                              "fa-IR",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                second: "2-digit",
-                              }
-                            )}
-                          </div>
-                        </div>
-                      </td>
-
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${getStatusColor(
@@ -1641,6 +1590,17 @@ export default function DocumentReviewPage() {
                         </span>
                       </td>
 
+                      {/* ستون آخرین بروزرسانی */}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="text-xs text-gray-600">
+                          {request.updatedAt
+                            ? new Date(request.updatedAt).toLocaleDateString(
+                                "fa-IR"
+                              )
+                            : "---"}
+                        </div>
+                      </td>
+
                       {/* ستون پیام‌ها */}
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <ChatButton
@@ -1653,25 +1613,6 @@ export default function DocumentReviewPage() {
                                 !msg.isRead &&
                                 msg.senderRole === "transferApplicant"
                             );
-                            console.log(
-                              "ChatButton unread count for request",
-                              request._id,
-                              ":",
-                              unreadMessages.length
-                            );
-                            console.log(
-                              "Total messages:",
-                              request.chatMessages?.length || 0
-                            );
-                            console.log("Messages details:");
-                            request.chatMessages?.forEach((msg, index) => {
-                              console.log(`Message ${index + 1}:`, {
-                                senderRole: msg.senderRole,
-                                isRead: msg.isRead,
-                                message: msg.message?.substring(0, 50) + "...",
-                                sentAt: msg.sentAt,
-                              });
-                            });
                             return unreadMessages.length;
                           })()}
                           chatStatus={request.chatStatus || "open"}
@@ -2016,17 +1957,17 @@ export default function DocumentReviewPage() {
 
                                 {/* دسته‌بندی دلیل */}
                                 {populatedReason?.category && (
-                                  <p className="text-xs text-indigo-600 mb-1">
+                                  <p className="text-xs text-indigo-600 mb-2">
                                     🗂️ دسته‌بندی: {populatedReason.category}
                                   </p>
                                 )}
 
                                 {/* کد دلیل */}
-                                {fullReasonCode && (
+                                {/* {fullReasonCode && (
                                   <p className="text-xs text-gray-500 mb-1">
                                     🏷️ کد بند: {fullReasonCode}
                                   </p>
-                                )}
+                                )} */}
 
                                 {/* توضیحات دلیل */}
                                 {reasonDescription && (
@@ -2072,7 +2013,7 @@ export default function DocumentReviewPage() {
                                           <>
                                             <div className="h-2 w-2 bg-purple-500 rounded-full"></div>
                                             <span className="text-xs text-purple-700">
-                                              نیاز به مدرک
+                                              نیاز به بارگذاری مدرک
                                             </span>
                                           </>
                                         ) : (
@@ -2103,65 +2044,41 @@ export default function DocumentReviewPage() {
                                           </>
                                         )}
                                       </div>
+
+                                      {/* بررسی سنوات */}
+                                      {populatedReason?.yearsLimit && (
+                                        <div className="flex items-center gap-2 col-span-2">
+                                          {(selectedRequest?.effectiveYears ||
+                                            0) < populatedReason.yearsLimit ? (
+                                            <>
+                                              <div className="h-2 w-2 bg-red-500 rounded-full"></div>
+                                              <span className="text-xs text-red-700">
+                                                هشدار: سنوات ناکافی برای مشمولیت
+                                                این بند (سنوات پرسنل:{" "}
+                                                {selectedRequest?.effectiveYears ||
+                                                  0}{" "}
+                                                سال، حداقل مورد نیاز:{" "}
+                                                {populatedReason.yearsLimit}{" "}
+                                                سال)
+                                              </span>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                                              <span className="text-xs text-green-700">
+                                                سنوات کافی برای مشمولیت این بند
+                                                (سنوات پرسنل:{" "}
+                                                {selectedRequest?.effectiveYears ||
+                                                  0}{" "}
+                                                سال، حداقل مورد نیاز:{" "}
+                                                {populatedReason.yearsLimit}{" "}
+                                                سال)
+                                              </span>
+                                            </>
+                                          )}
+                                        </div>
+                                      )}
                                     </div>
-
-                                    {/* بررسی محدودیت سنوات */}
-                                    {(() => {
-                                      const userYears =
-                                        selectedRequest?.transferSpec
-                                          ?.effectiveYears;
-
-                                      if (
-                                        userYears !== undefined &&
-                                        userYears !== null
-                                      ) {
-                                        const yearsCheck = checkYearsLimit(
-                                          reason,
-                                          userYears
-                                        );
-
-                                        if (yearsCheck.hasWarning) {
-                                          return (
-                                            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3">
-                                              <div className="flex items-start gap-2">
-                                                <FaExclamationTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                                                <div className="flex-1">
-                                                  <h6 className="text-xs font-medium text-red-700 mb-1">
-                                                    ⚠️ هشدار محدودیت سنوات:
-                                                  </h6>
-                                                  <p className="text-sm text-red-800 leading-relaxed">
-                                                    {yearsCheck.message}
-                                                  </p>
-                                                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                                                    <div className="bg-red-100 rounded px-2 py-1">
-                                                      <span className="text-red-700 font-medium">
-                                                        سنوات پرسنل:{" "}
-                                                      </span>
-                                                      <span className="text-red-800">
-                                                        {yearsCheck.userYears}{" "}
-                                                        سال
-                                                      </span>
-                                                    </div>
-                                                    <div className="bg-red-100 rounded px-2 py-1">
-                                                      <span className="text-red-700 font-medium">
-                                                        حداقل مورد نیاز:{" "}
-                                                      </span>
-                                                      <span className="text-red-800">
-                                                        {
-                                                          yearsCheck.requiredYears
-                                                        }{" "}
-                                                        سال
-                                                      </span>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          );
-                                        }
-                                      }
-                                      return null;
-                                    })()}
                                   </div>
                                 </div>
                               </div>
@@ -2333,7 +2250,7 @@ export default function DocumentReviewPage() {
                                         {hasDecision && (
                                           <div className="bg-white rounded p-3 border border-pink-200">
                                             <label className="text-xs font-medium text-pink-700 block mb-1">
-                                              تصمیم منطقه خدمت همسر:
+                                              بررسی منطقه خدمت همسر:
                                             </label>
                                             <span
                                               className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
@@ -2381,51 +2298,53 @@ export default function DocumentReviewPage() {
                                 مستندات بارگذاری شده ({reasonDocuments.length})
                               </h6>
                               <div className="space-y-2">
-                                {reasonDocuments.map((doc, docIndex) => (
-                                  <div
-                                    key={docIndex}
-                                    className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <FaFileAlt className="h-3 w-3 text-blue-500" />
-                                      <span className="text-gray-700">
-                                        {doc.originalName || doc.fileName}
-                                      </span>
-                                      {doc.uploadedAt && (
-                                        <span className="text-xs text-gray-500">
-                                          (
-                                          {new Date(
-                                            doc.uploadedAt
-                                          ).toLocaleDateString("fa-IR")}
-                                          )
-                                        </span>
-                                      )}
-                                    </div>
-                                    <a
-                                      href={`/api/transfer-applicant/download-document/${doc.fileName}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                                {reasonDocuments
+                                  .filter((doc) => doc) // فقط نمایش مستندات موجود
+                                  .map((doc, docIndex) => (
+                                    <div
+                                      key={docIndex}
+                                      className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm"
                                     >
-                                      <FaDownload className="h-3 w-3" />
-                                      دانلود
-                                    </a>
-                                  </div>
-                                ))}
+                                      <div className="flex items-center gap-2">
+                                        <FaFileAlt className="h-3 w-3 text-blue-500" />
+                                        <span className="text-gray-700">
+                                          {doc.originalName || doc.fileName}
+                                        </span>
+                                        {doc.uploadedAt && (
+                                          <span className="text-xs text-gray-500">
+                                            (
+                                            {new Date(
+                                              doc.uploadedAt
+                                            ).toLocaleDateString("fa-IR")}
+                                            )
+                                          </span>
+                                        )}
+                                      </div>
+                                      <a
+                                        href={`/api/transfer-applicant/download-document/${doc.fileName}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                                      >
+                                        <FaDownload className="h-3 w-3" />
+                                        دانلود
+                                      </a>
+                                    </div>
+                                  ))}
                               </div>
                             </div>
                           )}
 
-                          {/* در صورت عدم وجود مستندات - فقط اگر نیاز به مدرک باشد */}
+                          {/* در صورت عدم وجود مستندات و نیاز به مدرک */}
                           {(!reasonDocuments || reasonDocuments.length === 0) &&
                             populatedReason?.requiresDocumentUpload && (
                               <div className="mb-3 p-3 rounded bg-yellow-50 border border-yellow-200">
                                 <p className="text-sm flex items-center gap-1 text-yellow-700">
                                   <FaExclamationTriangle className="h-3 w-3" />
-                                  هیچ مدرکی برای این بند بارگذاری نشده است
+                                  هیچ مدرکی برای این دلیل بارگذاری نشده است
                                 </p>
                                 <p className="text-xs text-yellow-600 mt-1">
-                                  برای این بند باید حداقل یک مدرک بارگذاری شود
+                                  برای این دلیل باید حداقل یک مدرک بارگذاری شود
                                 </p>
                               </div>
                             )}
@@ -2440,7 +2359,7 @@ export default function DocumentReviewPage() {
                                 </label>
                               </div>
                               <textarea
-                                placeholder="نظر، توضیحات یا دلیل تصمیم خود را برای این بند وارد کنید..."
+                                placeholder="نظر، توضیحات یا دلیل تصمیم خود را برای این دلیل وارد کنید..."
                                 className="w-full px-3 py-2 border border-indigo-300 rounded text-sm resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                                 rows={3}
                                 value={reviewData[`${reasonKey}_comment`] || ""}
@@ -2566,8 +2485,7 @@ export default function DocumentReviewPage() {
                             <div className="flex items-center gap-2">
                               <FaInfoCircle className="h-4 w-4 text-yellow-600" />
                               <span className="text-sm text-yellow-800">
-                                💡 همه دلایل نیاز به تایید کارشناس دارند -
-                                دکمه‌های مشمولیت فعال نیست
+                                {buttonsState.message}
                               </span>
                             </div>
                           </div>
@@ -2575,58 +2493,14 @@ export default function DocumentReviewPage() {
                       }
 
                       return (
-                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                           <div className="mb-3">
-                            <h4 className="text-sm font-medium text-orange-800 mb-1">
+                            <h4 className="text-sm font-medium text-blue-800 mb-1">
                               🎯 تصمیم‌گیری نهایی مشمولیت استثنا
                             </h4>
-                            {buttonsState.warning ? (
-                              <div className="bg-red-50 border border-red-200 rounded p-2 mb-2">
-                                <div className="flex items-center gap-2">
-                                  <FaExclamationTriangle className="h-3 w-3 text-red-600" />
-                                  <span className="text-xs text-red-700 font-medium">
-                                    {buttonsState.warning}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-red-600 mt-1">
-                                  برای فعال شدن دکمه‌های مشمولیت، ابتدا باید
-                                  برای تمام بندهای نیازمند، تصمیم کارشناسی
-                                  بگیرید.
-                                </p>
-                              </div>
-                            ) : (
-                              <>
-                                <p className="text-xs text-orange-700">
-                                  {buttonsState.reasonsNotRequiringApproval} از{" "}
-                                  {buttonsState.totalReasons} بند نیاز به تایید
-                                  کارشناس ندارد
-                                </p>
-
-                                {/* هشدار برای حالت همه بندها رد شده */}
-                                {buttonsState.approvalWarning && (
-                                  <div className="bg-red-50 border border-red-200 rounded p-2 mt-2">
-                                    <div className="flex items-center gap-2">
-                                      <FaExclamationTriangle className="h-3 w-3 text-red-600" />
-                                      <span className="text-xs text-red-700 font-medium">
-                                        {buttonsState.approvalWarning}
-                                      </span>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* هشدار برای حالت همه بندها تایید شده */}
-                                {buttonsState.rejectionWarning && (
-                                  <div className="bg-blue-50 border border-blue-200 rounded p-2 mt-2">
-                                    <div className="flex items-center gap-2">
-                                      <FaInfoCircle className="h-3 w-3 text-blue-600" />
-                                      <span className="text-xs text-blue-700 font-medium">
-                                        {buttonsState.rejectionWarning}
-                                      </span>
-                                    </div>
-                                  </div>
-                                )}
-                              </>
-                            )}
+                            <p className="text-xs text-blue-700">
+                              {buttonsState.message}
+                            </p>
                           </div>
 
                           <div className="flex gap-3">
@@ -2635,9 +2509,15 @@ export default function DocumentReviewPage() {
                                 handleEligibilityDecision("approve")
                               }
                               disabled={
-                                approvingEligibility || rejectingEligibility
+                                approvingEligibility ||
+                                rejectingEligibility ||
+                                !buttonsState.canApprove
                               }
-                              className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm"
+                              className={`${
+                                buttonsState.canApprove
+                                  ? "bg-green-600 hover:bg-green-700"
+                                  : "bg-gray-400 cursor-not-allowed"
+                              } disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm`}
                             >
                               {approvingEligibility ? (
                                 <>
@@ -2657,9 +2537,15 @@ export default function DocumentReviewPage() {
                                 handleEligibilityDecision("reject")
                               }
                               disabled={
-                                approvingEligibility || rejectingEligibility
+                                approvingEligibility ||
+                                rejectingEligibility ||
+                                !buttonsState.canReject
                               }
-                              className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm"
+                              className={`${
+                                buttonsState.canReject
+                                  ? "bg-red-600 hover:bg-red-700"
+                                  : "bg-gray-400 cursor-not-allowed"
+                              } disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm`}
                             >
                               {rejectingEligibility ? (
                                 <>

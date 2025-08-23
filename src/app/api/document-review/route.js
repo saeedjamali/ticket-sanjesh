@@ -147,7 +147,7 @@ export async function GET(request) {
       if (req.personnelCode) {
         transferApplicantSpec = await TransferApplicantSpec.findOne({
           personnelCode: req.personnelCode,
-        }).select("currentRequestStatus currentWorkPlaceCode");
+        }).select("currentRequestStatus currentWorkPlaceCode effectiveYears");
 
         console.log(
           "document-review API - TransferSpec found:",
@@ -210,6 +210,7 @@ export async function GET(request) {
             req.uploadedDocuments || new Map()
           ),
           currentRequestStatus, // اضافه کردن وضعیت فعلی
+          effectiveYears: transferApplicantSpec?.effectiveYears || null, // اضافه کردن سنوات
           createdAt: req.createdAt.toISOString(),
           updatedAt: req.updatedAt.toISOString(),
         });

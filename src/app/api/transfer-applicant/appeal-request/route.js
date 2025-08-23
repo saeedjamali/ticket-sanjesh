@@ -319,6 +319,7 @@ export async function GET(request) {
       userId: userAuth.id,
     })
       .populate("selectedReasons.reasonId", "title reasonTitle description")
+      .populate("chatMessages.senderId", "firstName lastName")
       .sort({ createdAt: -1 });
 
     return NextResponse.json({
@@ -340,6 +341,8 @@ export async function GET(request) {
         ),
         culturalCoupleInfo: request.culturalCoupleInfo,
         yearsWarnings: request.yearsWarnings,
+        chatMessages: request.chatMessages || [],
+        chatStatus: request.chatStatus || "open",
         createdAt: request.createdAt,
         submittedAt: request.submittedAt,
         notes: request.notes,

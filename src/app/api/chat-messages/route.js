@@ -3,6 +3,7 @@ import connectDB from "@/lib/db";
 import AppealRequest from "@/models/AppealRequest";
 import TransferApplicantSpec from "@/models/TransferApplicantSpec";
 import District from "@/models/District";
+import Province from "@/models/Province";
 import { authService } from "@/lib/auth/authService";
 import { ROLES } from "@/lib/permissions";
 
@@ -136,6 +137,41 @@ export async function GET(request) {
           appealRequest.districtCode,
           "vs",
           userDistrictCode
+        );
+      }
+    } else if (userAuth.role === ROLES.PROVINCE_TRANSFER_EXPERT) {
+      // کارشناس استان: مقایسه provinceCode درخواست با province کارشناس
+      console.log("GET /api/chat-messages - Checking province expert access");
+      console.log(
+        "GET /api/chat-messages - appealRequest.provinceCode:",
+        appealRequest.provinceCode
+      );
+
+      // تعیین کد استان کارشناس
+      let userProvinceCode;
+      if (typeof userAuth.province === "object" && userAuth.province?.code) {
+        userProvinceCode = userAuth.province.code;
+      } else if (typeof userAuth.province === "string") {
+        const province = await Province.findById(userAuth.province);
+        userProvinceCode = province?.code;
+      }
+
+      console.log(
+        "GET /api/chat-messages - userProvinceCode resolved:",
+        userProvinceCode
+      );
+
+      if (appealRequest.provinceCode === userProvinceCode) {
+        console.log(
+          "GET /api/chat-messages - Access granted: Province matches"
+        );
+        canAccess = true;
+      } else {
+        console.log(
+          "GET /api/chat-messages - Access denied: Province mismatch",
+          appealRequest.provinceCode,
+          "vs",
+          userProvinceCode
         );
       }
     }
@@ -291,6 +327,19 @@ export async function POST(request) {
       if (appealRequest.districtCode === userDistrictCode) {
         canSend = true;
       }
+    } else if (userAuth.role === ROLES.PROVINCE_TRANSFER_EXPERT) {
+      // کارشناس استان: مقایسه provinceCode درخواست با province کارشناس
+      let userProvinceCode;
+      if (typeof userAuth.province === "object" && userAuth.province?.code) {
+        userProvinceCode = userAuth.province.code;
+      } else if (typeof userAuth.province === "string") {
+        const province = await Province.findById(userAuth.province);
+        userProvinceCode = province?.code;
+      }
+
+      if (appealRequest.provinceCode === userProvinceCode) {
+        canSend = true;
+      }
     }
 
     if (!canSend) {
@@ -372,12 +421,16 @@ export async function PATCH(request) {
       );
     }
 
-    // فقط کارشناس منطقه می‌تواند وضعیت گفتگو را تغییر دهد
-    if (userAuth.role !== ROLES.DISTRICT_TRANSFER_EXPERT) {
+    // فقط کارشناس منطقه یا کارشناس استان می‌تواند وضعیت گفتگو را تغییر دهد
+    if (
+      userAuth.role !== ROLES.DISTRICT_TRANSFER_EXPERT &&
+      userAuth.role !== ROLES.PROVINCE_TRANSFER_EXPERT
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: "فقط کارشناس منطقه می‌تواند وضعیت گفتگو را تغییر دهد",
+          error:
+            "فقط کارشناس منطقه یا کارشناس استان می‌تواند وضعیت گفتگو را تغییر دهد",
         },
         { status: 403 }
       );
@@ -404,20 +457,42 @@ export async function PATCH(request) {
       );
     }
 
-    // بررسی دسترسی بر اساس districtCode درخواست
-    let userDistrictCode;
-    if (typeof userAuth.district === "object" && userAuth.district?.code) {
-      userDistrictCode = userAuth.district.code;
-    } else if (typeof userAuth.district === "string") {
-      const district = await District.findById(userAuth.district);
-      userDistrictCode = district?.code;
+    // بررسی دسترسی بر اساس منطقه یا استان
+    let hasAccess = false;
+
+    if (userAuth.role === ROLES.DISTRICT_TRANSFER_EXPERT) {
+      // کارشناس منطقه: بررسی districtCode
+      let userDistrictCode;
+      if (typeof userAuth.district === "object" && userAuth.district?.code) {
+        userDistrictCode = userAuth.district.code;
+      } else if (typeof userAuth.district === "string") {
+        const district = await District.findById(userAuth.district);
+        userDistrictCode = district?.code;
+      }
+
+      if (appealRequest.districtCode === userDistrictCode) {
+        hasAccess = true;
+      }
+    } else if (userAuth.role === ROLES.PROVINCE_TRANSFER_EXPERT) {
+      // کارشناس استان: بررسی provinceCode
+      let userProvinceCode;
+      if (typeof userAuth.province === "object" && userAuth.province?.code) {
+        userProvinceCode = userAuth.province.code;
+      } else if (typeof userAuth.province === "string") {
+        const province = await Province.findById(userAuth.province);
+        userProvinceCode = province?.code;
+      }
+
+      if (appealRequest.provinceCode === userProvinceCode) {
+        hasAccess = true;
+      }
     }
 
-    if (appealRequest.districtCode !== userDistrictCode) {
+    if (!hasAccess) {
       return NextResponse.json(
         {
           success: false,
-          error: "عدم دسترسی - این درخواست متعلق به منطقه شما نیست",
+          error: "عدم دسترسی - این درخواست متعلق به منطقه/استان شما نیست",
         },
         { status: 403 }
       );

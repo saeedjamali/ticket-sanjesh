@@ -28,9 +28,9 @@ export async function DELETE(request, { params }) {
     const { id } = params;
 
     // بررسی وجود درخواست
-    const request = await ProfileCorrectionRequest.findById(id);
+    const correctionRequest = await ProfileCorrectionRequest.findById(id);
 
-    if (!request) {
+    if (!correctionRequest) {
       return NextResponse.json(
         { success: false, error: "درخواست یافت نشد" },
         { status: 404 }
@@ -38,7 +38,7 @@ export async function DELETE(request, { params }) {
     }
 
     // بررسی مالکیت درخواست
-    if (request.userId.toString() !== userAuth.id) {
+    if (correctionRequest.userId.toString() !== userAuth.id) {
       return NextResponse.json(
         { success: false, error: "عدم دسترسی به این درخواست" },
         { status: 403 }
@@ -46,7 +46,7 @@ export async function DELETE(request, { params }) {
     }
 
     // فقط درخواست‌های با وضعیت pending قابل حذف هستند
-    if (request.status !== "pending") {
+    if (correctionRequest.status !== "pending") {
       return NextResponse.json(
         { success: false, error: "فقط درخواست‌های در انتظار قابل حذف هستند" },
         { status: 400 }
@@ -74,4 +74,3 @@ export async function DELETE(request, { params }) {
     );
   }
 }
-

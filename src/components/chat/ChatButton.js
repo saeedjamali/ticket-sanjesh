@@ -12,6 +12,7 @@ import {
   FaLockOpen,
   FaLock,
   FaCircle,
+  FaDownload,
 } from "react-icons/fa";
 
 export default function ChatButton({
@@ -190,6 +191,48 @@ export default function ChatButton({
     }
   };
 
+  // دانلود تصویر
+  const downloadImage = (imageSrc, messageId) => {
+    try {
+      // اگر تصویر به صورت base64 است
+      if (imageSrc.startsWith("data:")) {
+        const link = document.createElement("a");
+        link.href = imageSrc;
+        const fileExtension = imageSrc.split(",")[0].includes("jpeg")
+          ? "jpg"
+          : "png";
+        link.download = `chat-image-${
+          messageId || Date.now()
+        }.${fileExtension}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success("تصویر دانلود شد");
+      } else {
+        // اگر تصویر از سرور است (URL)
+        fetch(imageSrc)
+          .then((response) => response.blob())
+          .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `chat-image-${messageId || Date.now()}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            toast.success("تصویر دانلود شد");
+          })
+          .catch(() => {
+            toast.error("خطا در دانلود تصویر");
+          });
+      }
+    } catch (error) {
+      console.error("خطا در دانلود تصویر:", error);
+      toast.error("خطا در دانلود تصویر");
+    }
+  };
+
   // فرمت کردن زمان
   const formatTime = (date) => {
     return new Date(date).toLocaleString("fa-IR", {
@@ -316,11 +359,25 @@ export default function ChatButton({
 
                       {/* تصویر */}
                       {msg.image && (
-                        <img
-                          src={msg.image}
-                          alt="تصویر پیام"
-                          className="w-full rounded mb-2 max-h-32 object-cover"
-                        />
+                        <div className="relative mb-2">
+                          <img
+                            src={msg.image}
+                            alt="تصویر پیام"
+                            className="w-full rounded max-h-32 object-cover cursor-pointer"
+                            onClick={() =>
+                              downloadImage(msg.image, msg.messageId)
+                            }
+                          />
+                          <button
+                            onClick={() =>
+                              downloadImage(msg.image, msg.messageId)
+                            }
+                            className="absolute top-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-1 rounded-full text-xs transition-all"
+                            title="دانلود تصویر"
+                          >
+                            <FaDownload className="w-3 h-3" />
+                          </button>
+                        </div>
                       )}
 
                       {/* متن پیام */}

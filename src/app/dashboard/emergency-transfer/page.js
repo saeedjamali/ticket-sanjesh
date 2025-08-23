@@ -37,7 +37,7 @@ import ChatBox from "@/components/chat/ChatBox";
 function ReadOnlyRequestView({ userSpecs, onBack }) {
   const [requestDetails, setRequestDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(true);
-  const [showWorkflowHistory, setShowWorkflowHistory] = useState(true);
+  const [showWorkflowHistory, setShowWorkflowHistory] = useState(false);
 
   // تابع تعیین مراحل workflow بر اساس وضعیت فعلی
   const getWorkflowSteps = (currentStatus) => {
@@ -278,6 +278,7 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       final_submission: "ارسال نهایی درخواست",
       user_created: "ایجاد کاربر",
       bulk_upload: "بارگذاری دسته‌ای",
+      profile_correction_request: "درخواست اصلاح مشخصات",
     };
     return actionMap[actionType] || actionType;
   };
@@ -1065,54 +1066,56 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                                   <div className="space-y-2">
                                     {requestDetails.appealRequest.uploadedDocuments[
                                       reason.reasonId._id
-                                    ].map((doc, docIndex) => (
-                                      <div
-                                        key={docIndex}
-                                        className="bg-blue-50 border border-blue-200 rounded-lg p-3"
-                                      >
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center gap-2 flex-1">
-                                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                            <span className="text-sm font-medium text-blue-700">
-                                              مدرک {docIndex + 1}:{" "}
-                                              {doc.originalName}
-                                            </span>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-xs text-blue-600">
-                                              {new Date(
-                                                doc.uploadedAt
-                                              ).toLocaleDateString("fa-IR")}
-                                            </span>
-                                            <button
-                                              onClick={() =>
-                                                handleDownloadDocument(
-                                                  doc.fileName,
-                                                  doc.originalName
-                                                )
-                                              }
-                                              className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors"
-                                              title="دانلود فایل"
-                                            >
-                                              <svg
-                                                className="w-3 h-3"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
+                                    ]
+                                      .filter((doc) => doc) // فقط نمایش مدارک موجود
+                                      .map((doc, docIndex) => (
+                                        <div
+                                          key={docIndex}
+                                          className="bg-blue-50 border border-blue-200 rounded-lg p-3"
+                                        >
+                                          <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 flex-1">
+                                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                              <span className="text-sm font-medium text-blue-700">
+                                                مدرک {docIndex + 1}:{" "}
+                                                {doc.originalName}
+                                              </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-xs text-blue-600">
+                                                {new Date(
+                                                  doc.uploadedAt
+                                                ).toLocaleDateString("fa-IR")}
+                                              </span>
+                                              <button
+                                                onClick={() =>
+                                                  handleDownloadDocument(
+                                                    doc.fileName,
+                                                    doc.originalName
+                                                  )
+                                                }
+                                                className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors"
+                                                title="دانلود فایل"
                                               >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={2}
-                                                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                                />
-                                              </svg>
-                                              دانلود
-                                            </button>
+                                                <svg
+                                                  className="w-3 h-3"
+                                                  fill="none"
+                                                  stroke="currentColor"
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                                                  />
+                                                </svg>
+                                                دانلود
+                                              </button>
+                                            </div>
                                           </div>
                                         </div>
-                                      </div>
-                                    ))}
+                                      ))}
                                   </div>
                                 </div>
                               )}
@@ -3997,7 +4000,7 @@ export default function EmergencyTransferPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          سنوات مؤثر
+                          سنوات مؤثر(تا تاریخ 14040631)
                         </label>
                         <div className="bg-white p-3 rounded-lg border border-gray-300 text-gray-900">
                           {userSpecs.effectiveYears}
