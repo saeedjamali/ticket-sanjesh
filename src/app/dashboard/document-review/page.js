@@ -58,8 +58,8 @@ export default function DocumentReviewPage() {
   const getStatusCounts = () => {
     const counts = {
       all: appealRequests.length,
-      pending: 0,
-      in_review: 0,
+      awaiting_user_approval: 0,
+      user_approval: 0,
       source_review: 0,
       exception_eligibility_approval: 0,
       exception_eligibility_rejection: 0,
@@ -70,7 +70,7 @@ export default function DocumentReviewPage() {
     };
 
     appealRequests.forEach((request) => {
-      const status = request.overallReviewStatus || "pending";
+      const status = request.currentRequestStatus || "pending";
       if (counts.hasOwnProperty(status)) {
         counts[status]++;
       }
@@ -90,17 +90,18 @@ export default function DocumentReviewPage() {
       icon: FaFileAlt,
     },
     {
-      value: "pending",
-      label: "در انتظار بررسی",
-      color: "bg-yellow-500",
-      icon: FaClock,
-    },
-    {
-      value: "in_review",
-      label: "در حال بررسی",
+      value: "awaiting_user_approval",
+      label: "در انتظار تایید کاربر",
       color: "bg-blue-500",
       icon: FaEye,
     },
+    {
+      value: "user_approval",
+      label: "تایید کاربر",
+      color: "bg-yellow-500",
+      icon: FaClock,
+    },
+    
     {
       value: "source_review",
       label: "بررسی مبدا",
@@ -880,7 +881,7 @@ export default function DocumentReviewPage() {
         showButtons: false,
         canApprove: false,
         canReject: false,
-        message: "هیچ دلیلی انتخاب نشده است",
+        message: "هیچ بندی انتخاب نشده است",
       };
     }
 
@@ -899,7 +900,7 @@ export default function DocumentReviewPage() {
         showButtons: true,
         canApprove: true,
         canReject: true,
-        message: "تمام دلایل نیاز به تایید کارشناس ندارند",
+        message: "تمام بندها نیاز به تایید کارشناس ندارند",
       };
     }
 
@@ -924,7 +925,7 @@ export default function DocumentReviewPage() {
           showButtons: true,
           canApprove: true,
           canReject: true,
-          message: `${pendingReasons.length} بند هنوز بررسی نشده، اما ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`,
+          message: `${pendingReasons.length} بند هنوز بررسی نشده،  ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`,
           hasPendingButAllowDecision: true,
         };
       }
@@ -1591,15 +1592,26 @@ export default function DocumentReviewPage() {
                       </td>
 
                       {/* ستون آخرین بروزرسانی */}
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <div className="text-xs text-gray-600">
-                          {request.updatedAt
-                            ? new Date(request.updatedAt).toLocaleDateString(
-                                "fa-IR"
-                              )
-                            : "---"}
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                        <div className="space-y-1">
+                          <div>
+                            {new Date(request.updatedAt).toLocaleDateString(
+                              "fa-IR"
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {new Date(request.updatedAt).toLocaleTimeString(
+                              "fa-IR",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit",
+                              }
+                            )}
+                          </div>
                         </div>
                       </td>
+                   
 
                       {/* ستون پیام‌ها */}
                       <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -2001,7 +2013,7 @@ export default function DocumentReviewPage() {
                                           <>
                                             <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
                                             <span className="text-xs text-gray-600">
-                                              بدون نیاز به تایید
+                                               کارشناس بدون نیاز به تایید
                                             </span>
                                           </>
                                         )}

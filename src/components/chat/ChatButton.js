@@ -87,9 +87,9 @@ export default function ChatButton({
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        // 5MB
-        toast.error("حجم فایل نباید بیش از 5 مگابایت باشد");
+      if (file.size > 1 * 1024 * 1024) {
+        // 1MB
+        toast.error("حجم فایل نباید بیش از 1 مگابایت باشد");
         return;
       }
 
@@ -429,6 +429,7 @@ export default function ChatButton({
                   onClick={() => fileInputRef.current?.click()}
                   className="bg-gray-200 hover:bg-gray-300 text-gray-600 p-2 rounded-lg transition-colors"
                   disabled={loading}
+                  title="افزودن تصویر (حداکثر 1MB)"
                 >
                   <FaImage className="h-4 w-4" />
                 </button>

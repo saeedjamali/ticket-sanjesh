@@ -91,6 +91,10 @@ export async function GET(request) {
           value: "exception_eligibility_approval",
           label: "تایید مشمولیت استثنا",
         },
+        {
+          value: "exception_eligibility_rejection",
+          label: "رد مشمولیت استثنا",
+        },
         { value: "source_approval", label: "تایید مبدا" },
         { value: "source_rejection", label: "رد مبدا" },
         { value: "province_review", label: "در حال بررسی توسط استان" },

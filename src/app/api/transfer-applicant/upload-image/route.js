@@ -41,11 +41,11 @@ export async function POST(request) {
       );
     }
 
-    // بررسی اندازه فایل (حداکثر 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // بررسی اندازه فایل (حداکثر 1MB)
+    const maxSize = 1 * 1024 * 1024; // 1MB
     if (file.size > maxSize) {
       return NextResponse.json(
-        { success: false, message: "حجم فایل نباید بیشتر از 5 مگابایت باشد" },
+        { success: false, message: "حجم فایل نباید بیشتر از 1 مگابایت باشد" },
         { status: 400 }
       );
     }

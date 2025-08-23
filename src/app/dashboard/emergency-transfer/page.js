@@ -646,6 +646,24 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
           </div>
         </div>
 
+        {/* راهنمای کاربری */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="bg-green-500 text-white p-2 rounded-lg flex-shrink-0">
+              <FaInfoCircle className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-green-800 mb-2">راهنمای مهم</h3>
+              <p className="text-green-700 text-sm leading-relaxed">
+                همکاران محترم از مراجعه حضوری به ادارات خودداری کرده و از طریق
+                همین صفحه درخواست خود را پیگیری نمایید. تمامی مراحل ثبت درخواست،
+                بررسی مستندات و گفتگو با کارشناسان به صورت آنلاین امکان‌پذیر
+                است.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Progress Bar خلاصه */}
         {userSpecs?.currentRequestStatus &&
           userSpecs.currentRequestStatus !== "user_no_action" &&
@@ -658,13 +676,6 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                     وضعیت:{" "}
                     {getStatusDisplayName(userSpecs.currentRequestStatus)}
                   </span>
-                  {/* دکمه گفتگو با کارشناس */}
-                  {requestDetails?.appealRequest?._id && (
-                    <ChatBox
-                      appealRequestId={requestDetails.appealRequest._id}
-                      userRole="transferApplicant"
-                    />
-                  )}
                 </div>
               </div>
 
@@ -1875,6 +1886,28 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
           )}
         </div>
       </div>
+
+      {/* چت‌باکس شناور */}
+      {(() => {
+        console.log("Chat conditions:", {
+          appealRequestId: requestDetails?.appealRequest?._id,
+          currentStatus: userSpecs?.currentRequestStatus,
+          shouldShow:
+            requestDetails?.appealRequest?._id &&
+            userSpecs?.currentRequestStatus !== "user_no_action" &&
+            userSpecs?.currentRequestStatus !== "awaiting_user_approval",
+        });
+        return (
+          requestDetails?.appealRequest?._id &&
+          userSpecs?.currentRequestStatus !== "user_no_action" &&
+          userSpecs?.currentRequestStatus !== "awaiting_user_approval"
+        );
+      })() && (
+        <ChatBox
+          appealRequestId={requestDetails.appealRequest._id}
+          userRole="transferApplicant"
+        />
+      )}
     </div>
   );
 }
@@ -2269,14 +2302,9 @@ export default function EmergencyTransferPage() {
             transferType: transferTypes[p.priority] || p.transferType,
           })),
           yearsWarnings: yearsWarnings,
-          uploadedDocuments: {
-            ...uploadedDocuments,
-            ...(userCommentsImages.length > 0 && {
-              user_comments: userCommentsImages,
-            }),
-          },
+          uploadedDocuments: uploadedDocuments,
           userComments: userComments.trim() || null,
-          userCommentsImages: userCommentsImages,
+          userCommentsImages: userCommentsImages, // تصاویر توضیحات کاربر
           finalConfirmation: true,
         }),
       });
@@ -2797,12 +2825,7 @@ export default function EmergencyTransferPage() {
 
       const requestData = {
         selectedReasons: Array.from(selectedReasons),
-        uploadedDocuments: {
-          ...uploadedDocuments,
-          ...(userCommentsImages.length > 0 && {
-            user_comments: userCommentsImages,
-          }),
-        },
+        uploadedDocuments: uploadedDocuments,
         culturalCoupleInfo:
           culturalCoupleInfo.personnelCode || culturalCoupleInfo.districtCode
             ? culturalCoupleInfo
@@ -3616,6 +3639,24 @@ export default function EmergencyTransferPage() {
                   <span className="text-sm">احراز شده</span>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* راهنمای کاربری */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <div className="bg-green-500 text-white p-2 rounded-lg flex-shrink-0">
+              <FaInfoCircle className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-green-800 mb-2">راهنمای مهم</h3>
+              <p className="text-green-700 text-sm leading-relaxed">
+                همکاران محترم از مراجعه حضوری به ادارات خودداری کرده و از طریق
+                همین صفحه درخواست خود را پیگیری نمایید. تمامی مراحل ثبت درخواست،
+                بررسی مستندات و گفتگو با کارشناسان به صورت آنلاین امکان‌پذیر
+                است.
+              </p>
             </div>
           </div>
         </div>

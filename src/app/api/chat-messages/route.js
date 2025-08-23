@@ -22,6 +22,7 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
     const appealRequestId = searchParams.get("appealRequestId");
+    const countOnly = searchParams.get("countOnly") === "true";
 
     // Debug: چک کردن تعداد کل AppealRequest ها
     const totalCount = await AppealRequest.countDocuments();
@@ -189,8 +190,8 @@ export async function GET(request) {
       );
     }
 
-    // علامت‌گذاری پیام‌ها به عنوان خوانده شده (فقط پیام‌هایی که برای کاربر فعلی ارسال شده)
-    if (appealRequest.chatMessages.length > 0) {
+    // علامت‌گذاری پیام‌ها به عنوان خوانده شده (فقط اگر countOnly نباشد)
+    if (!countOnly && appealRequest.chatMessages.length > 0) {
       let shouldSave = false;
 
       appealRequest.chatMessages.forEach((msg) => {
@@ -226,6 +227,23 @@ export async function GET(request) {
       if (shouldSave) {
         await appealRequest.save();
         console.log("GET /api/chat-messages - Saved read status updates");
+
+        // مجدداً داده‌ها را از دیتابیس بخوان تا تغییرات isRead اعمال شود
+        const updatedAppealRequest = await AppealRequest.findById(
+          appealRequestId
+        )
+          .populate("chatMessages.senderId", "firstName lastName")
+          .populate("chatAssignedExpert", "firstName lastName");
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            messages: updatedAppealRequest.chatMessages,
+            chatStatus: updatedAppealRequest.chatStatus,
+            lastActivity: updatedAppealRequest.lastChatActivity,
+            assignedExpert: updatedAppealRequest.chatAssignedExpert,
+          },
+        });
       }
     }
 

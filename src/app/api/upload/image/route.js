@@ -52,11 +52,11 @@ export async function POST(request) {
       );
     }
 
-    // Check file size (limit to 5MB)
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    // Check file size (limit to 1MB)
+    const MAX_SIZE = 1 * 1024 * 1024; // 1MB
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
-        { success: false, message: "حجم تصویر نباید بیشتر از 5 مگابایت باشد" },
+        { success: false, message: "حجم تصویر نباید بیشتر از 1 مگابایت باشد" },
         { status: 400 }
       );
     }
