@@ -573,7 +573,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "درخواست انتقال",
       path: "/dashboard/emergency-transfer",
       icon: "transfer",
-      // requiresPhoneVerification: true, // فیلد جدید برای نشان دادن نیاز به احراز هویت
+      requiresPhoneVerification: true, // فیلد جدید برای نشان دادن نیاز به احراز هویت
     });
   }
 

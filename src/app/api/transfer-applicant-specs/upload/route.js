@@ -439,11 +439,15 @@ export async function POST(request) {
             });
 
             if (!existingUser) {
-              const district = await District.findById(
-                specData.currentWorkPlaceCode
-              ).populate("province");
-
-              const hashedPassword = await bcrypt.hash(specData.nationalId, 12);
+              const district = await District.findOne({
+                code: specData.currentWorkPlaceCode,
+              }).populate("province");
+              // console.log("district----->", district);
+              // console.log("specData----->", specData);
+              const hashedPassword = await bcrypt.hash(
+                specData.nationalId.toString(),
+                12
+              );
 
               // دریافت کد استان از کاربر وارد شده
               let userProvinceId = userAuth.province;

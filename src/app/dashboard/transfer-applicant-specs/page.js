@@ -32,7 +32,6 @@ import {
 
 export default function TransferApplicantSpecsPage() {
   const { user, loading: userLoading } = useUserContext();
-  console.log("user f--->", user);
 
   // States
   const [specs, setSpecs] = useState([]);
