@@ -22,6 +22,10 @@ import {
   FaClock,
   FaFileExcel,
   FaDownload,
+  FaChevronLeft,
+  FaChevronRight,
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 
@@ -40,6 +44,10 @@ export default function CulturalCoupleRequestsPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
+
+  // State برای pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // دریافت لیست درخواست‌های زوج فرهنگی
   const fetchRequests = async () => {
@@ -209,6 +217,35 @@ export default function CulturalCoupleRequestsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  // محاسبات pagination
+  const totalItems = filteredRequests.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
+
+  // reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  // تابع‌های pagination
+  const goToPage = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToLastPage = () => setCurrentPage(totalPages);
+  const goToPreviousPage = () => setCurrentPage(Math.max(1, currentPage - 1));
+  const goToNextPage = () =>
+    setCurrentPage(Math.min(totalPages, currentPage + 1));
+
+  // تغییر تعداد آیتم‌ها در هر صفحه
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
   // تابع تعیین رنگ وضعیت
   const getStatusColor = (request) => {
     if (!request.culturalCoupleInfo?.spouseDistrictDecision) {
@@ -349,7 +386,7 @@ export default function CulturalCoupleRequestsPage() {
             {/* آمار */}
             <div className="flex items-center justify-center bg-gray-50 rounded-lg p-3">
               <span className="text-sm text-gray-600">
-                {filteredRequests.length} درخواست از {requests.length}
+                {filteredRequests.length} درخواست یافت شد از {requests.length}
               </span>
             </div>
           </div>
@@ -375,135 +412,307 @@ export default function CulturalCoupleRequestsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      متقاضی
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      همسر
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      منطقه همسر
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      وضعیت بررسی
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      تاریخ درخواست
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                      عملیات
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200 text-right">
-                  {filteredRequests.map((request) => (
-                    <tr key={request._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="bg-blue-100 p-2 rounded-full mr-3">
-                            <FaUser className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {request.fullName}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              کد ملی: {request.nationalId}
-                            </div>
-                            {request.personnelCode && (
-                              <div className="text-sm text-gray-500">
-                                کد پرسنلی: {request.personnelCode}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          کد پرسنلی:{" "}
-                          {request.culturalCoupleInfo?.personnelCode ||
-                            "نامشخص"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <FaMapMarkerAlt className="h-4 w-4 text-gray-400 ml-2" />
-                          <div>
-                            <div className="text-sm text-gray-900">
-                              {request.culturalCoupleInfo?.districtName ||
-                                "نامشخص"}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              کد:{" "}
-                              {request.culturalCoupleInfo?.districtCode ||
-                                "نامشخص"}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                            request
-                          )}`}
-                        >
-                          {getStatusIcon(request)}
-                          {getStatusText(request)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(request.createdAt).toLocaleDateString(
-                          "fa-IR"
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedRequest(request);
-                              setShowModal(true);
-                              // پر کردن فرم با اطلاعات موجود
-                              if (
-                                request.culturalCoupleInfo
-                                  ?.spouseDistrictDecision
-                              ) {
-                                setReviewForm({
-                                  opinion:
-                                    request.culturalCoupleInfo
-                                      .spouseDistrictOpinion || "",
-                                  description:
-                                    request.culturalCoupleInfo
-                                      .spouseDistrictDescription || "",
-                                  decision:
-                                    request.culturalCoupleInfo
-                                      .spouseDistrictDecision,
-                                });
-                              } else {
-                                setReviewForm({
-                                  opinion: "",
-                                  description: "",
-                                  decision: "",
-                                });
-                              }
-                            }}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
-                          >
-                            <FaEye className="h-3 w-3" />
-                            {request.culturalCoupleInfo?.spouseDistrictDecision
-                              ? "مشاهده/ویرایش"
-                              : "بررسی"}
-                          </button>
-                        </div>
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                        متقاضی
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                        همسر
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                        منطقه همسر
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                        وضعیت بررسی
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                        تاریخ درخواست
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                        عملیات
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200 text-right">
+                    {paginatedRequests.map((request) => (
+                      <tr key={request._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="bg-blue-100 p-2 rounded-full mr-3">
+                              <FaUser className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {request.fullName}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                کد ملی: {request.nationalId}
+                              </div>
+                              {request.personnelCode && (
+                                <div className="text-sm text-gray-500">
+                                  کد پرسنلی: {request.personnelCode}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            کد پرسنلی:{" "}
+                            {request.culturalCoupleInfo?.personnelCode ||
+                              "نامشخص"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <FaMapMarkerAlt className="h-4 w-4 text-gray-400 ml-2" />
+                            <div>
+                              <div className="text-sm text-gray-900">
+                                {request.culturalCoupleInfo?.districtName ||
+                                  "نامشخص"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                کد:{" "}
+                                {request.culturalCoupleInfo?.districtCode ||
+                                  "نامشخص"}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
+                              request
+                            )}`}
+                          >
+                            {getStatusIcon(request)}
+                            {getStatusText(request)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(request.createdAt).toLocaleDateString(
+                            "fa-IR"
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setSelectedRequest(request);
+                                setShowModal(true);
+                                // پر کردن فرم با اطلاعات موجود
+                                if (
+                                  request.culturalCoupleInfo
+                                    ?.spouseDistrictDecision
+                                ) {
+                                  setReviewForm({
+                                    opinion:
+                                      request.culturalCoupleInfo
+                                        .spouseDistrictOpinion || "",
+                                    description:
+                                      request.culturalCoupleInfo
+                                        .spouseDistrictDescription || "",
+                                    decision:
+                                      request.culturalCoupleInfo
+                                        .spouseDistrictDecision,
+                                  });
+                                } else {
+                                  setReviewForm({
+                                    opinion: "",
+                                    description: "",
+                                    decision: "",
+                                  });
+                                }
+                              }}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                            >
+                              <FaEye className="h-3 w-3" />
+                              {request.culturalCoupleInfo
+                                ?.spouseDistrictDecision
+                                ? "مشاهده/ویرایش"
+                                : "بررسی"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Controls */}
+              {filteredRequests.length > 0 && (
+                <div className="bg-white border-t border-gray-200 px-6 py-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    {/* اطلاعات صفحه */}
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <span>
+                        نمایش {startIndex + 1} تا{" "}
+                        {Math.min(endIndex, totalItems)} از {totalItems} درخواست
+                      </span>
+
+                      {/* انتخاب تعداد آیتم در هر صفحه */}
+                      <div className="flex items-center gap-2">
+                        <span>نمایش:</span>
+                        <select
+                          value={itemsPerPage}
+                          onChange={(e) =>
+                            handleItemsPerPageChange(Number(e.target.value))
+                          }
+                          className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                          <option value={5}>5</option>
+                          <option value={10}>10</option>
+                          <option value={20}>20</option>
+                          <option value={50}>50</option>
+                          <option value={100}>100</option>
+                        </select>
+                        <span>در هر صفحه</span>
+                      </div>
+                    </div>
+
+                    {/* دکمه‌های ناوبری */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center gap-2">
+                        {/* دکمه اول */}
+                        <button
+                          onClick={goToFirstPage}
+                          disabled={currentPage === 1}
+                          className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                          title="صفحه اول"
+                        >
+                          <FaAngleDoubleLeft className="h-3 w-3" />
+                        </button>
+
+                        {/* دکمه قبلی */}
+                        <button
+                          onClick={goToPreviousPage}
+                          disabled={currentPage === 1}
+                          className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                          title="صفحه قبل"
+                        >
+                          <FaChevronLeft className="h-3 w-3" />
+                          قبلی
+                        </button>
+
+                        {/* شماره‌های صفحه */}
+                        <div className="flex items-center gap-1">
+                          {(() => {
+                            const pages = [];
+                            const maxVisiblePages = 5;
+                            let startPage = Math.max(
+                              1,
+                              currentPage - Math.floor(maxVisiblePages / 2)
+                            );
+                            let endPage = Math.min(
+                              totalPages,
+                              startPage + maxVisiblePages - 1
+                            );
+
+                            if (endPage - startPage + 1 < maxVisiblePages) {
+                              startPage = Math.max(
+                                1,
+                                endPage - maxVisiblePages + 1
+                              );
+                            }
+
+                            // صفحه اول
+                            if (startPage > 1) {
+                              pages.push(
+                                <button
+                                  key={1}
+                                  onClick={() => goToPage(1)}
+                                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                                >
+                                  1
+                                </button>
+                              );
+                              if (startPage > 2) {
+                                pages.push(
+                                  <span
+                                    key="ellipsis1"
+                                    className="px-2 text-gray-500"
+                                  >
+                                    ...
+                                  </span>
+                                );
+                              }
+                            }
+
+                            // صفحات میانی
+                            for (let i = startPage; i <= endPage; i++) {
+                              pages.push(
+                                <button
+                                  key={i}
+                                  onClick={() => goToPage(i)}
+                                  className={`px-3 py-2 text-sm border rounded-lg ${
+                                    currentPage === i
+                                      ? "bg-blue-600 text-white border-blue-600"
+                                      : "border-gray-300 hover:bg-gray-50"
+                                  }`}
+                                >
+                                  {i}
+                                </button>
+                              );
+                            }
+
+                            // صفحه آخر
+                            if (endPage < totalPages) {
+                              if (endPage < totalPages - 1) {
+                                pages.push(
+                                  <span
+                                    key="ellipsis2"
+                                    className="px-2 text-gray-500"
+                                  >
+                                    ...
+                                  </span>
+                                );
+                              }
+                              pages.push(
+                                <button
+                                  key={totalPages}
+                                  onClick={() => goToPage(totalPages)}
+                                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                                >
+                                  {totalPages}
+                                </button>
+                              );
+                            }
+
+                            return pages;
+                          })()}
+                        </div>
+
+                        {/* دکمه بعدی */}
+                        <button
+                          onClick={goToNextPage}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                          title="صفحه بعد"
+                        >
+                          بعدی
+                          <FaChevronRight className="h-3 w-3" />
+                        </button>
+
+                        {/* دکمه آخر */}
+                        <button
+                          onClick={goToLastPage}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                          title="صفحه آخر"
+                        >
+                          <FaAngleDoubleRight className="h-3 w-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

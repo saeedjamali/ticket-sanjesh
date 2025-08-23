@@ -22,6 +22,12 @@ import {
   FaThumbsDown,
   FaFileExcel,
   FaSpinner,
+  FaChevronLeft,
+  FaChevronRight,
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight,
+  FaChevronUp,
+  FaChevronDown,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import ChatButton from "@/components/chat/ChatButton";
@@ -53,6 +59,13 @@ export default function DocumentReviewPage() {
   const [approvingEligibility, setApprovingEligibility] = useState(false);
   const [rejectingEligibility, setRejectingEligibility] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
+
+  // State برای pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // State برای نمایش/مخفی کردن آمار
+  const [showStats, setShowStats] = useState(true);
 
   // محاسبه تعداد درخواست‌ها بر اساس وضعیت
   const getStatusCounts = () => {
@@ -706,6 +719,35 @@ export default function DocumentReviewPage() {
     return matchesSearch && matchesStatus;
   });
 
+  // محاسبات pagination
+  const totalItems = filteredRequests.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
+
+  // reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  // تابع‌های pagination
+  const goToPage = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToLastPage = () => setCurrentPage(totalPages);
+  const goToPreviousPage = () => setCurrentPage(Math.max(1, currentPage - 1));
+  const goToNextPage = () =>
+    setCurrentPage(Math.min(totalPages, currentPage + 1));
+
+  // تغییر تعداد آیتم‌ها در هر صفحه
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
   // تابع دریافت رنگ وضعیت
   const getStatusColor = (status) => {
     switch (status) {
@@ -1328,21 +1370,45 @@ export default function DocumentReviewPage() {
           </div>
 
           {/* کاشی‌های وضعیت */}
-          <div className="p-6 bg-gray-50 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              آمار وضعیت درخواست‌ها
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {statusOptions.map((status) => {
-                const IconComponent = status.icon;
-                const count = statusCounts[status.value] || 0;
-                const isActive = statusFilter === status.value;
+          <div className="bg-gray-50 border-b border-gray-200">
+            {/* هدر قابل کلیک */}
+            <div
+              className="p-6 cursor-pointer hover:bg-gray-100 transition-colors duration-200 flex items-center justify-between"
+              onClick={() => setShowStats(!showStats)}
+            >
+              <h2 className="text-lg font-semibold text-gray-800">
+                آمار وضعیت درخواست‌ها
+              </h2>
+              <div className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
+                <span className="text-sm font-medium">
+                  {showStats ? "مخفی کردن آمار" : "نمایش آمار"}
+                </span>
+                {showStats ? (
+                  <FaChevronUp className="h-4 w-4" />
+                ) : (
+                  <FaChevronDown className="h-4 w-4" />
+                )}
+              </div>
+            </div>
 
-                return (
-                  <div
-                    key={status.value}
-                    onClick={() => setStatusFilter(status.value)}
-                    className={`
+            {/* محتوای آمار */}
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                showStats ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <div className="px-6 pb-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {statusOptions.map((status) => {
+                    const IconComponent = status.icon;
+                    const count = statusCounts[status.value] || 0;
+                    const isActive = statusFilter === status.value;
+
+                    return (
+                      <div
+                        key={status.value}
+                        onClick={() => setStatusFilter(status.value)}
+                        className={`
                       cursor-pointer rounded-xl border-2 transition-all duration-200 transform hover:scale-105
                       ${
                         isActive
@@ -1350,35 +1416,37 @@ export default function DocumentReviewPage() {
                           : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                       }
                     `}
-                  >
-                    <div className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div
-                          className={`p-2 rounded-lg ${status.color} text-white`}
-                        >
-                          <IconComponent className="h-4 w-4" />
+                      >
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div
+                              className={`p-2 rounded-lg ${status.color} text-white`}
+                            >
+                              <IconComponent className="h-4 w-4" />
+                            </div>
+                            <span
+                              className={`text-2xl font-bold ${
+                                isActive ? "text-blue-600" : "text-gray-700"
+                              }`}
+                            >
+                              {count}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <p
+                              className={`text-sm font-medium ${
+                                isActive ? "text-blue-700" : "text-gray-600"
+                              }`}
+                            >
+                              {status.label}
+                            </p>
+                          </div>
                         </div>
-                        <span
-                          className={`text-2xl font-bold ${
-                            isActive ? "text-blue-600" : "text-gray-700"
-                          }`}
-                        >
-                          {count}
-                        </span>
                       </div>
-                      <div className="text-right">
-                        <p
-                          className={`text-sm font-medium ${
-                            isActive ? "text-blue-700" : "text-gray-600"
-                          }`}
-                        >
-                          {status.label}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1438,7 +1506,7 @@ export default function DocumentReviewPage() {
               {/* تعداد نتایج */}
               <div className="flex items-center text-sm text-gray-600">
                 <FaFilter className="h-4 w-4 ml-2" />
-                {filteredRequests.length} درخواست
+                {filteredRequests.length} درخواست یافت شد
               </div>
             </div>
           </div>
@@ -1497,7 +1565,7 @@ export default function DocumentReviewPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredRequests.map((request) => (
+                  {paginatedRequests.map((request) => (
                     <tr key={request._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="text-right">
@@ -1671,6 +1739,175 @@ export default function DocumentReviewPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls */}
+            {filteredRequests.length > 0 && (
+              <div className="bg-white border-t border-gray-200 px-6 py-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  {/* اطلاعات صفحه */}
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>
+                      نمایش {startIndex + 1} تا {Math.min(endIndex, totalItems)}{" "}
+                      از {totalItems} درخواست
+                    </span>
+
+                    {/* انتخاب تعداد آیتم در هر صفحه */}
+                    <div className="flex items-center gap-2">
+                      <span>نمایش:</span>
+                      <select
+                        value={itemsPerPage}
+                        onChange={(e) =>
+                          handleItemsPerPageChange(Number(e.target.value))
+                        }
+                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                      </select>
+                      <span>در هر صفحه</span>
+                    </div>
+                  </div>
+
+                  {/* دکمه‌های ناوبری */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      {/* دکمه اول */}
+                      <button
+                        onClick={goToFirstPage}
+                        disabled={currentPage === 1}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        title="صفحه اول"
+                      >
+                        <FaAngleDoubleLeft className="h-3 w-3" />
+                      </button>
+
+                      {/* دکمه قبلی */}
+                      <button
+                        onClick={goToPreviousPage}
+                        disabled={currentPage === 1}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        title="صفحه قبل"
+                      >
+                        <FaChevronLeft className="h-3 w-3" />
+                        قبلی
+                      </button>
+
+                      {/* شماره‌های صفحه */}
+                      <div className="flex items-center gap-1">
+                        {(() => {
+                          const pages = [];
+                          const maxVisiblePages = 5;
+                          let startPage = Math.max(
+                            1,
+                            currentPage - Math.floor(maxVisiblePages / 2)
+                          );
+                          let endPage = Math.min(
+                            totalPages,
+                            startPage + maxVisiblePages - 1
+                          );
+
+                          if (endPage - startPage + 1 < maxVisiblePages) {
+                            startPage = Math.max(
+                              1,
+                              endPage - maxVisiblePages + 1
+                            );
+                          }
+
+                          // صفحه اول
+                          if (startPage > 1) {
+                            pages.push(
+                              <button
+                                key={1}
+                                onClick={() => goToPage(1)}
+                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                              >
+                                1
+                              </button>
+                            );
+                            if (startPage > 2) {
+                              pages.push(
+                                <span
+                                  key="ellipsis1"
+                                  className="px-2 text-gray-500"
+                                >
+                                  ...
+                                </span>
+                              );
+                            }
+                          }
+
+                          // صفحات میانی
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(
+                              <button
+                                key={i}
+                                onClick={() => goToPage(i)}
+                                className={`px-3 py-2 text-sm border rounded-lg ${
+                                  currentPage === i
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "border-gray-300 hover:bg-gray-50"
+                                }`}
+                              >
+                                {i}
+                              </button>
+                            );
+                          }
+
+                          // صفحه آخر
+                          if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) {
+                              pages.push(
+                                <span
+                                  key="ellipsis2"
+                                  className="px-2 text-gray-500"
+                                >
+                                  ...
+                                </span>
+                              );
+                            }
+                            pages.push(
+                              <button
+                                key={totalPages}
+                                onClick={() => goToPage(totalPages)}
+                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                              >
+                                {totalPages}
+                              </button>
+                            );
+                          }
+
+                          return pages;
+                        })()}
+                      </div>
+
+                      {/* دکمه بعدی */}
+                      <button
+                        onClick={goToNextPage}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        title="صفحه بعد"
+                      >
+                        بعدی
+                        <FaChevronRight className="h-3 w-3" />
+                      </button>
+
+                      {/* دکمه آخر */}
+                      <button
+                        onClick={goToLastPage}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                        title="صفحه آخر"
+                      >
+                        <FaAngleDoubleRight className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

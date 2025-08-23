@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/ui/LoadingSpinner.jsx";
 
@@ -16,8 +16,27 @@ export default function LoginForm() {
   const [resetPasswordError, setResetPasswordError] = useState("");
   const [resetPasswordSuccess, setResetPasswordSuccess] = useState("");
 
+  // State برای نمایش/مخفی کردن رمز عبور
+  const [showPassword, setShowPassword] = useState(false);
+
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
+
+  // کلید میانبر برای toggle کردن نمایش رمز عبور
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Alt + S برای toggle کردن نمایش رمز عبور
+      if (event.altKey && event.key === "s" && !loading) {
+        event.preventDefault();
+        setShowPassword(!showPassword);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showPassword, loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -391,7 +410,8 @@ export default function LoginForm() {
               </button>
             </div>
             <div className="relative">
-              <div className="absolute inset-y-0 right-0  pr-3 pointer-events-none text-gray-400 h-full flex items-center justify-center pb-4">
+              {/* آیکن قفل در سمت راست */}
+              <div className="absolute inset-y-0 right-0 pr-3 pointer-events-none text-gray-400 h-full flex items-center justify-center pb-4">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"
@@ -407,17 +427,70 @@ export default function LoginForm() {
                   />
                 </svg>
               </div>
+
+              {/* فیلد رمز عبور */}
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 required
-                className="w-full px-4 py-3 pr-10 border border-gray-300 flex items-center rounded-lg focus:outline-none focus:ring-2  focus:ring-blue-500   focus:border-blue-500 disabled:bg-gray-100 transition-colors text-right placeholder:text-right placeholder:text-gray-400 text-gray-800"
+                className="w-full px-4 py-3 pr-10 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 transition-colors text-right placeholder:text-right placeholder:text-gray-400 text-gray-800"
                 placeholder="رمز عبور خود را وارد کنید"
                 dir="ltr"
               />
+
+              {/* دکمه نمایش/مخفی کردن رمز عبور */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 left-0 pl-3 pb-4 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none transition-colors duration-200 hover:bg-gray-50 rounded-l-lg"
+                title={`${
+                  showPassword ? "مخفی کردن رمز عبور" : "نمایش رمز عبور"
+                } (Alt+S)`}
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  // آیکن چشم بسته
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                    />
+                  </svg>
+                ) : (
+                  // آیکن چشم باز
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                )}
+              </button>
               <p className="text-xs text-gray-500 mt-1 flex items-center h-full">
                 <svg
                   className="h-3 w-3 text-gray-400 ml-1 flex items-center"
