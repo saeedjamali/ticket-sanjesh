@@ -649,18 +649,21 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
         </div>
 
         {/* راهنمای کاربری */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-6">
+        <div className="bg-gradient-to-r from-orange-50 to-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
           <div className="flex items-start gap-3">
-            <div className="bg-green-500 text-white p-2 rounded-lg flex-shrink-0">
+            <div className="bg-orange-500 text-white p-2 rounded-lg flex-shrink-0">
               <FaInfoCircle className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-green-800 mb-2">راهنمای مهم</h3>
-              <p className="text-green-700 text-sm leading-relaxed">
-                همکاران محترم از مراجعه حضوری به ادارات خودداری کرده و از طریق
-                همین صفحه درخواست خود را پیگیری نمایید. تمامی مراحل ثبت درخواست،
-                بررسی مستندات و گفتگو با کارشناسان به صورت آنلاین امکان‌پذیر
-                است.
+              <h3 className="font-bold text-orange-800 mb-2">تذکر مهم</h3>
+              <p className="text-orange-700 text-sm leading-relaxed">
+                همکار محترم، ثبت درخواست تجدیدنظر در نتیجه انتقال داخل استان و
+                پیگیری نتیجه آن، صرفاً از طریق همین سامانه انجام می شود؛ لذا
+                ضروری است از مراجعه حضوری به ادارات آموزش و پرورش خودداری شود.
+                ضمناً امکان گفتگو با کارشناسان مربوطه (درصورت ضرورت) به صورت
+                آنلاین از طریق همین سامانه فراهم می باشد. لازم به ذکر است نتایج
+                نهایی تجدیدنظر پس از تصویب کارگروه اداره کل، علاوه بر اعلام در
+                این سامانه، در سامانه وزارتی my.medu.ir نیز ثبت خواهد شد.
               </p>
             </div>
           </div>
@@ -3654,18 +3657,22 @@ export default function EmergencyTransferPage() {
         </div>
 
         {/* راهنمای کاربری */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 mb-6">
+        <div className="bg-gradient-to-r from-orange-50 to-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
           <div className="flex items-start gap-3">
-            <div className="bg-green-500 text-white p-2 rounded-lg flex-shrink-0">
+            <div className="bg-orange-500 text-white p-2 rounded-lg flex-shrink-0">
               <FaInfoCircle className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-green-800 mb-2">راهنمای مهم</h3>
-              <p className="text-green-700 text-sm leading-relaxed">
-                همکاران محترم از مراجعه حضوری به ادارات خودداری کرده و از طریق
-                همین صفحه درخواست خود را پیگیری نمایید. تمامی مراحل ثبت درخواست،
-                بررسی مستندات و گفتگو با کارشناسان به صورت آنلاین امکان‌پذیر
-                است.
+              <h3 className="font-bold text-orange-800 mb-2">تذکر مهم</h3>
+              <p className="text-orange-700 text-sm leading-relaxed">
+                همکار محترم، ثبت درخواست تجدیدنظر در نتیجه انتقال داخل استان و
+                پیگیری نتیجه آن، صرفاً از طریق همین سامانه انجام می شود؛ لذا
+                ضروری است از مراجعه حضوری به ادارات آموزش و پرورش خودداری شود.
+                ضمناً پس از ثبت درخواست، امکان گفتگو با کارشناسان مربوطه (درصورت
+                ضرورت) به صورت آنلاین از طریق همین سامانه فراهم می باشد. لازم به
+                ذکر است نتایج نهایی تجدیدنظر پس از تصویب کارگروه اداره کل، علاوه
+                بر اعلام در این سامانه، در سامانه وزارتی my.medu.ir نیز ثبت
+                خواهد شد...
               </p>
             </div>
           </div>
@@ -3819,7 +3826,8 @@ export default function EmergencyTransferPage() {
                     مرحله اول: قوانین و مقررات
                   </h2>
                   <p className="text-blue-100 text-sm">
-                    لطفاً تمام قوانین و مقررات را مطالعه و تایید کنید
+                    همکار گرامی، جهت ثبت درخواست باید قوانین و نکات زیر را
+                    مطالعه نموده و تایید بفرمائید.
                   </p>
                 </div>
               </div>
@@ -4143,7 +4151,7 @@ export default function EmergencyTransferPage() {
                   <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
                     <h3 className="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
                       <FaShieldAlt className="h-5 w-5" />
-                      اطلاعات مکانی (محدود به منطقه شما)
+                      اطلاعات منطقه خدمتی
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -4154,14 +4162,14 @@ export default function EmergencyTransferPage() {
                           {userSpecs.currentWorkPlaceCode}
                         </div>
                       </div>
-                      <div>
+                      {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           کد مبدا
                         </label>
                         <div className="bg-white p-3 rounded-lg border border-gray-300 text-gray-900 font-mono">
                           {userSpecs.sourceDistrictCode}
                         </div>
-                      </div>
+                      </div> */}
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           نام منطقه
@@ -5285,7 +5293,7 @@ export default function EmergencyTransferPage() {
                   <div className="bg-green-50 px-6 py-4 border-b border-gray-200">
                     <h3 className="text-lg font-semibold text-green-800 flex items-center gap-2">
                       <FaUser className="h-5 w-5" />
-                      مرحله 2: مشخصات شخصی
+                      مرحله 2: مشخصات فردی
                     </h3>
                   </div>
                   <div className="p-6">

@@ -292,7 +292,7 @@ export default function EditFormPage() {
   const fetchDistricts = async () => {
     try {
       const accessToken = localStorage.getItem("accessToken");
-      const response = await fetch(`/api/districts?province=${user.province}`, {
+      const response = await fetch(`/api/districts?province=${user.province._id}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

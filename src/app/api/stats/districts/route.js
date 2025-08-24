@@ -34,8 +34,11 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const provinceId = searchParams.get("province");
+    const provinceId =searchParams.get("province");
 
+
+    console.log("provinceId========>",provinceId);
+    console.log("user========>",user);
     await connectDB();
 
     // ساخت کوئری برای دریافت مناطق
@@ -51,7 +54,7 @@ export async function GET(request) {
       // اگر کاربر کارشناس استان است، فقط مناطق استان خودش را ببیند
       districtQuery.province = user.province._id;
     }
-    console.log("user========>",user);
+    console.log("districtQuery========>",districtQuery);
     // دریافت مناطق با اطلاعات تکمیلی
     const districts = await District.find(districtQuery)
       .populate("province", "name")

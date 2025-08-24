@@ -113,7 +113,7 @@ export default function DistrictsGrid() {
 
             // اگر کاربر مدیرکل استان است، فقط مناطق استان او را درخواست می‌کنیم
             if (user && (user.role === "generalManager" || user.role === "provinceEvalExpert" || user.role === "provinceTechExpert" || user.role === "districtEvalExpert" || user.role === "districtTechExpert") && user.province) {
-                apiUrl = `/api/stats/districts?province=${user.province}`;
+                apiUrl = `/api/stats/districts?province=${user.province._id}`;
 
             }
 

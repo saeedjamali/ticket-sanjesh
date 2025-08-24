@@ -17,7 +17,7 @@ export default function DistrictMap({ userId }) {
         // Fetch districts with ticket stats
         const response = await fetch(
           `/api/stats/districts${
-            selectedProvince !== "all" ? `?province=${selectedProvince}` : ""
+            selectedProvince !== "all" ? `?province=${selectedProvince._id}` : ""
           }`
         );
         if (!response.ok) throw new Error("Failed to fetch districts");

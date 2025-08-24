@@ -78,7 +78,7 @@ export default function DashboardPage() {
       {/* هدر صفحه با آمار بازدید */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 sm:mb-6">
         <h1 className="heading-2 text-gray-800">داشبورد</h1>
-        
+
         {/* کامپوننت آمار بازدید - کوچک و در گوشه */}
         <div className="sm:max-w-xs w-full sm:w-auto">
           {/* <WebsiteVisitStats /> */}
@@ -163,8 +163,17 @@ export default function DashboardPage() {
           خود را انتخاب کنید.
         </p>
         <p className="text-paragraph text-gray-700 mt-2">
-          شما به عنوان {renderRoleName(user.role)} وارد شده‌اید و می‌توانید
-          گزارش‌های مرتبط با حوزه خود را مشاهده و مدیریت کنید.
+          {user.role === ROLES.TRANSFER_APPLICANT ? (
+            <p className="text-paragraph text-gray-700 mt-2">
+              شما به عنوان "کاربر متقاضی تجدیدنظر در نتیجه انتقال" وارد شده‌اید.
+              می توانید درخواست خود را از طریق منوی "درخواست انتقال" ثبت کنید.
+            </p>
+          ) : (
+            <p className="text-paragraph text-gray-700 mt-2">
+              شما به عنوان {renderRoleName(user.role)} وارد شده‌اید و می‌توانید
+              گزارش‌های مرتبط با حوزه خود را مشاهده و مدیریت کنید.
+            </p>
+          )}
         </p>
       </div>
       {/* بنر راهنمای امنیت حساب کاربری */}

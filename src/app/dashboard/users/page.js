@@ -831,7 +831,8 @@ export default function UsersPage() {
         const errorData = await response.json();
         console.error("Password change error:", errorData);
         throw new Error(errorData.error || "خطا در تغییر رمز عبور");
-      }123456 
+      }
+      123456;
 
       handleCloseAllForms();
       alert("رمز عبور کاربر با موفقیت تغییر یافت");

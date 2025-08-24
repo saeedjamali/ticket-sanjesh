@@ -43,7 +43,7 @@ export async function GET(request) {
         console.log(
           `GET /api/districts - Filtering by user province: ${user.province}`
         );
-        query.province = user.province;
+        query.province = user.province._id;
       } else {
         console.log("GET /api/districts - Non-admin user without province ID");
         return NextResponse.json(

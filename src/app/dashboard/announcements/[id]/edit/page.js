@@ -124,7 +124,7 @@ export default function EditAnnouncementPage() {
 
       // If user is province role, fetch only districts in their province
       if (user.province) {
-        url = `/api/districts?province=${user.province}`;
+        url = `/api/districts?province=${user.province._id}`;
       }
 
       const response = await fetch(url, {
