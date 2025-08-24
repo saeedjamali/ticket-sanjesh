@@ -165,8 +165,8 @@ export default function DashboardPage() {
         <p className="text-paragraph text-gray-700 mt-2">
           {user.role === ROLES.TRANSFER_APPLICANT ? (
             <p className="text-paragraph text-gray-700 mt-2">
-              شما به عنوان "کاربر متقاضی تجدیدنظر در نتیجه انتقال" وارد شده‌اید.
-              می توانید درخواست خود را از طریق منوی "درخواست انتقال" ثبت کنید.
+              شما به عنوان کاربر متقاضی تجدیدنظر در نتیجه انتقال<strong> وارد شده‌اید.</strong>
+              می توانید درخواست خود را از طریق منوی <strong>درخواست تجدیدنظر در نتیجه انتقال</strong> ثبت کنید.
             </p>
           ) : (
             <p className="text-paragraph text-gray-700 mt-2">

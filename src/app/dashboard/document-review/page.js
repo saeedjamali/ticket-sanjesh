@@ -925,8 +925,9 @@ export default function DocumentReviewPage() {
         canReject: false,
         message: "هیچ بندی انتخاب نشده است",
       };
-    }
 
+    }
+    console.log("request========>",request);
     // تقسیم دلایل بر اساس نیاز به تایید کارشناس
     const reasonsRequiringApproval = request.selectedReasons.filter(
       (reason) => reason?.reasonId?.requiresAdminApproval === true
@@ -965,8 +966,8 @@ export default function DocumentReviewPage() {
       if (reasonsNotRequiringApproval.length > 0) {
         return {
           showButtons: true,
-          canApprove: true,
-          canReject: true,
+          canApprove: false,
+          canReject: false,
           message: `${pendingReasons.length} بند هنوز بررسی نشده،  ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`,
           hasPendingButAllowDecision: true,
         };
@@ -997,7 +998,7 @@ export default function DocumentReviewPage() {
         showButtons: true,
         canApprove: false,
         canReject: true,
-        message: "تمام بندهای نیازمند تایید رد شده‌اند",
+        message: "تمام بندهای نیازمند نظر کارشناس رد شده‌اند",
         allRejected: true,
       };
     }

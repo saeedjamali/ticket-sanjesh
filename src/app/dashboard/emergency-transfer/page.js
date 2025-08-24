@@ -4162,22 +4162,22 @@ export default function EmergencyTransferPage() {
                           {userSpecs.currentWorkPlaceCode}
                         </div>
                       </div>
-                      {/* <div>
+                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          کد مبدا
+                          نام منطقه
                         </label>
                         <div className="bg-white p-3 rounded-lg border border-gray-300 text-gray-900 font-mono">
-                          {userSpecs.sourceDistrictCode}
+                          {userSpecs.districtName || "نام منطقه یافت نشد"}
                         </div>
-                      </div> */}
-                      <div className="md:col-span-2">
+                      </div>
+                      {/* <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           نام منطقه
                         </label>
                         <div className="bg-white p-3 rounded-lg border border-gray-300 text-gray-900">
                           {userSpecs.districtName || "نام منطقه یافت نشد"}
                         </div>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
 
