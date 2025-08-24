@@ -643,6 +643,7 @@ export async function PUT(request) {
         if (relatedUser) {
           relatedUser.fullName = `${spec.firstName} ${spec.lastName}`;
           relatedUser.phone = spec.mobile;
+          relatedUser.phoneVerified = false;
           await relatedUser.save();
         }
       } catch (userUpdateError) {

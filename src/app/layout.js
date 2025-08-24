@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Providers from "@/components/providers/Providers";
+import BrowserCompatibilityWarning from "@/components/BrowserCompatibilityWarning";
 
 // Local fonts are now loaded via CSS @font-face in globals.css and font.css
 // No need for Google Fonts imports - they're defined as CSS variables:
@@ -28,6 +29,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="fa" dir="rtl">
       <body className="antialiased">
+        <BrowserCompatibilityWarning />
         <Providers>{children}</Providers>
         <Toaster />
       </body>

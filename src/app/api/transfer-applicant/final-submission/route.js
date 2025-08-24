@@ -85,7 +85,7 @@ export async function POST(request) {
     userSpecs.changeRequestStatus({
       status: "user_approval",
       changedBy: userAuth.id,
-      reason: "تایید نهایی و ارسال درخواست انتقال اضطراری",
+      reason: "تایید نهایی و ارسال درخواست تجدیدنظر در نتیجه انتقال ",
       metadata: {
         appealRequestId: existingAppealRequest._id.toString(),
         selectedReasonsCount: selectedReasons.length,
@@ -110,7 +110,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: "درخواست انتقال اضطراری با موفقیت ثبت و ارسال شد",
+      message: "درخواست تجدیدنظر در نتیجه انتقال  با موفقیت ثبت و ارسال شد",
       data: {
         appealRequestId: existingAppealRequest._id.toString(),
         currentStatus: userSpecs.currentRequestStatus,

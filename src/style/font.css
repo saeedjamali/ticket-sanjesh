@@ -1,5 +1,5 @@
 /* IranYekan Font */
-@font-face {
+/* @font-face {
     font-family: "IranYekan";
     src: url("/fonts/iranyekan/iranyekanwebregular.woff2") format("woff2"),
         url("/fonts/iranyekan/iranyekanwebregular.woff") format("woff");
@@ -24,7 +24,7 @@
     font-weight: bold;
     font-style: normal;
     font-display: swap;
-}
+} */
 
 /* IRANSans Font */
 @font-face {
@@ -152,7 +152,7 @@
     --font-primary: "IranYekan", "IRANSans", "Shabnam", system-ui, -apple-system, sans-serif;
 
     /* System font fallbacks - no Google Fonts dependency */
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "IranYekan", "IRANSans", sans-serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "IRANSans", sans-serif;
     --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
 }
 

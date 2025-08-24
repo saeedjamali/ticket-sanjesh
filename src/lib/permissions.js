@@ -292,22 +292,27 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       label: "لیست دانش آموزان",
       path: "/dashboard/students",
       icon: "studentInfo",
+      requiresPhoneVerification: true,
       submenu: [
         {
           label: "لیست دانش آموزان سال جاری",
           path: "/dashboard/students/current",
+          requiresPhoneVerification: true
         },
         {
           label: "لیست دانش آموزان سال گذشته",
           path: "/dashboard/students/previous",
+          requiresPhoneVerification: true
         },
         {
           label: "درخواست‌های جابجایی",
           path: "/dashboard/transfer-requests",
+          requiresPhoneVerification: true
         },
         {
           label: "بازمانده از تحصیل",
           path: "/dashboard/students/dropouts",
+          requiresPhoneVerification: true,
           disabled: true,
         },
       ],
@@ -570,7 +575,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
   // منوی درخواست انتقال - برای کاربران transferApplicant
   if (role === ROLES.TRANSFER_APPLICANT) {
     activeMenuItems.push({
-      label: "درخواست انتقال",
+      label: "درخواست تجدیدنظر در نتیجه انتقال",
       path: "/dashboard/emergency-transfer",
       icon: "transfer",
       // requiresPhoneVerification: true, // فیلد جدید برای نشان دادن نیاز به احراز هویت

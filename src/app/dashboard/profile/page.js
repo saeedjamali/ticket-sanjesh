@@ -91,8 +91,12 @@ export default function ProfilePage() {
 
   // تابع به‌روزرسانی شماره موبایل
   const handlePhoneUpdate = async () => {
+    // برای transferApplicant از شماره موجود استفاده می‌کنیم
+    const phoneToVerify =
+      user?.role === "transferApplicant" ? userInfo?.phone : phone;
+
     // بررسی اعتبار شماره موبایل
-    if (!phone || !/^09\d{9}$/.test(phone)) {
+    if (!phoneToVerify || !/^09\d{9}$/.test(phoneToVerify)) {
       setPhoneError("لطفاً یک شماره موبایل معتبر وارد کنید");
       return;
     }
@@ -102,27 +106,36 @@ export default function ProfilePage() {
     setPhoneSuccess("");
 
     try {
-      const response = await fetch("/api/users/phone/update", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phone }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setPhoneSuccess(data.message);
+      // برای transferApplicant فقط کد ارسال می‌کنیم، شماره را به‌روزرسانی نمی‌کنیم
+      if (user?.role === "transferApplicant") {
         setShowVerification(true);
-
         // ارسال درخواست پیامک کد تأیید
         await sendVerificationCode();
+        setPhoneSuccess("کد تأیید برای شماره موجود ارسال شد");
       } else {
-        setPhoneError(data.message);
+        // برای سایر نقش‌ها ابتدا شماره را به‌روزرسانی می‌کنیم
+        const response = await fetch("/api/users/phone/update", {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ phone: phoneToVerify }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setPhoneSuccess(data.message);
+          setShowVerification(true);
+
+          // ارسال درخواست پیامک کد تأیید
+          await sendVerificationCode();
+        } else {
+          setPhoneError(data.message);
+        }
       }
     } catch (error) {
-      setPhoneError("خطا در به‌روزرسانی شماره موبایل");
+      setPhoneError("خطا در ارسال کد تأیید");
       console.error("Error updating phone:", error);
     } finally {
       setIsSendingCode(false);
@@ -132,12 +145,16 @@ export default function ProfilePage() {
   // تابع ارسال کد تأیید
   const sendVerificationCode = async () => {
     try {
+      // برای transferApplicant از شماره موجود استفاده می‌کنیم
+      const phoneToSend =
+        user?.role === "transferApplicant" ? userInfo?.phone : phone;
+
       const response = await fetch("/api/auth/sms/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone: phoneToSend }),
       });
 
       const data = await response.json();
@@ -560,32 +577,83 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   {!isEditingPhone ? (
-                    user?.role === "transferApplicant" ? (
-                      <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
-                        ویرایش غیرفعال
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setIsEditingPhone(true)}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-200 shadow-sm hover:shadow"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 ml-1"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
+                    <div className="flex flex-col gap-2">
+                      {user?.role !== "transferApplicant" && (
+                        <button
+                          onClick={() => setIsEditingPhone(true)}
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-sm flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                          />
-                        </svg>
-                        {userInfo?.phone ? "ویرایش شماره" : "ثبت شماره"}
-                      </button>
-                    )
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 ml-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                            />
+                          </svg>
+                          {userInfo?.phone ? "ویرایش شماره" : "ثبت شماره"}
+                        </button>
+                      )}
+
+                      {/* دکمه ارسال کد برای تأیید - برای همه نقش‌ها */}
+                      {userInfo?.phone && !userInfo?.phoneVerified && (
+                        <button
+                          onClick={handlePhoneUpdate}
+                          disabled={isSendingCode}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow disabled:opacity-70"
+                        >
+                          {isSendingCode ? (
+                            <>
+                              <svg
+                                className="animate-spin h-4 w-4 ml-1"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                />
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                />
+                              </svg>
+                              در حال ارسال...
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-4 w-4 ml-1"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"
+                                />
+                              </svg>
+                              ارسال کد تأیید
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     <button
                       type="button"
@@ -626,10 +694,10 @@ export default function ProfilePage() {
               {/* نمایش پیام برای کاربران transferApplicant */}
               {user?.role === "transferApplicant" && (
                 <div className="p-4 pt-0 border-t border-purple-100 mt-3">
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                     <div className="flex items-start">
                       <svg
-                        className="h-5 w-5 text-yellow-600 mt-0.5 ml-2 flex-shrink-0"
+                        className="h-5 w-5 text-blue-600 mt-0.5 ml-2 flex-shrink-0"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -639,12 +707,22 @@ export default function ProfilePage() {
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                         />
                       </svg>
-                      <div className="text-sm text-yellow-800">
-                        <p className="font-medium">توجه:</p>
-                        <p className="mt-1">کاربران متقاضی انتقال نمی‌توانند شماره موبایل خود را ویرایش کنند.</p>
+                      <div className="text-sm text-blue-800">
+                        <p className="font-medium">اطلاعیه:</p>
+                        <p className="mt-1">
+                          شماره همراه شما از قبل در سامانه ثبت شده و قابل تغییر
+                          نمی‌باشد. در صورتی که نیاز به تغییر شماره همراه دارید
+                          به امور اداری اداره محل خدمت مراجعه کنید.
+                        </p>
+                        {userInfo?.phone && !userInfo?.phoneVerified && (
+                          <p className="mt-2 font-medium">
+                            برای احراز هویت می‌توانید از دکمه &quot;ارسال کد
+                            تأیید&quot; استفاده کنید.
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -783,14 +861,118 @@ export default function ProfilePage() {
                       </div>
                     )}
                   </div>
+                </div>
+              )}
 
-                  {showVerification && (
-                    <div className="mt-4 bg-gradient-to-br from-gray-50 to-blue-50 p-4 rounded-lg border border-blue-200 shadow-md">
-                      <div className="text-center mb-3">
-                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-2">
+              {/* بخش verification برای همه نقش‌ها */}
+              {showVerification && (
+                <div className="p-4 pt-0 border-t border-purple-100 mt-3">
+                  <div className="mt-4 bg-gradient-to-br from-gray-50 to-blue-50 p-4 rounded-lg border border-blue-200 shadow-md">
+                    <div className="text-center mb-3">
+                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-2">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"
+                          />
+                        </svg>
+                      </div>
+                      <h3 className="text-base font-medium text-gray-800">
+                        تأیید شماره موبایل
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        کد تأیید به شماره{" "}
+                        <span className="inline-block bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-mono font-medium">
+                          {phone || userInfo?.phone}
+                        </span>{" "}
+                        پیامک شد
+                      </p>
+                    </div>
+
+                    <div className="relative mb-4">
+                      <div className="flex">
+                        <input
+                          type="text"
+                          value={verificationCode}
+                          onChange={(e) =>
+                            setVerificationCode(
+                              e.target.value.replace(/[^0-9]/g, "")
+                            )
+                          }
+                          placeholder="کد 5 رقمی را وارد کنید"
+                          className="block w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg tracking-widest font-mono text-center"
+                          dir="ltr"
+                          maxLength={5}
+                          inputMode="numeric"
+                        />
+                      </div>
+
+                      <div className="mt-4 flex flex-col sm:flex-row sm:justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={handleVerifyPhone}
+                          disabled={isVerifying}
+                          className="order-1 sm:order-2 w-full sm:w-auto flex items-center justify-center px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-white font-medium disabled:opacity-70 transition-all duration-200 ease-in-out"
+                        >
+                          {isVerifying ? (
+                            <div className="flex items-center">
+                              <svg
+                                className="animate-spin h-5 w-5 mr-2"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                              <span>در حال بررسی...</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5 mr-1"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                              <span>تأیید کد</span>
+                            </div>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={sendVerificationCode}
+                          className="order-2 sm:order-1 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors text-sm px-3 py-2 rounded-md hover:bg-blue-50"
+                        >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6"
+                            className="h-4 w-4 ml-1"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -799,124 +981,23 @@ export default function ProfilePage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                             />
                           </svg>
-                        </div>
-                        <h3 className="text-base font-medium text-gray-800">
-                          تأیید شماره موبایل
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
-                          کد تأیید به شماره{" "}
-                          <span className="inline-block bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-mono font-medium">
-                            {phone}
-                          </span>{" "}
-                          پیامک شد
-                        </p>
-                      </div>
-
-                      <div className="relative mb-4">
-                        <div className="flex">
-                          <input
-                            type="text"
-                            value={verificationCode}
-                            onChange={(e) =>
-                              setVerificationCode(
-                                e.target.value.replace(/[^0-9]/g, "")
-                              )
-                            }
-                            placeholder="کد 5 رقمی را وارد کنید"
-                            className="block w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg tracking-widest font-mono text-center"
-                            dir="ltr"
-                            maxLength={5}
-                            inputMode="numeric"
-                          />
-                        </div>
-
-                        <div className="mt-4 flex flex-col sm:flex-row sm:justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={handleVerifyPhone}
-                            disabled={isVerifying}
-                            className="order-1 sm:order-2 w-full sm:w-auto flex items-center justify-center px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 text-white font-medium disabled:opacity-70 transition-all duration-200 ease-in-out"
-                          >
-                            {isVerifying ? (
-                              <div className="flex items-center">
-                                <svg
-                                  className="animate-spin h-5 w-5 mr-2"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  ></circle>
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  ></path>
-                                </svg>
-                                <span>در حال بررسی...</span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center">
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-5 w-5 mr-1"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                                <span>تأیید کد</span>
-                              </div>
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={sendVerificationCode}
-                            className="order-2 sm:order-1 flex items-center justify-center text-blue-600 hover:text-blue-800 transition-colors text-sm px-3 py-2 rounded-md hover:bg-blue-50"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4 ml-1"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                              />
-                            </svg>
-                            <span>ارسال مجدد کد</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="text-sm text-gray-500 border-t border-gray-200 pt-3 mt-1">
-                        <ul className="list-disc list-inside space-y-1">
-                          <li>کد تأیید تا 2 دقیقه معتبر است</li>
-                          <li>
-                            در صورت دریافت نکردن کد، روی «ارسال مجدد» کلیک کنید
-                          </li>
-                        </ul>
+                          <span>ارسال مجدد کد</span>
+                        </button>
                       </div>
                     </div>
-                  )}
+
+                    <div className="text-sm text-gray-500 border-t border-gray-200 pt-3 mt-1">
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>کد تأیید تا 2 دقیقه معتبر است</li>
+                        <li>
+                          در صورت دریافت نکردن کد، روی «ارسال مجدد» کلیک کنید
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -980,204 +1061,262 @@ export default function ProfilePage() {
           </div>
 
           <div className="p-6 bg-gradient-to-br from-green-50 to-teal-50 h-full">
-            {formSuccess && (
-              <div className="mb-6 p-4 bg-green-50 border-r-4 border-green-500 rounded-md flex items-start shadow-sm">
-                <svg
-                  className="h-6 w-6 text-green-500 mr-3"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="text-green-700">{formSuccess}</p>
-              </div>
-            )}
-
-            {formError && (
-              <div className="mb-6 p-4 bg-red-50 border-r-4 border-red-500 rounded-md flex items-start shadow-sm">
-                <svg
-                  className="h-6 w-6 text-red-500 mr-3"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="text-red-700">{formError}</p>
-              </div>
-            )}
-
-            <form
-              className="space-y-6 max-w-xl bg-white p-6 rounded-xl shadow-md border border-green-100"
-              onSubmit={handlePasswordChange}
-            >
-              <div className="space-y-1">
-                <label
-                  htmlFor="currentPassword"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  رمز عبور فعلی
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-gray-400"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-1l1-1v-1H4a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v2zm-6 5a4 4 0 100-8 4 4 0 000 8z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <input
-                    id="currentPassword"
-                    type="password"
-                    className="block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 focus:shadow-lg transition-all duration-200 hover:border-green-300"
-                    placeholder="رمز عبور فعلی خود را وارد کنید"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                  />
+            {/* بررسی احراز هویت شماره موبایل */}
+            {!userInfo?.phoneVerified ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="bg-yellow-100 p-4 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-10 w-10 text-yellow-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
                 </div>
-              </div>
-
-              <div className="space-y-1">
-                <label
-                  htmlFor="newPassword"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  رمز عبور جدید
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-gray-400"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <input
-                    id="newPassword"
-                    type="password"
-                    className="block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 focus:shadow-lg transition-all duration-200 hover:border-green-300"
-                    placeholder="رمز عبور جدید خود را وارد کنید"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  رمز عبور باید حداقل 6 کاراکتر باشد
+                <h3 className="text-xl font-bold text-gray-800 mb-4">
+                  احراز هویت مورد نیاز
+                </h3>
+                <p className="text-gray-600 mb-6 text-center leading-relaxed">
+                  برای تغییر رمز عبور، ابتدا باید شماره موبایل خود را تأیید
+                  کنید. لطفاً به بخش &quot;شماره موبایل&quot; مراجعه کرده و
+                  شماره خود را احراز کنید.
                 </p>
-              </div>
-
-              <div className="space-y-1">
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  تکرار رمز عبور جدید
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-start">
                     <svg
+                      className="h-5 w-5 text-yellow-600 mt-0.5 ml-2 flex-shrink-0"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-gray-400"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
                       <path
-                        fillRule="evenodd"
-                        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                        clipRule="evenodd"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
+                    <div className="text-sm text-yellow-800">
+                      <p className="font-medium">راهنما:</p>
+                      <p className="mt-1">
+                        در بخش &quot;شماره موبایل&quot; روی دکمه &quot;ارسال کد
+                        تأیید&quot; کلیک کرده و کد دریافتی را وارد کنید تا
+                        بتوانید رمز عبور خود را تغییر دهید.
+                      </p>
+                    </div>
                   </div>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    className="block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 focus:shadow-lg transition-all duration-200 hover:border-green-300"
-                    placeholder="رمز عبور جدید خود را تکرار کنید"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
                 </div>
               </div>
+            ) : (
+              <>
+                {formSuccess && (
+                  <div className="mb-6 p-4 bg-green-50 border-r-4 border-green-500 rounded-md flex items-start shadow-sm">
+                    <svg
+                      className="h-6 w-6 text-green-500 mr-3"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <p className="text-green-700">{formSuccess}</p>
+                  </div>
+                )}
 
-              <div>
-                <button
-                  type="submit"
-                  className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                  disabled={isSubmitting}
+                {formError && (
+                  <div className="mb-6 p-4 bg-red-50 border-r-4 border-red-500 rounded-md flex items-start shadow-sm">
+                    <svg
+                      className="h-6 w-6 text-red-500 mr-3"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <p className="text-red-700">{formError}</p>
+                  </div>
+                )}
+
+                <form
+                  className="space-y-6 max-w-xl bg-white p-6 rounded-xl shadow-md border border-green-100"
+                  onSubmit={handlePasswordChange}
                 >
-                  {isSubmitting ? (
-                    <>
-                      <svg
-                        className="animate-spin h-5 w-5 mr-2"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
+                  <div className="space-y-1">
+                    <label
+                      htmlFor="currentPassword"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      رمز عبور فعلی
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          viewBox="0 0 20 20"
                           fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      در حال ارسال...
-                    </>
-                  ) : (
-                    <>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-                        />
-                      </svg>
-                      تغییر رمز عبور
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v-1l1-1v-1H4a2 2 0 01-2-2V6a2 2 0 012-2h12a2 2 0 012 2v2zm-6 5a4 4 0 100-8 4 4 0 000 8z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        id="currentPassword"
+                        type="password"
+                        className="block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 focus:shadow-lg transition-all duration-200 hover:border-green-300"
+                        placeholder="رمز عبور فعلی خود را وارد کنید"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label
+                      htmlFor="newPassword"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      رمز عبور جدید
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        id="newPassword"
+                        type="password"
+                        className="block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 focus:shadow-lg transition-all duration-200 hover:border-green-300"
+                        placeholder="رمز عبور جدید خود را وارد کنید"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      رمز عبور باید حداقل 6 کاراکتر باشد
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label
+                      htmlFor="confirmPassword"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      تکرار رمز عبور جدید
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </div>
+                      <input
+                        id="confirmPassword"
+                        type="password"
+                        className="block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 focus:shadow-lg transition-all duration-200 hover:border-green-300"
+                        placeholder="رمز عبور جدید خود را تکرار کنید"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <button
+                      type="submit"
+                      className="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <svg
+                            className="animate-spin h-5 w-5 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          در حال ارسال...
+                        </>
+                      ) : (
+                        <>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 mr-2"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                            />
+                          </svg>
+                          تغییر رمز عبور
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -504,7 +504,7 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
         textColorSecondary: "text-purple-700",
         icon: "FaCheckCircle",
         title: "تبریک! درخواست شما تایید نهایی شده است",
-        message: "درخواست انتقال شما با موفقیت تایید شد.",
+        message: "درخواست تجدیدنظر در نتیجه انتقال شما با موفقیت تایید شد.",
       },
       destination_rejection: {
         bg: "bg-red-50 border-red-200",
@@ -615,7 +615,9 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                   <FaClipboardList className="h-8 w-8" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold">وضعیت درخواست انتقال</h1>
+                  <h1 className="text-2xl font-bold">
+                    وضعیت درخواست تجدیدنظر در نتیجه انتقال
+                  </h1>
                   <p className="text-blue-100 text-sm">
                     مشاهده جزئیات و گردش کار درخواست شما
                   </p>
@@ -2317,7 +2319,9 @@ export default function EmergencyTransferPage() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success("درخواست انتقال اضطراری با موفقیت ثبت و ارسال شد!");
+        toast.success(
+          "درخواست تجدیدنظر در نتیجه انتقال  با موفقیت ثبت و ارسال شد!"
+        );
 
         // نمایش پیام آماده‌سازی برای ریلود
         setTimeout(() => {
@@ -3300,9 +3304,11 @@ export default function EmergencyTransferPage() {
                     <FaArrowRight className="h-8 w-8" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold">درخواست انتقال</h1>
+                    <h1 className="text-2xl font-bold">
+                      درخواست تجدیدنظر در نتیجه انتقال
+                    </h1>
                     <p className="text-orange-100 text-sm">
-                      سیستم ثبت درخواست انتقال پرسنل
+                      سیستم ثبت درخواست تجدیدنظر در نتیجه انتقال پرسنل
                     </p>
                   </div>
                 </div>
@@ -3320,9 +3326,9 @@ export default function EmergencyTransferPage() {
                     احراز هویت ضروری است
                   </h2>
                   <p className="text-gray-600 mb-6 leading-relaxed">
-                    برای دسترسی به سیستم درخواست انتقال اضطرار، ابتدا باید شماره
-                    همراه خود را تایید کنید. این اقدام برای امنیت و صحت اطلاعات
-                    شما انجام می‌شود.
+                    برای دسترسی به سیستم درخواست تجدیدنظر در نتیجه انتقال ،
+                    ابتدا باید شماره همراه خود را تایید کنید. این اقدام برای
+                    امنیت و صحت اطلاعات شما انجام می‌شود.
                   </p>
 
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -3592,7 +3598,9 @@ export default function EmergencyTransferPage() {
                   <FaArrowRight className="h-8 w-8" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold">درخواست انتقال</h1>
+                  <h1 className="text-2xl font-bold">
+                    درخواست تجدیدنظر در نتیجه انتقال
+                  </h1>
                   <p className="text-blue-100 text-sm">در حال بررسی وضعیت...</p>
                 </div>
               </div>
@@ -3628,9 +3636,11 @@ export default function EmergencyTransferPage() {
                 <FaArrowRight className="h-8 w-8" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold">درخواست انتقال</h1>
+                <h1 className="text-2xl font-bold">
+                  درخواست تجدیدنظر در نتیجه انتقال
+                </h1>
                 <p className="text-blue-100 text-sm">
-                  سیستم ثبت درخواست انتقال پرسنل
+                  سیستم ثبت درخواست تجدیدنظر در نتیجه انتقال پرسنل
                 </p>
               </div>
               <div className="mr-auto bg-green-500/20 px-3 py-1 rounded-lg">
@@ -3870,6 +3880,67 @@ export default function EmergencyTransferPage() {
                       </div>
                     </div>
                   ))}
+
+                  {/* دکمه دانلود ضوابط و شرایط دستورالعمل تجدیدنظر */}
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-red-100 p-2 rounded-lg">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-red-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">
+                            ضوابط و شرایط دستورالعمل تجدیدنظر
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            مطالعه این فایل جهت آشنایی با جزئیات ضروری است
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          // ایجاد لینک موقت برای دانلود
+                          const link = document.createElement("a");
+                          link.href = "/attachments/reqrule.pdf";
+                          link.download =
+                            "ضوابط_و_شرایط_دستورالعمل_تجدیدنظر.pdf";
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        دانلود PDF
+                      </button>
+                    </div>
+                  </div>
 
                   <div className="mt-8 pt-6 border-t border-gray-200">
                     <div className="flex items-center justify-between">
@@ -4261,10 +4332,10 @@ export default function EmergencyTransferPage() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold">
-                    مرحله سوم: فرم ثبت درخواست تجدید نظر
+                    مرحله سوم: فرم ثبت درخواست تجدیدنظر در نتیجه انتقال
                   </h2>
                   <p className="text-purple-100 text-sm">
-                    تکمیل فرم درخواست انتقال
+                    تکمیل فرم درخواست تجدیدنظر در نتیجه انتقال
                   </p>
                 </div>
               </div>
@@ -5595,7 +5666,7 @@ export default function EmergencyTransferPage() {
                 <div>
                   <h2 className="text-xl font-bold">مرحله ششم: تایید نهایی</h2>
                   <p className="text-green-100 text-sm">
-                    تایید و ارسال نهایی درخواست انتقال
+                    تایید و ارسال نهایی درخواست تجدیدنظر در نتیجه انتقال
                   </p>
                 </div>
               </div>
@@ -5612,8 +5683,8 @@ export default function EmergencyTransferPage() {
                     </h4>
                     <p className="text-green-700 leading-relaxed mb-4">
                       با کلیک بر روی دکمه &quot;تایید و ارسال نهایی&quot;،
-                      درخواست انتقال اضطراری شما به صورت رسمی ثبت و برای بررسی
-                      ارسال خواهد شد.
+                      درخواست تجدیدنظر در نتیجه انتقال شما به صورت رسمی ثبت و
+                      برای بررسی ارسال خواهد شد.
                     </p>
                     <div className="bg-green-100 rounded-lg p-4">
                       <h5 className="font-medium text-green-800 mb-2">
@@ -5641,7 +5712,7 @@ export default function EmergencyTransferPage() {
                   <div className="bg-blue-50 px-6 py-4 border-b border-gray-200">
                     <h3 className="text-lg font-semibold text-blue-800 flex items-center gap-2">
                       <FaClipboardList className="h-5 w-5" />
-                      خلاصه درخواست انتقال اضطراری
+                      خلاصه درخواست تجدیدنظر در نتیجه انتقال
                     </h3>
                   </div>
                   <div className="p-6">
@@ -5798,8 +5869,8 @@ export default function EmergencyTransferPage() {
                       <p className="text-sm text-gray-600 leading-relaxed">
                         اینجانب تایید می‌کنم که تمام اطلاعات وارد شده صحیح بوده
                         و مسئولیت صحت آن‌ها بر عهده من است. همچنین از قوانین و
-                        مقررات مربوط به انتقال اضطراری آگاه بوده و آن‌ها را
-                        می‌پذیرم.
+                        مقررات مربوط به درخواست تجدیدنظر در نتیجه انتقال آگاه
+                        بوده و آن‌ها را می‌پذیرم.
                       </p>
                     </div>
                   </label>

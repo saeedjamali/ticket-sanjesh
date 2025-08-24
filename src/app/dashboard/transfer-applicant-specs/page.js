@@ -1057,7 +1057,7 @@ export default function TransferApplicantSpecsPage() {
       },
       {
         فیلد: "وضعیت درخواست",
-        توضیحات: "وضعیت درخواست انتقال",
+        توضیحات: "وضعیت درخواست تجدیدنظر در نتیجه انتقال",
         نوع: "متن",
         الزامی: "خیر",
         مثال: "awaiting_user_approval",
