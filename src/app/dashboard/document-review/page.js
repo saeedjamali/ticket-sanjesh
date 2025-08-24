@@ -927,7 +927,6 @@ export default function DocumentReviewPage() {
       };
 
     }
-    console.log("request========>",request);
     // تقسیم دلایل بر اساس نیاز به تایید کارشناس
     const reasonsRequiringApproval = request.selectedReasons.filter(
       (reason) => reason?.reasonId?.requiresAdminApproval === true
