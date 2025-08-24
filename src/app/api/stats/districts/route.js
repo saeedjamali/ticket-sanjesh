@@ -49,9 +49,9 @@ export async function GET(request) {
       user.role === ROLES.GENERAL_MANAGER
     ) {
       // اگر کاربر کارشناس استان است، فقط مناطق استان خودش را ببیند
-      districtQuery.province = user.province;
+      districtQuery.province = user.province._id;
     }
-
+    console.log("user========>",user);
     // دریافت مناطق با اطلاعات تکمیلی
     const districts = await District.find(districtQuery)
       .populate("province", "name")

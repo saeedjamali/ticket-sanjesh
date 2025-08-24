@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import StudentsPage from "../page";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import PhoneVerificationGuard from "@/components/PhoneVerificationGuard";
 
 export default function PreviousStudentsPage() {
   const router = useRouter();
@@ -41,12 +42,14 @@ export default function PreviousStudentsPage() {
   }
 
   return (
-    <StudentsPage
-      defaultAcademicYear="previous"
-      hideAcademicYearFilter={true}
-      maxStudents={stats?.totalStudents}
-      currentStudentCount={stats?.registeredStudents}
-      modalStudentCount={stats?.totalStudents}
-    />
+    <PhoneVerificationGuard requiresVerification={true}>
+      <StudentsPage
+        defaultAcademicYear="previous"
+        hideAcademicYearFilter={true}
+        maxStudents={stats?.totalStudents}
+        currentStudentCount={stats?.registeredStudents}
+        modalStudentCount={stats?.totalStudents}
+      />
+    </PhoneVerificationGuard>
   );
 }
