@@ -17,7 +17,7 @@ export async function POST(req) {
       return Response.json({ message: "خطا در اتصال به پایگاه", status: 500 });
     }
     const otp = await OtpModel.findOne({ phone, code });
-    console.log("otp----->", otp);
+    // console.log("otp----->", otp);
     if (otp) {
       const date = new Date();
       const now = date.getTime();

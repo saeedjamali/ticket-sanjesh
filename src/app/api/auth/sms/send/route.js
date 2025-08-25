@@ -51,7 +51,7 @@ export async function POST(req) {
 
       const otp = await OtpModel.findOneAndUpdate({ phone }, { code, expTime });
 
-      console.log("otp----->", otp);
+      // console.log("otp----->", otp);
       if (otp) {
         return Response.json({
           message: "کد با موفقیت ارسال شد :))",

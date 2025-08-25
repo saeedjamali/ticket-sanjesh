@@ -127,7 +127,7 @@ export default function ProfilePage() {
         if (data.success) {
           setPhoneSuccess(data.message);
           setShowVerification(true);
-
+      
           // ارسال درخواست پیامک کد تأیید
           await sendVerificationCode();
         } else {
@@ -162,6 +162,8 @@ export default function ProfilePage() {
       if (data.status !== 200 && data.status !== 201) {
         setPhoneError("خطا در ارسال کد تأیید. لطفا دوباره تلاش کنید");
       }
+       console.log("data-------->", data);
+      // window.location.reload();
     } catch (error) {
       console.error("Error sending verification code:", error);
       setPhoneError("خطا در ارسال کد تأیید. لطفا دوباره تلاش کنید");
@@ -188,7 +190,7 @@ export default function ProfilePage() {
       });
 
       const data = await response.json();
-
+      console.log("data verify-------->", data);
       if (data.success) {
         setPhoneSuccess("شماره موبایل با موفقیت تأیید شد");
         setShowVerification(false);
@@ -197,16 +199,16 @@ export default function ProfilePage() {
         // به‌روزرسانی اطلاعات کاربر در localStorage
         try {
           // دریافت اطلاعات فعلی کاربر از localStorage
-          const userFromStorage = JSON.parse(
-            localStorage.getItem("user") || "{}"
-          );
+          // const userFromStorage = JSON.parse(
+          //   localStorage.getItem("user") || "{}"
+          // );
 
-          // به‌روزرسانی phoneVerified در اطلاعات کاربر
-          userFromStorage.phoneVerified = true;
-          userFromStorage.phone = phone;
+          // // به‌روزرسانی phoneVerified در اطلاعات کاربر
+          // userFromStorage.phoneVerified = true;
+          // userFromStorage.phone = phone;
 
-          // ذخیره مجدد اطلاعات کاربر در localStorage
-          localStorage.setItem("user", JSON.stringify(userFromStorage));
+          // // ذخیره مجدد اطلاعات کاربر در localStorage
+          // localStorage.setItem("user", JSON.stringify(userFromStorage));
 
           // نمایش پیام موفقیت
           toast.success("شماره موبایل شما با موفقیت تأیید شد!");
@@ -908,7 +910,7 @@ export default function ProfilePage() {
                             )
                           }
                           placeholder="کد 5 رقمی را وارد کنید"
-                          className="block w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg tracking-widest font-mono text-center"
+                          className="block w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg tracking-widest font-mono text-center text-gray-800 force-text-gray-800"
                           dir="ltr"
                           maxLength={5}
                           inputMode="numeric"
