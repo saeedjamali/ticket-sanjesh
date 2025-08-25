@@ -129,6 +129,8 @@ export async function POST(request) {
       hasYearsLimit: Boolean(data.hasYearsLimit),
       yearsLimit: data.hasYearsLimit ? Number(data.yearsLimit) : null,
       isCulturalCouple: Boolean(data.isCulturalCouple),
+      isRequireMedicalCommission:
+        data.isRequireMedicalCommission || "not_applicable",
       isActive: data.isActive !== undefined ? data.isActive : true,
     });
 
@@ -239,6 +241,8 @@ export async function PUT(request) {
         hasYearsLimit: Boolean(data.hasYearsLimit),
         yearsLimit: data.hasYearsLimit ? Number(data.yearsLimit) : null,
         isCulturalCouple: Boolean(data.isCulturalCouple),
+        isRequireMedicalCommission:
+          data.isRequireMedicalCommission || "not_applicable",
         isActive: data.isActive !== undefined ? data.isActive : true,
         updatedAt: new Date(),
       },

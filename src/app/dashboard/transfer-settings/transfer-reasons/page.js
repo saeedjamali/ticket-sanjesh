@@ -16,6 +16,7 @@ import {
   FaSortDown,
   FaFileUpload,
   FaCheckCircle,
+  FaUserMd,
 } from "react-icons/fa";
 
 export default function TransferReasonsPage() {
@@ -37,6 +38,7 @@ export default function TransferReasonsPage() {
     hasYearsLimit: false,
     yearsLimit: "",
     isCulturalCouple: false,
+    isRequireMedicalCommission: "not_applicable",
     isActive: true,
   });
 
@@ -170,6 +172,8 @@ export default function TransferReasonsPage() {
       hasYearsLimit: reason.hasYearsLimit || false,
       yearsLimit: reason.yearsLimit || "",
       isCulturalCouple: reason.isCulturalCouple || false,
+      isRequireMedicalCommission:
+        reason.isRequireMedicalCommission || "not_applicable",
       isActive: reason.isActive,
     });
     setShowModal(true);
@@ -224,6 +228,7 @@ export default function TransferReasonsPage() {
       hasYearsLimit: false,
       yearsLimit: "",
       isCulturalCouple: false,
+      isRequireMedicalCommission: "not_applicable",
       isActive: true,
     });
   };
@@ -312,6 +317,9 @@ export default function TransferReasonsPage() {
                       زوج فرهنگی
                     </th>
                     <th className="text-center py-3 px-4 font-semibold text-gray-700">
+                      نیازمند رای کمیسیون
+                    </th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700">
                       وضعیت
                     </th>
                     <th className="text-center py-3 px-4 font-semibold text-gray-700">
@@ -392,6 +400,25 @@ export default function TransferReasonsPage() {
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             <FaTimes className="h-3 w-3 ml-1" />
                             خیر
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {reason.isRequireMedicalCommission === "required" ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <FaUserMd className="h-3 w-3 ml-1" />
+                            نیاز دارد
+                          </span>
+                        ) : reason.isRequireMedicalCommission ===
+                          "not_required" ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <FaTimes className="h-3 w-3 ml-1" />
+                            نیاز ندارد
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <span className="h-3 w-3 ml-1">-</span>
+                            مهم نیست
                           </span>
                         )}
                       </td>
@@ -667,6 +694,30 @@ export default function TransferReasonsPage() {
                         زوج فرهنگی است
                       </span>
                     </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      وضعیت کمیسیون پزشکی
+                    </label>
+                    <select
+                      value={formData.isRequireMedicalCommission}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          isRequireMedicalCommission: e.target.value,
+                        })
+                      }
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                    >
+                      <option value="not_applicable">مهم نیست</option>
+                      <option value="required">
+                        نیاز به کمیسیون پزشکی دارد
+                      </option>
+                      <option value="not_required">
+                        نیاز به کمیسیون پزشکی ندارد
+                      </option>
+                    </select>
                   </div>
 
                   <div>

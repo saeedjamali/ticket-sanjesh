@@ -318,7 +318,7 @@ export default function DocumentReviewPage() {
           province_review: "در حال بررسی استان",
           province_approval: "تایید استان",
           province_rejection: "رد استان",
-          destination_review: "در حال بررسی مقصد",
+          // destination_review: "در حال بررسی مقصد",
           destination_approval: "تایید مقصد",
           destination_rejection: "رد مقصد",
         };
@@ -1361,7 +1361,7 @@ export default function DocumentReviewPage() {
       province_rejection: "رد استان",
 
       // وضعیت‌های مقصد
-      destination_review: "در حال بررسی مقصد",
+      // destination_review: "در حال بررسی مقصد",
       destination_approval: "تایید مقصد",
       destination_rejection: "رد مقصد",
 

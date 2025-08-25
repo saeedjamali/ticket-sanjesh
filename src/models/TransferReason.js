@@ -79,6 +79,12 @@ const TransferReasonSchema = new mongoose.Schema({
     default: false,
     required: true,
   },
+  isRequireMedicalCommission: {
+    type: String,
+    enum: ["required", "not_required", "not_applicable"],
+    default: "not_applicable",
+    required: false,
+  },
   isActive: {
     type: Boolean,
     default: true,

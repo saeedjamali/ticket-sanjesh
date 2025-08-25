@@ -42,4 +42,10 @@ export const getAllFields = () => {
   ];
 };
 
-
+export const getCustomFieldsForCorrection = () => {
+  return [
+    { value: "employmentField", label: "رشته استخدامی" },
+    { value: "effectiveYears", label: "سنوات مؤثر" },
+    { value: "approvedScore", label: "امتیاز تایید شده" },
+  ];
+};

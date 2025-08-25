@@ -100,7 +100,7 @@ export async function GET(request) {
         { value: "province_review", label: "در حال بررسی توسط استان" },
         { value: "province_approval", label: "تایید استان" },
         { value: "province_rejection", label: "رد استان" },
-        { value: "destination_review", label: "در حال بررسی مقصد" },
+        // { value: "destination_review", label: "در حال بررسی مقصد" },
         { value: "destination_approval", label: "تایید مقصد" },
         { value: "destination_rejection", label: "رد مقصد" },
       ],

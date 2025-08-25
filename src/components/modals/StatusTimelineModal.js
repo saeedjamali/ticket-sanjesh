@@ -140,7 +140,7 @@ export default function StatusTimelineModal({
       province_review: "در حال بررسی توسط استان",
       province_approval: "تایید استان",
       province_rejection: "رد استان",
-      destination_review: "در حال بررسی مقصد",
+      // destination_review: "در حال بررسی مقصد",
       destination_approval: "تایید مقصد",
       destination_rejection: "رد مقصد",
       no_transfer: "بدون انتقال",

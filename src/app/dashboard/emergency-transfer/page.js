@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { useUserContext } from "@/context/UserContext";
 import { toast } from "react-hot-toast";
-import { getFieldDisplayName, getAllFields } from "@/lib/fieldTranslations";
+import {
+  getFieldDisplayName,
+  getAllFields,
+  getCustomFieldsForCorrection,
+} from "@/lib/fieldTranslations";
 import {
   FaExclamationTriangle,
   FaPhone,
@@ -29,6 +33,8 @@ import {
   FaDownload,
   FaPlus,
   FaUserFriends,
+  FaUserMd,
+  FaHome,
 } from "react-icons/fa";
 
 import ChatBox from "@/components/chat/ChatBox";
@@ -122,11 +128,11 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
             title: "تایید استان",
             description: "توسط استان تایید شد",
           },
-          {
-            status: "destination_review",
-            title: "بررسی مقصد",
-            description: "در حال بررسی توسط منطقه مقصد",
-          },
+          // {
+          //   status: "destination_review",
+          //   title: "بررسی مقصد",
+          //   description: "در حال بررسی توسط منطقه مقصد",
+          // },
           {
             status: "approved",
             title: "تایید نهایی",
@@ -258,10 +264,10 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       source_review: "در حال بررسی مبدا",
       exception_eligibility_approval: "تایید مشمولیت استثنا",
       exception_eligibility_rejection: "رد مشمولیت استثنا",
-      source_approval: "تایید مبدا",
+      source_approval: "نظر نهایی مبدا",
       source_rejection: "رد مبدا",
       province_review: "در حال برسی توسط استان",
-      province_approval: "تایید استان",
+      province_approval: "نظر نهایی استان",
       province_rejection: "رد استان",
       destination_review: "در حال بررسی مقصد",
     };
@@ -670,7 +676,7 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
               <FaInfoCircle className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-orange-800 mb-2">تذکر مهم</h3>
+              <h3 className="font-bold text-orange-800 mb-2">تذکر مهم :</h3>
               <p className="text-orange-700 text-sm leading-relaxed text-justify">
                 همکار محترم، ثبت درخواست تجدیدنظر در نتیجه انتقال داخل استان و
                 پیگیری نتیجه آن، صرفاً از طریق همین سامانه انجام می شود؛ لذا
@@ -1974,6 +1980,9 @@ export default function EmergencyTransferPage() {
     districtCode: "",
   });
   const [yearsWarnings, setYearsWarnings] = useState([]);
+  const [medicalCommissionWarnings, setMedicalCommissionWarnings] = useState(
+    []
+  );
   const [districts, setDistricts] = useState([]);
   const [userComments, setUserComments] = useState(""); // توضیحات کاربر
   const [userCommentsImages, setUserCommentsImages] = useState([]); // تصاویر توضیحات کاربر
@@ -2165,7 +2174,7 @@ export default function EmergencyTransferPage() {
       province_review: "در حال برسی توسط استان",
       province_approval: "تایید استان",
       province_rejection: "رد استان",
-      destination_review: "در حال بررسی مقصد",
+      // destination_review: "در حال بررسی مقصد",
     };
     return statusMap[status] || status;
   };
@@ -2325,6 +2334,7 @@ export default function EmergencyTransferPage() {
             transferType: transferTypes[p.priority] || p.transferType,
           })),
           yearsWarnings: yearsWarnings,
+          medicalCommissionWarnings: medicalCommissionWarnings,
           uploadedDocuments: uploadedDocuments,
           userComments: userComments.trim() || null,
           userCommentsImages: userCommentsImages, // تصاویر توضیحات کاربر
@@ -2584,7 +2594,8 @@ export default function EmergencyTransferPage() {
 
   // بررسی وجود درخواست pending
   const hasPendingCorrectionRequest = () => {
-    return correctionRequests.some((request) => request.status === "pending");
+    return false;
+    // return correctionRequests.some((request) => request.status === "pending");
   };
 
   // دریافت دلایل انتقال برای مرحله 3
@@ -2754,14 +2765,152 @@ export default function EmergencyTransferPage() {
     }
   };
 
+  // بررسی اینکه آیا کاربر مجاز به انتخاب بند است
+  const canSelectReason = (reason) => {
+    if (
+      !reason.isRequireMedicalCommission ||
+      reason.isRequireMedicalCommission === "not_applicable"
+    ) {
+      return true; // همیشه مجاز
+    }
+
+    const userVerdict = userSpecs?.medicalCommissionVerdict;
+    const hasVerdict = userVerdict && userVerdict.trim() !== "";
+
+    if (reason.isRequireMedicalCommission === "required") {
+      return hasVerdict; // فقط اگر رای داشته باشد
+    } else if (reason.isRequireMedicalCommission === "not_required") {
+      return !hasVerdict; // فقط اگر رای نداشته باشد
+    }
+
+    return true;
+  };
+
+  // دریافت پیام مناسب برای انتخاب بند
+  const getSelectionMessage = (reason, isSelecting) => {
+    if (
+      !reason.isRequireMedicalCommission ||
+      reason.isRequireMedicalCommission === "not_applicable"
+    ) {
+      return null;
+    }
+
+    const userVerdict = userSpecs?.medicalCommissionVerdict;
+    const hasVerdict = userVerdict && userVerdict.trim() !== "";
+
+    if (isSelecting) {
+      if (reason.isRequireMedicalCommission === "required") {
+        if (hasVerdict) {
+          return {
+            type: "success",
+            message:
+              "✅ شما واجد شرایط این بند هستید زیرا رای کمیسیون پزشکی دارید",
+          };
+        }
+      } else if (reason.isRequireMedicalCommission === "not_required") {
+        if (!hasVerdict) {
+          return {
+            type: "success",
+            message:
+              "✅ شما واجد شرایط این بند هستید زیرا رای کمیسیون پزشکی ندارید",
+          };
+        }
+      }
+    }
+
+    return null;
+  };
+
+  // بررسی وضعیت کمیسیون پزشکی
+  const checkMedicalCommissionRequirement = (reason, reasonId) => {
+    if (
+      !reason.isRequireMedicalCommission ||
+      reason.isRequireMedicalCommission === "not_applicable"
+    ) {
+      // اگر کمیسیون پزشکی مهم نیست، هشدار را حذف کن
+      setMedicalCommissionWarnings((prev) =>
+        prev.filter((w) => w.reasonId !== reasonId)
+      );
+      return;
+    }
+
+    const userVerdict = userSpecs?.medicalCommissionVerdict;
+
+    if (reason.isRequireMedicalCommission === "required") {
+      // نیاز به کمیسیون پزشکی دارد - باید رای داشته باشد
+      if (!userVerdict || userVerdict.trim() === "") {
+        const warning =
+          "این بند نیازمند رای کمیسیون پزشکی است اما شما رای کمیسیون پزشکی ندارید";
+        setMedicalCommissionWarnings((prev) => [
+          ...prev.filter((w) => w.reasonId !== reasonId),
+          {
+            reasonId,
+            message: warning,
+            type: "required_missing",
+          },
+        ]);
+      } else {
+        // رای موجود است، هشدار را حذف کن
+        setMedicalCommissionWarnings((prev) =>
+          prev.filter((w) => w.reasonId !== reasonId)
+        );
+      }
+    } else if (reason.isRequireMedicalCommission === "not_required") {
+      // نیاز به کمیسیون پزشکی ندارد - اگر رای دارد، هشدار بده
+      if (userVerdict && userVerdict.trim() !== "") {
+        const warning =
+          "این بند نیازی به رای کمیسیون پزشکی ندارد اما شما رای کمیسیون پزشکی دارید";
+        setMedicalCommissionWarnings((prev) => [
+          ...prev.filter((w) => w.reasonId !== reasonId),
+          {
+            reasonId,
+            message: warning,
+            type: "not_required_exists",
+          },
+        ]);
+      } else {
+        // رای موجود نیست، هشدار را حذف کن
+        setMedicalCommissionWarnings((prev) =>
+          prev.filter((w) => w.reasonId !== reasonId)
+        );
+      }
+    }
+  };
+
   // انتخاب/لغو انتخاب دلیل انتقال
   const handleReasonSelection = (reasonId, isSelected) => {
     const reason = transferReasons.find((r) => r._id === reasonId);
     if (!reason) return;
 
+    // بررسی مجاز بودن انتخاب
+    if (isSelected && !canSelectReason(reason)) {
+      const userVerdict = userSpecs?.medicalCommissionVerdict;
+      const hasVerdict = userVerdict && userVerdict.trim() !== "";
+
+      let errorMessage = "";
+      if (reason.isRequireMedicalCommission === "required" && !hasVerdict) {
+        errorMessage =
+          "❌ شما نمی‌توانید این بند را انتخاب کنید زیرا نیازمند رای کمیسیون پزشکی است اما شما رای ندارید";
+      } else if (
+        reason.isRequireMedicalCommission === "not_required" &&
+        hasVerdict
+      ) {
+        errorMessage =
+          "❌ شما نمی‌توانید این بند را انتخاب کنید زیرا این بند نیازی به رای کمیسیون پزشکی ندارد اما شما رای دارید";
+      }
+
+      toast.error(errorMessage);
+      return;
+    }
+
     const newSelectedReasons = new Set(selectedReasons);
 
     if (isSelected) {
+      // نمایش پیام موفقیت
+      const selectionMessage = getSelectionMessage(reason, true);
+      if (selectionMessage) {
+        toast.success(selectionMessage.message);
+      }
       newSelectedReasons.add(reasonId);
 
       // بررسی محدودیت سنوات
@@ -2787,9 +2936,17 @@ export default function EmergencyTransferPage() {
           );
         }
       }
+
+      // بررسی وضعیت کمیسیون پزشکی
+      if (userSpecs) {
+        checkMedicalCommissionRequirement(reason, reasonId);
+      }
     } else {
       newSelectedReasons.delete(reasonId);
       setYearsWarnings((prev) => prev.filter((w) => w.reasonId !== reasonId));
+      setMedicalCommissionWarnings((prev) =>
+        prev.filter((w) => w.reasonId !== reasonId)
+      );
 
       // حذف اطلاعات مربوط به این دلیل
       if (reason.requiresDocumentUpload) {
@@ -2856,6 +3013,7 @@ export default function EmergencyTransferPage() {
             ? culturalCoupleInfo
             : null,
         yearsWarnings: yearsWarnings,
+        medicalCommissionWarnings: medicalCommissionWarnings,
         userComments: userComments.trim() || null, // توضیحات کاربر
         userCommentsImages: userCommentsImages, // تصاویر توضیحات کاربر
         currentStep: currentStep,
@@ -3194,12 +3352,30 @@ export default function EmergencyTransferPage() {
       return;
     }
 
-    // نمایش هشدارهای سنوات (در صورت وجود)
-    const hasWarnings = yearsWarnings.length > 0;
-    if (hasWarnings) {
-      const warningMessages = yearsWarnings.map((w) => w.message).join("\n");
+    // نمایش هشدارها (در صورت وجود)
+    const hasYearsWarnings = yearsWarnings.length > 0;
+    const hasMedicalWarnings = medicalCommissionWarnings.length > 0;
+
+    if (hasYearsWarnings || hasMedicalWarnings) {
+      let warningMessages = [];
+
+      if (hasYearsWarnings) {
+        warningMessages.push("⚠️ هشدارهای سنوات:");
+        warningMessages.push(...yearsWarnings.map((w) => `• ${w.message}`));
+        warningMessages.push("");
+      }
+
+      if (hasMedicalWarnings) {
+        warningMessages.push("🏥 هشدارهای کمیسیون پزشکی:");
+        warningMessages.push(
+          ...medicalCommissionWarnings.map((w) => `• ${w.message}`)
+        );
+      }
+
       const confirmed = window.confirm(
-        `توجه: موارد زیر برای انتخاب‌های شما اعمال می‌شود:\n\n${warningMessages}\n\nآیا مایل به ادامه هستید؟`
+        `توجه: موارد زیر برای انتخاب‌های شما اعمال می‌شود:\n\n${warningMessages.join(
+          "\n"
+        )}\n\nآیا مایل به ادامه هستید؟`
       );
 
       if (!confirmed) {
@@ -3660,7 +3836,7 @@ export default function EmergencyTransferPage() {
                   درخواست تجدیدنظر در نتیجه انتقال
                 </h1>
                 <p className="text-blue-100 text-sm">
-                  سیستم ثبت درخواست تجدیدنظر در نتیجه انتقال داخل پرسنل
+                  ثبت درخواست تجدیدنظر در نتیجه انتقال داخل استان پرسنل
                 </p>
               </div>
               <div className="mr-auto bg-green-500/20 px-3 py-1 rounded-lg">
@@ -3680,7 +3856,7 @@ export default function EmergencyTransferPage() {
               <FaInfoCircle className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-orange-800 mb-2">تذکر مهم</h3>
+              <h3 className="font-bold text-orange-800 mb-2">تذکر مهم :</h3>
               <p className="text-orange-700 text-sm leading-relaxed text-justify">
                 همکار محترم، ثبت درخواست تجدیدنظر در نتیجه انتقال داخل استان و
                 پیگیری نتیجه آن، صرفاً از طریق همین سامانه انجام می شود؛ لذا
@@ -3937,32 +4113,34 @@ export default function EmergencyTransferPage() {
                       key={notice._id}
                       className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          <input
-                            type="checkbox"
-                            id={`notice-${notice._id}`}
-                            checked={acceptedNotices.has(notice._id)}
-                            onChange={(e) =>
-                              handleNoticeAcceptance(
-                                notice._id,
-                                e.target.checked
-                              )
-                            }
-                            className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                          />
-                        </div>
+                      <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <label
-                            htmlFor={`notice-${notice._id}`}
-                            className="block text-sm font-medium text-gray-900 cursor-pointer"
-                          >
+                          <div className="block text-sm font-medium text-gray-900">
                             <span className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full mb-2">
                               {notice.code}
                             </span>
                             <br />
                             {notice.title}
-                          </label>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <button
+                            onClick={() =>
+                              handleNoticeAcceptance(
+                                notice._id,
+                                !acceptedNotices.has(notice._id)
+                              )
+                            }
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                              acceptedNotices.has(notice._id)
+                                ? "bg-green-600 text-white hover:bg-green-700 shadow-md"
+                                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                            }`}
+                          >
+                            {acceptedNotices.has(notice._id)
+                              ? "✓ مطالعه کردم و پذیرفتم"
+                              : "مطالعه کردم و پذیرفتم"}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -4144,14 +4322,16 @@ export default function EmergencyTransferPage() {
                           {userSpecs.effectiveYears}
                         </div>
                       </div>
-                      {/* <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          کد رشته
-                        </label>
-                        <div className="bg-white p-3 rounded-lg border border-gray-300 text-gray-900">
-                          {userSpecs.fieldCode}
+                      {userSpecs.medicalCommissionVerdict && (
+                        <div className="col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            رای کمیسیون پزشکی
+                          </label>
+                          <div className="bg-white p-3 rounded-lg border border-gray-300 text-gray-900">
+                            {userSpecs.medicalCommissionVerdict}
+                          </div>
                         </div>
-                      </div> */}
+                      )}
                       {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           نوع انتقال تقاضا
@@ -4169,23 +4349,23 @@ export default function EmergencyTransferPage() {
                   <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
                     <h3 className="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
                       <FaShieldAlt className="h-5 w-5" />
-                      اطلاعات منطقه اصلی محل خدمت
+                      اطلاعات منطقه اصلی محل خدمت(مبدا انتقال)
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          نام منطقه اصلی محل خدمت(مبدا انتقال)
+                        </label>
+                        <div className="bg-white p-3 rounded-lg border border-gray-300 text-gray-900 font-mono">
+                          {userSpecs.districtName || "نام منطقه یافت نشد"}
+                        </div>
+                      </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           کد محل خدمت
                         </label>
                         <div className="bg-white p-3 rounded-lg border border-gray-300 text-gray-900 font-mono">
                           {userSpecs.currentWorkPlaceCode}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          نام منطقه
-                        </label>
-                        <div className="bg-white p-3 rounded-lg border border-gray-300 text-gray-900 font-mono">
-                          {userSpecs.districtName || "نام منطقه یافت نشد"}
                         </div>
                       </div>
                       {/* <div className="md:col-span-2">
@@ -4361,7 +4541,7 @@ export default function EmergencyTransferPage() {
                     مرحله سوم: فرم ثبت درخواست تجدیدنظر در نتیجه انتقال
                   </h2>
                   <p className="text-purple-100 text-sm">
-                    تکمیل فرم درخواست تجدیدنظر در نتیجه انتقال
+                    درخواست تجدیدنظر خودرادر قالب زیر ثبت نمایید.
                   </p>
                 </div>
               </div>
@@ -4420,23 +4600,38 @@ export default function EmergencyTransferPage() {
                               مشمول و متقاضی بررسی انتقال از طریق این بند:
                             </p>
                             <div className="flex gap-4">
-                              <label className="flex items-center">
+                              <label
+                                className={`flex items-center ${
+                                  !canSelectReason(reason)
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : "cursor-pointer"
+                                }`}
+                              >
                                 <input
                                   type="radio"
                                   name={`reason_${reason._id}`}
                                   value="yes"
                                   checked={selectedReasons.has(reason._id)}
+                                  disabled={!canSelectReason(reason)}
                                   onChange={(e) =>
                                     handleReasonSelection(
                                       reason._id,
                                       e.target.checked
                                     )
                                   }
-                                  className="ml-2 text-purple-600 focus:ring-purple-500"
+                                  className="ml-2 text-purple-600 focus:ring-purple-500 disabled:text-gray-400 disabled:cursor-not-allowed"
                                 />
-                                هستم
+                                <span
+                                  className={
+                                    !canSelectReason(reason)
+                                      ? "text-gray-400"
+                                      : "text-gray-700"
+                                  }
+                                >
+                                  هستم
+                                </span>
                               </label>
-                              <label className="flex items-center">
+                              <label className="flex items-center cursor-pointer">
                                 <input
                                   type="radio"
                                   name={`reason_${reason._id}`}
@@ -4455,6 +4650,24 @@ export default function EmergencyTransferPage() {
                             </div>
                           </div>
 
+                          {/* پیام عدم مجاز بودن */}
+                          {!canSelectReason(reason) && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                              <div className="flex items-center gap-2 text-red-800">
+                                <FaTimesCircle className="h-5 w-5" />
+                                <span className="font-medium">
+                                  عدم واجد شرایط:
+                                </span>
+                              </div>
+                              <p className="text-red-700 mt-1 text-sm">
+                                {reason.isRequireMedicalCommission ===
+                                "required"
+                                  ? "این بند نیازمند رای کمیسیون پزشکی است اما شما رای کمیسیون پزشکی ندارید"
+                                  : "این بند نیازی به رای کمیسیون پزشکی ندارد اما شما رای کمیسیون پزشکی دارید"}
+                              </p>
+                            </div>
+                          )}
+
                           {/* هشدار سنوات */}
                           {yearsWarnings.find(
                             (w) => w.reasonId === reason._id
@@ -4467,6 +4680,51 @@ export default function EmergencyTransferPage() {
                               <p className="text-yellow-700 mt-1">
                                 {
                                   yearsWarnings.find(
+                                    (w) => w.reasonId === reason._id
+                                  )?.message
+                                }
+                              </p>
+                            </div>
+                          )}
+
+                          {/* هشدار کمیسیون پزشکی */}
+                          {medicalCommissionWarnings.find(
+                            (w) => w.reasonId === reason._id
+                          ) && (
+                            <div
+                              className={`rounded-lg p-4 mb-4 ${
+                                medicalCommissionWarnings.find(
+                                  (w) => w.reasonId === reason._id
+                                )?.type === "required_missing"
+                                  ? "bg-red-50 border border-red-200"
+                                  : "bg-orange-50 border border-orange-200"
+                              }`}
+                            >
+                              <div
+                                className={`flex items-center gap-2 ${
+                                  medicalCommissionWarnings.find(
+                                    (w) => w.reasonId === reason._id
+                                  )?.type === "required_missing"
+                                    ? "text-red-800"
+                                    : "text-orange-800"
+                                }`}
+                              >
+                                <FaUserMd className="h-5 w-5" />
+                                <span className="font-medium">
+                                  کمیسیون پزشکی:
+                                </span>
+                              </div>
+                              <p
+                                className={`mt-1 ${
+                                  medicalCommissionWarnings.find(
+                                    (w) => w.reasonId === reason._id
+                                  )?.type === "required_missing"
+                                    ? "text-red-700"
+                                    : "text-orange-700"
+                                }`}
+                              >
+                                {
+                                  medicalCommissionWarnings.find(
                                     (w) => w.reasonId === reason._id
                                   )?.message
                                 }
@@ -4911,9 +5169,9 @@ export default function EmergencyTransferPage() {
                 <p className="text-gray-800 leading-relaxed mb-4">
                   {canEditDestination ? (
                     <>
-                      همکار گرامی؛ شما در این بخش می‌توانید مقصدها و نوع انتقال
-                      مورد درخواست خود را برای هریک از اولویت‌ها از طریق
-                      گزینه‌های مشخص شده انتخاب و ویرایش نمایید.
+                      همکار گرامی؛ شما در این بخش می‌توانید نوع انتقال مورد
+                      درخواست خود را برای هریک از اولویت‌های انتخابی از طریق
+                      گزینه‌های مشخص شده انتخاب نمایید..
                     </>
                   ) : (
                     <>
@@ -4948,6 +5206,33 @@ export default function EmergencyTransferPage() {
                     </ul>
                   </div>
                 )}
+              </div>
+              {/* تذکرها */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+                <h4 className="font-bold text-yellow-800 mb-4">تذکرها:</h4>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium text-yellow-700 mt-1 text-right text-nowrap ">
+                      تذکر 1:
+                    </span>
+                    <p className="text-yellow-700 text-sm leading-relaxed text-justify">
+                      امکان تغییر در اولویت‌های مقصد در فرآیند تجدیدنظر وجود
+                      ندارد؛ لکن امکان افزودن مقصد جدید به اولویت های قبلی فراهم
+                      می باشد. .
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium text-yellow-700 mt-1 text-nowrap">
+                      تذکر 2:
+                    </span>
+                    <p className="text-yellow-700 text-sm leading-relaxed text-justify">
+                      درصورتیکه متقاضی تغییر نوع انتقال از دائم به موقت یا
+                      بالعکس هستید، صرفنظر از اینکه در مرحله پردازشی منتقل
+                      شده‌اید یا نشده‌اید، درخواست خود را از طریق گزینه‌های
+                      موجود ثبت کنید.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* جدول اولویت‌های مقصد */}
@@ -5214,35 +5499,8 @@ export default function EmergencyTransferPage() {
                 </div>
               )}
 
-              {/* تذکرها */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
-                <h4 className="font-bold text-yellow-800 mb-4">تذکرها:</h4>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-2">
-                    <span className="font-medium text-yellow-700 mt-1">
-                      تذکر1:
-                    </span>
-                    <p className="text-yellow-700 text-sm leading-relaxed">
-                      برابر مصوبات کارگروه، امکان تغییر در اولویت‌های مقصد در
-                      فرآیند تجدیدنظر وجود ندارد.
-                    </p>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="font-medium text-yellow-700 mt-1">
-                      تذکر2:
-                    </span>
-                    <p className="text-yellow-700 text-sm leading-relaxed">
-                      درصورتیکه متقاضی تغییر نوع انتقال از دائم به موقت یا
-                      بالعکس هستید، صرفنظر از اینکه در مرحله پردازشی منتقل
-                      شده‌اید یا نشده‌اید، درخواست خود را از طریق گزینه‌های فوق
-                      ثبت کنید.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               {/* اطلاعیه برای کاربران */}
-              <div
+              {/* <div
                 className={`border rounded-lg p-6 mb-8 ${
                   canEditDestination
                     ? "bg-green-50 border-green-200"
@@ -5272,7 +5530,7 @@ export default function EmergencyTransferPage() {
                     ? "شما می‌توانید هم مقصدها و هم نوع انتقال مورد تقاضا را تغییر دهید."
                     : "شما می‌توانید اولویت‌های خالی را تکمیل کرده و نوع انتقال مورد تقاضا را تغییر دهید. اولویت‌های ثبت شده قبلی قابل ویرایش نیستند."}
                 </p>
-              </div>
+              </div> */}
 
               {/* دکمه‌های ناوبری */}
               {/* دکمه ذخیره تغییرات */}
@@ -5374,70 +5632,127 @@ export default function EmergencyTransferPage() {
                   </div>
                   <div className="p-6">
                     {userSpecs ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">
-                            نام و نام خانوادگی:
-                          </span>
-                          <span className="font-medium">
-                            {userSpecs.firstName} {userSpecs.lastName}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">کد ملی:</span>
-                          <span className="font-medium">
-                            {userSpecs.nationalId || "ثبت نشده"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">کد پرسنلی:</span>
-                          <span className="font-medium">
-                            {userSpecs.personnelCode}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">تلفن همراه:</span>
-                          <span className="font-medium">
-                            {userSpecs.mobile}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">
-                            رشته استخدامی (رشته انتقال):
-                          </span>
-                          <span className="font-medium">
-                            {userSpecs.employmentField}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">جنسیت:</span>
-                          <span className="font-medium">
-                            {userSpecs.gender === "male"
-                              ? "مرد"
-                              : userSpecs.gender === "female"
-                              ? "زن"
-                              : userSpecs.gender}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">
-                            سنوات تجربی مؤثر تا 31شهریور1404:
-                          </span>
-                          <span className="font-medium">
-                            {userSpecs.effectiveYears} سال
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">
-                            منطقه اصلی محل خدمت (مبدأ انتقال):
-                          </span>
-                          <span className="font-medium">
-                            {userSpecs.districtName || "نامشخص"}
-                          </span>
-                        </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                          <tbody className="divide-y divide-gray-200 text-right">
+                            <tr className="hover:bg-gray-50 transition-colors">
+                              <td className="py-4 px-4 text-sm font-medium text-gray-700 bg-gray-50 border-r border-gray-200 w-1/3 text-right text-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <FaUser className="h-4 w-4 text-blue-500" />
+                                  نام و نام خانوادگی
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 font-medium text-right">
+                                {userSpecs.firstName} {userSpecs.lastName}
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50 transition-colors">
+                              <td className="py-4 px-4 text-sm font-medium text-gray-700 bg-gray-50 border-r border-gray-200">
+                                <div className="flex items-center gap-2">
+                                  <FaFileAlt className="h-4 w-4 text-green-500" />
+                                  کد ملی
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 font-medium font-mono">
+                                {userSpecs.nationalId || (
+                                  <span className="text-gray-400 italic">
+                                    ثبت نشده
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50 transition-colors">
+                              <td className="py-4 px-4 text-sm font-medium text-gray-700 bg-gray-50 border-r border-gray-200">
+                                <div className="flex items-center gap-2">
+                                  <FaFileAlt className="h-4 w-4 text-purple-500" />
+                                  کد پرسنلی
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 font-medium font-mono">
+                                {userSpecs.personnelCode}
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50 transition-colors">
+                              <td className="py-4 px-4 text-sm font-medium text-gray-700 bg-gray-50 border-r border-gray-200">
+                                <div className="flex items-center gap-2">
+                                  <FaPhone className="h-4 w-4 text-orange-500" />
+                                  تلفن همراه
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 font-medium font-mono">
+                                {userSpecs.mobile}
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50 transition-colors">
+                              <td className="py-4 px-4 text-sm font-medium text-gray-700 bg-gray-50 border-r border-gray-200">
+                                <div className="flex items-center gap-2">
+                                  <FaClipboardList className="h-4 w-4 text-indigo-500" />
+                                  رشته استخدامی (رشته انتقال)
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 font-medium">
+                                {userSpecs.employmentField}
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50 transition-colors">
+                              <td className="py-4 px-4 text-sm font-medium text-gray-700 bg-gray-50 border-r border-gray-200">
+                                <div className="flex items-center gap-2">
+                                  <FaUserFriends className="h-4 w-4 text-pink-500" />
+                                  جنسیت
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 font-medium">
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    userSpecs.gender === "male"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-pink-100 text-pink-800"
+                                  }`}
+                                >
+                                  {userSpecs.gender === "male"
+                                    ? "مرد"
+                                    : userSpecs.gender === "female"
+                                    ? "زن"
+                                    : userSpecs.gender}
+                                </span>
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50 transition-colors">
+                              <td className="py-4 px-4 text-sm font-medium text-gray-700 bg-gray-50 border-r border-gray-200 text-right text-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <FaClock className="h-4 w-4 text-yellow-500" />
+                                  سنوات تجربی مؤثر تا 31 شهریور 1404
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 font-medium text-right">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 text-right text-nowrap">
+                                  {userSpecs.effectiveYears} سال
+                                </span>
+                              </td>
+                            </tr>
+                            <tr className="hover:bg-gray-50 transition-colors">
+                              <td className="py-4 px-4 text-sm font-medium text-gray-700 bg-gray-50 border-r border-gray-200 text-right text-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <FaHome className="h-4 w-4 text-red-500" />
+                                  منطقه اصلی محل خدمت (مبدأ انتقال)
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 text-sm text-gray-900 font-medium">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                  {userSpecs.districtName || "نامشخص"}
+                                </span>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     ) : (
-                      <p className="text-gray-500">اطلاعات مشخصات یافت نشد</p>
+                      <div className="text-center py-8">
+                        <FaExclamationTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-500 text-lg">
+                          اطلاعات مشخصات یافت نشد
+                        </p>
+                      </div>
                     )}
 
                     {/* نمایش درخواست‌های اصلاح در صورت وجود */}
@@ -5616,6 +5931,39 @@ export default function EmergencyTransferPage() {
                             </div>
                           </div>
                         )}
+
+                        {/* هشدارهای کمیسیون پزشکی */}
+                        {medicalCommissionWarnings.length > 0 && (
+                          <div className="mb-4">
+                            <h4 className="font-medium text-gray-800 mb-3">
+                              رای کمیسیون پزشکی:
+                            </h4>
+                            <div className="space-y-2">
+                              {medicalCommissionWarnings.map(
+                                (warning, index) => (
+                                  <div
+                                    key={index}
+                                    className={`rounded-lg p-3 ${
+                                      warning.type === "required_missing"
+                                        ? "bg-red-50 border border-red-200"
+                                        : "bg-orange-50 border border-orange-200"
+                                    }`}
+                                  >
+                                    <p
+                                      className={`text-sm ${
+                                        warning.type === "required_missing"
+                                          ? "text-red-800"
+                                          : "text-orange-800"
+                                      }`}
+                                    >
+                                      {warning.message}
+                                    </p>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </>
                     ) : (
                       <p className="text-gray-500">هیچ دلیلی انتخاب نشده است</p>
@@ -5724,7 +6072,7 @@ export default function EmergencyTransferPage() {
                   </button>
                   <button
                     onClick={() => setCurrentStep(6)}
-                    className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
                   >
                     تایید و ادامه
                     <FaArrowLeft className="h-4 w-4" />
@@ -6042,7 +6390,7 @@ export default function EmergencyTransferPage() {
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   >
                     <option value="">انتخاب کنید</option>
-                    {getAllFields().map((field) => (
+                    {getCustomFieldsForCorrection().map((field) => (
                       <option key={field.value} value={field.value}>
                         {field.label}
                       </option>
