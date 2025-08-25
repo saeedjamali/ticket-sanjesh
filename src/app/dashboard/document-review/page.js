@@ -60,6 +60,14 @@ export default function DocumentReviewPage() {
   const [rejectingEligibility, setRejectingEligibility] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
 
+  // State برای تشخیص ذخیره شدن تغییرات
+  const [isDataSaved, setIsDataSaved] = useState(false);
+
+  // Reset ذخیره شدن تغییرات هنگام تغییر reviewData
+  useEffect(() => {
+    setIsDataSaved(false);
+  }, [reviewData]);
+
   // State برای pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -914,6 +922,7 @@ export default function DocumentReviewPage() {
       });
     }
     setReviewData(initialReviewData);
+    setIsDataSaved(false); // Reset ذخیره شدن تغییرات
   };
 
   // محاسبه وضعیت دکمه‌های تایید/رد مشمولیت
@@ -925,7 +934,6 @@ export default function DocumentReviewPage() {
         canReject: false,
         message: "هیچ بندی انتخاب نشده است",
       };
-
     }
     // تقسیم دلایل بر اساس نیاز به تایید کارشناس
     const reasonsRequiringApproval = request.selectedReasons.filter(
@@ -942,7 +950,7 @@ export default function DocumentReviewPage() {
         showButtons: true,
         canApprove: true,
         canReject: true,
-        message: "تمام بندها نیاز به تایید کارشناس ندارند",
+        message: "تمام بندها نیاز به بررسی کارشناس ندارند",
       };
     }
 
@@ -967,7 +975,7 @@ export default function DocumentReviewPage() {
           showButtons: true,
           canApprove: false,
           canReject: false,
-          message: `${pendingReasons.length} بند هنوز بررسی نشده،  ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`,
+          message: `${pendingReasons.length} بند هنوز بررسی نشده،  ${reasonsNotRequiringApproval.length} بند نیاز به بررسی کارشناس ندارد`,
           hasPendingButAllowDecision: true,
         };
       }
@@ -988,7 +996,7 @@ export default function DocumentReviewPage() {
           showButtons: true,
           canApprove: true,
           canReject: true,
-          message: `تمام بندهای نیازمند تایید رد شده‌اند، اما ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`,
+          message: `تمام بندهای نیازمند بررسی کارشناس، رد شده‌اند،  ${reasonsNotRequiringApproval.length} بند نیاز به بررسی کارشناس ندارد`,
           allRequiredRejectedButHasNonRequired: true,
         };
       }
@@ -1010,7 +1018,7 @@ export default function DocumentReviewPage() {
           showButtons: true,
           canApprove: true,
           canReject: true,
-          message: `تمام بندهای نیازمند تایید تایید شده‌اند، اما ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`,
+          message: `تمام بندهای نیازمند بررسی تایید شده‌اند، اما ${reasonsNotRequiringApproval.length} بند نیاز به بررسی کارشناس ندارد`,
           allRequiredApprovedButHasNonRequired: true,
         };
       }
@@ -1019,7 +1027,7 @@ export default function DocumentReviewPage() {
         showButtons: true,
         canApprove: true,
         canReject: false,
-        message: "تمام بندهای نیازمند تایید تایید شده‌اند",
+        message: "تمام بندهای نیازمند بررسی کارشناس تایید شده‌اند",
         allApproved: true,
       };
     }
@@ -1033,18 +1041,44 @@ export default function DocumentReviewPage() {
         rejectedReasons.length
       } بند رد شده است${
         reasonsNotRequiringApproval.length > 0
-          ? ` و ${reasonsNotRequiringApproval.length} بند نیاز به تایید کارشناس ندارد`
+          ? ` و ${reasonsNotRequiringApproval.length} بند نیاز به بررسی کارشناس منطقه ندارد`
           : ""
       }`,
     };
   };
 
+  // محاسبه وضعیت نهایی دکمه‌های تایید/رد مشمولیت (با در نظر گیری ذخیره شدن تغییرات)
+  const getFinalEligibilityButtonsState = (request) => {
+    console.log("getFinalEligibilityButtonsState - isDataSaved:", isDataSaved);
+    console.log("getFinalEligibilityButtonsState - request:", request);
+
+    // اگر تغییرات ذخیره نشده‌اند، دکمه‌ها غیرفعال باشند
+    if (!isDataSaved) {
+      return {
+        showButtons: true,
+        canApprove: false,
+        canReject: false,
+        message: "ابتدا باید تغییرات را ذخیره کنید",
+        allApproved: false,
+        allRejected: false,
+        allRequiredApprovedButHasNonRequired: false,
+        allRequiredRejectedButHasNonRequired: false,
+      };
+    }
+
+    // اگر تغییرات ذخیره شده، محاسبه مجدد وضعیت با داده‌های به‌روز
+    const finalState = getEligibilityButtonsState(request);
+    console.log("getFinalEligibilityButtonsState - finalState:", finalState);
+    return finalState;
+  };
+
   // تایید/رد مشمولیت
   const handleEligibilityDecision = async (action, comment = "") => {
     if (!selectedRequest) return;
-
+    // const confirmed = window.confirm("آیا از ذخیره تغییرات اطمینان دارید؟");
+    // if (!confirmed) return;
     // بررسی وضعیت دکمه‌ها قبل از ارسال درخواست
-    const buttonState = getEligibilityButtonsState(selectedRequest);
+    const buttonState = getFinalEligibilityButtonsState(selectedRequest);
 
     // اگر تمام بندهای نیازمند تایید رد شده و می‌خواهد تایید کند (بدون بند غیرنیازمند)
     if (action === "approve" && buttonState.allRejected) {
@@ -1068,7 +1102,7 @@ export default function DocumentReviewPage() {
       buttonState.allRequiredRejectedButHasNonRequired
     ) {
       toast(
-        "توجه: تمام بندهای نیازمند تایید رد شده‌اند، اما تایید مشمولیت بر اساس بندهای غیرنیازمند انجام می‌شود",
+        "توجه: تمام بندهای نیازمند بررسی کارشناس رد شده‌اند، اما تایید مشمولیت بر اساس بندهای غیرنیازمند انجام می‌شود",
         {
           icon: "⚠️",
           style: {
@@ -1085,7 +1119,7 @@ export default function DocumentReviewPage() {
       buttonState.allRequiredApprovedButHasNonRequired
     ) {
       toast(
-        "توجه: تمام بندهای نیازمند تایید تایید شده‌اند، اما رد مشمولیت بر اساس بندهای غیرنیازمند انجام می‌شود",
+        "توجه: تمام بندهای نیازمند بررسی کارشناس تایید شده‌اند، اما رد مشمولیت بر اساس بندهای غیرنیازمند انجام می‌شود",
         {
           icon: "⚠️",
           style: {
@@ -1174,10 +1208,23 @@ export default function DocumentReviewPage() {
 
       if (data.success) {
         toast.success("بررسی با موفقیت ذخیره شد و وضعیت کاربر به‌روزرسانی شد");
-        setShowReviewModal(false);
-        setSelectedRequest(null);
-        setReviewData({});
+        setIsDataSaved(true); // تنظیم ذخیره شدن تغییرات
+
+        // به‌روزرسانی درخواست انتخاب شده با داده‌های جدید
+        if (data.updatedRequest) {
+          console.log(
+            "به‌روزرسانی selectedRequest با داده جدید:",
+            data.updatedRequest
+          );
+          setSelectedRequest(data.updatedRequest);
+        }
+
         fetchAppealRequests(); // بازیابی لیست به‌روز
+
+        // مدال را بسته نمی‌کنیم تا کاربر بتواند دکمه‌های مشمولیت را ببیند
+        // setShowReviewModal(false);
+        // setSelectedRequest(null);
+        // setReviewData({});
       } else {
         toast.error(data.error || "خطا در ذخیره بررسی");
       }
@@ -1257,13 +1304,21 @@ export default function DocumentReviewPage() {
 
   // بررسی اینکه آیا دکمه‌های بررسی مستندات فعال باشند یا نه
   const canPerformDocumentReview = (request) => {
+    console.log("canPerformDocumentReview - request:", request);
+    console.log(
+      "canPerformDocumentReview - currentRequestStatus:",
+      request?.currentRequestStatus
+    );
+
     const validStatuses = [
       "user_approval",
       "source_review",
       "exception_eligibility_approval",
       "exception_eligibility_rejection",
     ];
-    return validStatuses.includes(request.currentRequestStatus);
+    const result = validStatuses.includes(request?.currentRequestStatus);
+    console.log("canPerformDocumentReview - result:", result);
+    return result;
   };
 
   // دریافت پیام عدم دسترسی برای بررسی مستندات
@@ -2242,7 +2297,7 @@ export default function DocumentReviewPage() {
                                           <>
                                             <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
                                             <span className="text-xs text-orange-700">
-                                              نیاز به تایید کارشناس
+                                              نیاز به بررسی کارشناس
                                             </span>
                                           </>
                                         ) : (
@@ -2650,8 +2705,15 @@ export default function DocumentReviewPage() {
                                     <span>
                                       {new Date(
                                         reason.review.reviewedAt
-                                      ).toLocaleDateString("fa-IR")}{" "}
-                                      -
+                                      ).toLocaleDateString("fa-IR", {
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        second: "2-digit",
+                                      })}{" "}
+                                      -{" "}
                                       {reason.review.reviewerRole ===
                                       "districtTransferExpert"
                                         ? " کارشناس منطقه"
@@ -2700,11 +2762,17 @@ export default function DocumentReviewPage() {
                       disabled={
                         submitting || !canPerformDocumentReview(selectedRequest)
                       }
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2"
+                      className={`${
+                        isDataSaved
+                          ? "bg-green-600 hover:bg-green-700"
+                          : "bg-blue-600 hover:bg-blue-700"
+                      } disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg transition-colors flex items-center gap-2`}
                       title={
                         !canPerformDocumentReview(selectedRequest)
                           ? getDocumentReviewDisabledMessage(selectedRequest)
-                          : ""
+                          : isDataSaved
+                          ? "تغییرات ذخیره شده - حالا می‌توانید دکمه‌های مشمولیت را استفاده کنید"
+                          : "ذخیره تغییرات جهت فعال‌سازی دکمه‌های مشمولیت"
                       }
                     >
                       {submitting ? (
@@ -2715,17 +2783,31 @@ export default function DocumentReviewPage() {
                       ) : (
                         <>
                           <FaCheck className="h-4 w-4" />
-                          ذخیره تغییرات
+                          {isDataSaved ? "ذخیره شده ✓" : "ذخیره تغییرات"}
                         </>
                       )}
                     </button>
                   </div>
 
+                  {/* پیام هشدار برای ذخیره تغییرات */}
+                  {!isDataSaved &&
+                    canPerformDocumentReview(selectedRequest) && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                        <div className="flex items-center gap-2">
+                          <FaInfoCircle className="text-yellow-600" />
+                          <span className="text-sm text-yellow-800">
+                            برای فعال‌سازی دکمه‌های تایید/رد مشمولیت، ابتدا باید
+                            تغییرات را ذخیره کنید
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                   {/* دکمه‌های تایید/رد مشمولیت */}
                   {canPerformDocumentReview(selectedRequest) &&
                     (() => {
                       const buttonsState =
-                        getEligibilityButtonsState(selectedRequest);
+                        getFinalEligibilityButtonsState(selectedRequest);
 
                       if (!buttonsState.showButtons) {
                         return (

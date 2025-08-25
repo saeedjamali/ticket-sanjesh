@@ -71,7 +71,7 @@ export default function Footer() {
                 </div>
                 <div className="flex justify-center sm:order-2">
                     <a
-                        href="https://sabzlearn.ir"
+                        href="https://rasad.razaviedu.ir"
                         className="text-caption text-gray-400 hover:text-gray-500"
                         target="_blank"
                         rel="noopener noreferrer"

@@ -279,6 +279,20 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       user_created: "ایجاد کاربر",
       bulk_upload: "بارگذاری دسته‌ای",
       profile_correction_request: "درخواست اصلاح مشخصات",
+      profile_correction_request_draft: "ذخیره پیش‌نویس درخواست اصلاح مشخصات",
+      profile_correction_request_submitted: "ارسال درخواست اصلاح مشخصات",
+      profile_correction_request_rejected: "رد درخواست اصلاح مشخصات",
+      profile_correction_request_approved: "تایید درخواست اصلاح مشخصات",
+      profile_correction_request_completed: "تکمیل درخواست اصلاح مشخصات",
+      profile_correction_request_cancelled: "انصراف از درخواست اصلاح مشخصات",
+      profile_correction_request_expired: "انقضای درخواست اصلاح مشخصات",
+      appeal_request_draft_save: "ذخیره پیش‌نویس درخواست تجدید نظر",
+      appeal_request_draft_submitted: "ارسال درخواست تجدید نظر",
+      appeal_request_draft_rejected: "رد درخواست تجدید نظر",
+      appeal_request_draft_approved: "تایید درخواست تجدید نظر",
+      appeal_request_draft_completed: "تکمیل درخواست تجدید نظر",
+      appeal_request_draft_cancelled: "انصراف از درخواست تجدید نظر",
+      appeal_request_draft_expired: "انقضای درخواست تجدید نظر",
     };
     return actionMap[actionType] || actionType;
   };
@@ -337,6 +351,7 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                     transferType: destination.transferType,
                   };
                 }
+
                 return null;
               }).filter(Boolean)
             : [],
@@ -656,7 +671,7 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-orange-800 mb-2">تذکر مهم</h3>
-              <p className="text-orange-700 text-sm leading-relaxed">
+              <p className="text-orange-700 text-sm leading-relaxed text-justify">
                 همکار محترم، ثبت درخواست تجدیدنظر در نتیجه انتقال داخل استان و
                 پیگیری نتیجه آن، صرفاً از طریق همین سامانه انجام می شود؛ لذا
                 ضروری است از مراجعه حضوری به ادارات آموزش و پرورش خودداری شود.
@@ -685,110 +700,113 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
               </div>
 
               {/* Progress Steps */}
-              <div className="flex items-center justify-between relative">
-                {/* خط پس‌زمینه */}
-                <div className="absolute top-4 left-0 right-0 h-1 bg-gray-200 rounded-full"></div>
+              <div className="overflow-x-auto pb-2">
+                <div className="flex items-center justify-between relative min-w-max px-4 md:px-0 md:min-w-0">
+                  {/* خط پس‌زمینه */}
+                  <div className="absolute top-4 left-4 right-4 md:left-0 md:right-0 h-1 bg-gray-200 rounded-full"></div>
 
-                {getWorkflowSteps(userSpecs.currentRequestStatus).map(
-                  (step, index) => {
-                    const timelineStatus = getTimelineStatus(
-                      step.status,
-                      userSpecs.currentRequestStatus,
-                      userSpecs.requestStatusWorkflow,
-                      getWorkflowSteps(userSpecs.currentRequestStatus)
-                    );
+                  {getWorkflowSteps(userSpecs.currentRequestStatus).map(
+                    (step, index) => {
+                      const timelineStatus = getTimelineStatus(
+                        step.status,
+                        userSpecs.currentRequestStatus,
+                        userSpecs.requestStatusWorkflow,
+                        getWorkflowSteps(userSpecs.currentRequestStatus)
+                      );
 
-                    const isCompleted = timelineStatus === "completed";
-                    const isCurrent = timelineStatus === "current";
-                    const totalSteps = getWorkflowSteps(
-                      userSpecs.currentRequestStatus
-                    ).length;
-                    const completedCount = getWorkflowSteps(
-                      userSpecs.currentRequestStatus
-                    ).filter(
-                      (s, i) =>
-                        getTimelineStatus(
-                          s.status,
-                          userSpecs.currentRequestStatus,
-                          userSpecs.requestStatusWorkflow,
-                          getWorkflowSteps(userSpecs.currentRequestStatus)
-                        ) === "completed"
-                    ).length;
+                      const isCompleted = timelineStatus === "completed";
+                      const isCurrent = timelineStatus === "current";
+                      const totalSteps = getWorkflowSteps(
+                        userSpecs.currentRequestStatus
+                      ).length;
+                      const completedCount = getWorkflowSteps(
+                        userSpecs.currentRequestStatus
+                      ).filter(
+                        (s, i) =>
+                          getTimelineStatus(
+                            s.status,
+                            userSpecs.currentRequestStatus,
+                            userSpecs.requestStatusWorkflow,
+                            getWorkflowSteps(userSpecs.currentRequestStatus)
+                          ) === "completed"
+                      ).length;
 
-                    return (
-                      <div
-                        key={step.status}
-                        className="relative z-10 flex flex-col items-center"
-                      >
-                        {/* نقطه */}
+                      return (
                         <div
-                          className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-                            isCompleted
-                              ? step.status.includes("rejection")
-                                ? "bg-red-500 border-red-500"
-                                : "bg-green-500 border-green-500"
-                              : isCurrent
-                              ? "bg-blue-500 border-blue-500 animate-pulse"
-                              : "bg-gray-200 border-gray-300"
-                          }`}
+                          key={step.status}
+                          className="relative z-10 flex flex-col items-center mx-1 md:mx-0"
                         >
-                          {isCompleted && step.status.includes("rejection") && (
-                            <FaTimes className="w-3 h-3 text-white" />
-                          )}
-                          {isCompleted &&
-                            !step.status.includes("rejection") && (
-                              <FaCheck className="w-3 h-3 text-white" />
+                          {/* نقطه */}
+                          <div
+                            className={`w-6 h-6 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                              isCompleted
+                                ? step.status.includes("rejection")
+                                  ? "bg-red-500 border-red-500"
+                                  : "bg-green-500 border-green-500"
+                                : isCurrent
+                                ? "bg-blue-500 border-blue-500 animate-pulse"
+                                : "bg-gray-200 border-gray-300"
+                            }`}
+                          >
+                            {isCompleted &&
+                              step.status.includes("rejection") && (
+                                <FaTimes className="w-2 h-2 md:w-3 md:h-3 text-white" />
+                              )}
+                            {isCompleted &&
+                              !step.status.includes("rejection") && (
+                                <FaCheck className="w-2 h-2 md:w-3 md:h-3 text-white" />
+                              )}
+                            {isCurrent && (
+                              <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full"></div>
                             )}
-                          {isCurrent && (
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          )}
-                          {!isCompleted && !isCurrent && (
-                            <span className="text-xs font-bold text-gray-400">
-                              {index + 1}
-                            </span>
-                          )}
+                            {!isCompleted && !isCurrent && (
+                              <span className="text-xs font-bold text-gray-400">
+                                {index + 1}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* عنوان */}
+                          <span
+                            className={`text-xs mt-1 md:mt-2 text-center max-w-12 md:max-w-16 leading-tight ${
+                              isCompleted
+                                ? step.status.includes("rejection")
+                                  ? "text-red-700 font-medium"
+                                  : "text-green-700 font-medium"
+                                : isCurrent
+                                ? "text-blue-700 font-medium"
+                                : "text-gray-500"
+                            }`}
+                          >
+                            {step.title}
+                          </span>
                         </div>
+                      );
+                    }
+                  )}
 
-                        {/* عنوان */}
-                        <span
-                          className={`text-xs mt-2 text-center max-w-16 leading-tight ${
-                            isCompleted
-                              ? step.status.includes("rejection")
-                                ? "text-red-700 font-medium"
-                                : "text-green-700 font-medium"
-                              : isCurrent
-                              ? "text-blue-700 font-medium"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {step.title}
-                        </span>
-                      </div>
-                    );
-                  }
-                )}
-
-                {/* خط پیشرفت */}
-                <div
-                  className="absolute top-4 left-0 h-1 bg-gradient-to-r from-green-500 to-blue-500 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${Math.max(
-                      0,
-                      Math.min(
-                        100,
-                        ((getWorkflowSteps(
-                          userSpecs.currentRequestStatus
-                        ).findIndex(
-                          (s) => s.status === userSpecs.currentRequestStatus
-                        ) +
-                          1) /
-                          getWorkflowSteps(userSpecs.currentRequestStatus)
-                            .length) *
-                          100
-                      )
-                    )}%`,
-                  }}
-                ></div>
+                  {/* خط پیشرفت */}
+                  <div
+                    className="absolute top-3 md:top-4 right-4 md:right-0 h-1 bg-gradient-to-l from-green-500 to-blue-500 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.max(
+                        0,
+                        Math.min(
+                          100,
+                          ((getWorkflowSteps(
+                            userSpecs.currentRequestStatus
+                          ).findIndex(
+                            (s) => s.status === userSpecs.currentRequestStatus
+                          ) +
+                            1) /
+                            getWorkflowSteps(userSpecs.currentRequestStatus)
+                              .length) *
+                            100
+                        )
+                      )}%`,
+                    }}
+                  ></div>
+                </div>
               </div>
 
               {/* خلاصه وضعیت */}
@@ -2619,9 +2637,9 @@ export default function EmergencyTransferPage() {
       // استخراج اولویت‌های مقصد از userSpecs
       const priorities = [];
 
-      // اگر canEditDestination برابر true است، تمام 7 اولویت را نمایش بده
-      // در غیر این صورت فقط اولویت‌های موجود را نمایش بده
-      const shouldShowAllPriorities = userSpecs.canEditDestination;
+      // همیشه تمام 7 اولویت را نمایش بده
+      // تفاوت در نحوه نمایش خواهد بود (قابل ویرایش یا فقط نمایش)
+      const shouldShowAllPriorities = true;
 
       for (let i = 1; i <= 7; i++) {
         const destinationField = `destinationPriority${i}`;
@@ -3329,9 +3347,8 @@ export default function EmergencyTransferPage() {
                     احراز هویت ضروری است
                   </h2>
                   <p className="text-gray-600 mb-6 leading-relaxed">
-                    برای دسترسی به سیستم درخواست تجدیدنظر در نتیجه انتقال ،
-                    ابتدا باید شماره همراه خود را تایید کنید. این اقدام برای
-                    امنیت و صحت اطلاعات شما انجام می‌شود.
+                    برای دسترسی به امکانات سامانه، انجام فرآیند احراز هویت از
+                    طریق شماره تلفن همراه ثبت شده در سامانه الزامی است.
                   </p>
 
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
@@ -3348,8 +3365,8 @@ export default function EmergencyTransferPage() {
                           </span>
                         </p>
                         <p className="mt-1 text-right">
-                          کد تایید به همین شماره ارسال خواهد شد و امکان تغییر آن
-                          وجود ندارد.
+                          درصورت نیاز به اصلاح شماره همراه، از طریق مسئول امور
+                          اداری اداره مبدأ اصلی محل خدمت اقدام فرمائید..
                         </p>
                       </div>
                     </div>
@@ -3643,13 +3660,13 @@ export default function EmergencyTransferPage() {
                   درخواست تجدیدنظر در نتیجه انتقال
                 </h1>
                 <p className="text-blue-100 text-sm">
-                  سیستم ثبت درخواست تجدیدنظر در نتیجه انتقال پرسنل
+                  سیستم ثبت درخواست تجدیدنظر در نتیجه انتقال داخل پرسنل
                 </p>
               </div>
               <div className="mr-auto bg-green-500/20 px-3 py-1 rounded-lg">
                 <div className="flex items-center gap-2 text-green-100">
                   <FaCheckCircle className="h-4 w-4" />
-                  <span className="text-sm">احراز شده</span>
+                  <span className="text-sm">احراز هویت شده</span>
                 </div>
               </div>
             </div>
@@ -3664,7 +3681,7 @@ export default function EmergencyTransferPage() {
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-orange-800 mb-2">تذکر مهم</h3>
-              <p className="text-orange-700 text-sm leading-relaxed">
+              <p className="text-orange-700 text-sm leading-relaxed text-justify">
                 همکار محترم، ثبت درخواست تجدیدنظر در نتیجه انتقال داخل استان و
                 پیگیری نتیجه آن، صرفاً از طریق همین سامانه انجام می شود؛ لذا
                 ضروری است از مراجعه حضوری به ادارات آموزش و پرورش خودداری شود.
@@ -3672,7 +3689,7 @@ export default function EmergencyTransferPage() {
                 ضرورت) به صورت آنلاین از طریق همین سامانه فراهم می باشد. لازم به
                 ذکر است نتایج نهایی تجدیدنظر پس از تصویب کارگروه اداره کل، علاوه
                 بر اعلام در این سامانه، در سامانه وزارتی my.medu.ir نیز ثبت
-                خواهد شد...
+                خواهد شود.
               </p>
             </div>
           </div>
@@ -3688,7 +3705,7 @@ export default function EmergencyTransferPage() {
                     onClick={handleGoBack}
                     className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                   >
-                    <FaArrowRight className="h-4 w-4 rotate-180" />
+                    <FaArrowRight className="h-4 w-4" />
                     بازگشت
                   </button>
                 )}
@@ -3853,6 +3870,68 @@ export default function EmergencyTransferPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* دکمه دانلود ضوابط و شرایط دستورالعمل تجدیدنظر */}
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-red-100 p-2 rounded-lg">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 text-red-600"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">
+                            ضوابط و شرایط دستورالعمل تجدیدنظر
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            مطالعه این فایل جهت اطلاع از قوانین و ضوابط ضروری
+                            است
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          // ایجاد لینک موقت برای دانلود
+                          const link = document.createElement("a");
+                          link.href = "/attachments/reqrule.pdf";
+                          link.download =
+                            "ضوابط_و_شرایط_دستورالعمل_تجدیدنظر.pdf";
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        دانلود PDF
+                      </button>
+                    </div>
+                  </div>
+
                   {preliminaryNotices.map((notice) => (
                     <div
                       key={notice._id}
@@ -3889,67 +3968,6 @@ export default function EmergencyTransferPage() {
                     </div>
                   ))}
 
-                  {/* دکمه دانلود ضوابط و شرایط دستورالعمل تجدیدنظر */}
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-red-100 p-2 rounded-lg">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5 text-red-600"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">
-                            ضوابط و شرایط دستورالعمل تجدیدنظر
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            مطالعه این فایل جهت آشنایی با جزئیات ضروری است
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          // ایجاد لینک موقت برای دانلود
-                          const link = document.createElement("a");
-                          link.href = "/attachments/reqrule.pdf";
-                          link.download =
-                            "ضوابط_و_شرایط_دستورالعمل_تجدیدنظر.pdf";
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                        }}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        دانلود PDF
-                      </button>
-                    </div>
-                  </div>
-
                   <div className="mt-8 pt-6 border-t border-gray-200">
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-600">
@@ -3963,8 +3981,8 @@ export default function EmergencyTransferPage() {
                         }
                         className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
                       >
-                        <FaArrowRight className="h-4 w-4" />
                         ادامه به مرحله بعد
+                        <FaArrowLeft className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -4112,7 +4130,7 @@ export default function EmergencyTransferPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          امتیاز تایید شده
+                          جمع امتیاز تایید شده
                         </label>
                         <div className="bg-white p-3 rounded-lg border border-gray-300 text-gray-900">
                           {userSpecs.approvedScore}
@@ -4151,7 +4169,7 @@ export default function EmergencyTransferPage() {
                   <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
                     <h3 className="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
                       <FaShieldAlt className="h-5 w-5" />
-                      اطلاعات منطقه خدمتی
+                      اطلاعات منطقه اصلی محل خدمت
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -4322,7 +4340,7 @@ export default function EmergencyTransferPage() {
                       <FaCheckCircle className="h-4 w-4" />
                       {hasPendingCorrectionRequest()
                         ? "درخواست اصلاح در انتظار"
-                        : "تایید اطلاعات"}
+                        : "تایید و ادامه"}
                     </button>
                   </div>
                 </div>
@@ -4598,7 +4616,7 @@ export default function EmergencyTransferPage() {
                                   </div>
                                   <div>
                                     <label className="block text-sm font-medium text-green-700 mb-2">
-                                      منطقه همسر{" "}
+                                      منطقه اصلی محل خدمت همسر(شاغل){" "}
                                       <span className="text-red-500">*</span>
                                     </label>
                                     {loadingDistricts ? (
@@ -4824,7 +4842,7 @@ export default function EmergencyTransferPage() {
                   onClick={() => setCurrentStep(2)}
                   className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
                 >
-                  <FaArrowRight className="h-4 w-4 rotate-180" />
+                  <FaArrowRight className="h-4 w-4" />
                   بازگشت به مرحله قبل
                 </button>
 
@@ -4851,7 +4869,7 @@ export default function EmergencyTransferPage() {
                     ) : (
                       <>
                         ادامه به مرحله بعد
-                        <FaArrowRight className="h-4 w-4" />
+                        <FaArrowLeft className="h-4 w-4" />
                       </>
                     )}
                   </button>
@@ -4893,15 +4911,16 @@ export default function EmergencyTransferPage() {
                 <p className="text-gray-800 leading-relaxed mb-4">
                   {canEditDestination ? (
                     <>
-                      می‌توانید مقصد و نوع انتقال مورد درخواست خود را برای هریک
-                      از اولویت‌های انتخابی از طریق گزینه‌های زیر تغییر انتخاب
-                      نمایید:
+                      همکار گرامی؛ شما در این بخش می‌توانید مقصدها و نوع انتقال
+                      مورد درخواست خود را برای هریک از اولویت‌ها از طریق
+                      گزینه‌های مشخص شده انتخاب و ویرایش نمایید.
                     </>
                   ) : (
                     <>
-                      می‌توانید نوع انتقال مورد درخواست خود را برای هریک از
-                      اولویت‌های انتخابی از طریق گزینه‌های زیر تغییر انتخاب
-                      نمایید:
+                      همکار گرامی؛ اولویت‌های مقصد ثبت شده شما در جدول زیر نمایش
+                      داده شده است. شما می‌توانید اولویت‌های خالی را تکمیل کرده
+                      و نوع انتقال مورد درخواست خود را برای هریک از اولویت‌ها
+                      تغییر دهید.
                     </>
                   )}
                 </p>
@@ -4961,6 +4980,7 @@ export default function EmergencyTransferPage() {
                           </td>
                           <td className="px-6 py-4 text-right text-sm text-gray-900 border-b">
                             {canEditDestination ? (
+                              // کاربران با دسترسی کامل - همه اولویت‌ها قابل ویرایش
                               <div className="flex items-center gap-2">
                                 <select
                                   value={priority.destinationCode || ""}
@@ -5004,7 +5024,63 @@ export default function EmergencyTransferPage() {
                                 )}
                               </div>
                             ) : (
-                              <span>{priority.destination}</span>
+                              // کاربران با دسترسی محدود - اولویت‌های موجود فقط نمایش، خالی‌ها قابل اضافه
+                              <div className="flex items-center gap-2">
+                                {priority.destination &&
+                                priority.destination !== "انتخاب نشده" ? (
+                                  // اولویت موجود - فقط نمایش متنی
+                                  <div className="flex items-center gap-2">
+                                    <span className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700">
+                                      {priority.destination}
+                                    </span>
+                                    <div className="text-xs text-blue-600 italic">
+                                      ثبت شده
+                                    </div>
+                                  </div>
+                                ) : (
+                                  // اولویت خالی - قابل اضافه کردن
+                                  <select
+                                    value={priority.destinationCode || ""}
+                                    onChange={(e) =>
+                                      handleDestinationChange(
+                                        priority.priority,
+                                        e.target.value
+                                      )
+                                    }
+                                    disabled={
+                                      !isPriorityEnabled(priority.priority)
+                                    }
+                                    className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm ${
+                                      !isPriorityEnabled(priority.priority)
+                                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
+                                        : "border-gray-300"
+                                    }`}
+                                  >
+                                    <option value="">
+                                      {!isPriorityEnabled(priority.priority)
+                                        ? "ابتدا اولویت قبلی را انتخاب کنید"
+                                        : "منطقه را انتخاب کنید"}
+                                    </option>
+                                    {isPriorityEnabled(priority.priority) &&
+                                      getAvailableDistrictsForPriority(
+                                        priority.priority
+                                      ).map((district) => (
+                                        <option
+                                          key={district._id}
+                                          value={district.code}
+                                        >
+                                          {district.name} ({district.code}) -{" "}
+                                          {district.province.name}
+                                        </option>
+                                      ))}
+                                  </select>
+                                )}
+                                {!isPriorityEnabled(priority.priority) && (
+                                  <div className="text-xs text-gray-400 italic">
+                                    غیرفعال
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </td>
                           <td className="px-6 py-4 text-center border-b">
@@ -5184,7 +5260,7 @@ export default function EmergencyTransferPage() {
                     <FaExclamationTriangle className="h-5 w-5" />
                   )}
                   <span className="font-medium">
-                    {canEditDestination ? "امکانات شما:" : "توجه:"}
+                    {canEditDestination ? "دسترسی شما:" : "توجه:"}
                   </span>
                 </div>
                 <p
@@ -5194,7 +5270,7 @@ export default function EmergencyTransferPage() {
                 >
                   {canEditDestination
                     ? "شما می‌توانید هم مقصدها و هم نوع انتقال مورد تقاضا را تغییر دهید."
-                    : "شما فقط می‌توانید نوع انتقال مورد تقاضا را تغییر دهید. امکان تغییر مقصدها برای شما فراهم نیست."}
+                    : "شما می‌توانید اولویت‌های خالی را تکمیل کرده و نوع انتقال مورد تقاضا را تغییر دهید. اولویت‌های ثبت شده قبلی قابل ویرایش نیستند."}
                 </p>
               </div>
 
@@ -5237,7 +5313,7 @@ export default function EmergencyTransferPage() {
                   onClick={() => setCurrentStep(3)}
                   className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
                 >
-                  <FaArrowRight className="h-4 w-4 rotate-180" />
+                  <FaArrowRight className="h-4 w-4 " />
                   بازگشت به مرحله قبل
                 </button>
                 <button
@@ -5253,7 +5329,7 @@ export default function EmergencyTransferPage() {
                   }
                 >
                   ادامه به مرحله بعد
-                  <FaArrowRight className="h-4 w-4" />
+                  <FaArrowLeft className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -5326,20 +5402,11 @@ export default function EmergencyTransferPage() {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">نوع استخدام:</span>
+                          <span className="text-gray-600">
+                            رشته استخدامی (رشته انتقال):
+                          </span>
                           <span className="font-medium">
-                            {(() => {
-                              const employmentMap = {
-                                official: "رسمی",
-                                permanent: "رسمی",
-                                contractual: "پیمانی",
-                                temporary: "موقت",
-                              };
-                              return (
-                                employmentMap[userSpecs.employmentType] ||
-                                userSpecs.employmentType
-                              );
-                            })()}
+                            {userSpecs.employmentField}
                           </span>
                         </div>
                         <div className="flex justify-between">
@@ -5353,13 +5420,17 @@ export default function EmergencyTransferPage() {
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">سنوات:</span>
+                          <span className="text-gray-600">
+                            سنوات تجربی مؤثر تا 31شهریور1404:
+                          </span>
                           <span className="font-medium">
                             {userSpecs.effectiveYears} سال
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">نام منطقه:</span>
+                          <span className="text-gray-600">
+                            منطقه اصلی محل خدمت (مبدأ انتقال):
+                          </span>
                           <span className="font-medium">
                             {userSpecs.districtName || "نامشخص"}
                           </span>
@@ -5639,7 +5710,7 @@ export default function EmergencyTransferPage() {
                   onClick={() => setCurrentStep(4)}
                   className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
                 >
-                  <FaArrowLeft className="h-4 w-4" />
+                  <FaArrowRight className="h-4 w-4" />
                   بازگشت به مرحله قبل
                 </button>
 
@@ -5656,7 +5727,7 @@ export default function EmergencyTransferPage() {
                     className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
                   >
                     تایید و ادامه
-                    <FaArrowRight className="h-4 w-4" />
+                    <FaArrowLeft className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -5891,7 +5962,7 @@ export default function EmergencyTransferPage() {
                   onClick={() => setCurrentStep(5)}
                   className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
                 >
-                  <FaArrowLeft className="h-4 w-4" />
+                  <FaArrowRight className="h-4 w-4" />
                   بازگشت به مرحله قبل
                 </button>
 
@@ -6089,7 +6160,7 @@ export default function EmergencyTransferPage() {
                     {submittingCorrection ? (
                       <FaSpinner className="animate-spin h-4 w-4" />
                     ) : (
-                      <FaArrowRight className="h-4 w-4" />
+                      <FaCheck className="h-4 w-4" />
                     )}
                     {submittingCorrection ? "در حال ارسال..." : "ارسال درخواست"}
                   </button>

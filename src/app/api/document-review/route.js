@@ -449,6 +449,55 @@ export async function PUT(request) {
       }
     }
 
+    // دریافت مجدد درخواست کامل با populate
+    const updatedRequest = await AppealRequest.findById(appealRequest._id)
+      .populate({
+        path: "selectedReasons.reasonId",
+        model: "TransferReason",
+      })
+      .populate("userId", "fullName nationalId phone phoneVerified")
+      .populate("districtCode", "name code")
+      .lean();
+
+    // دریافت currentRequestStatus از TransferApplicantSpec
+    let currentRequestStatus = null;
+    let effectiveYears = null;
+    if (updatedRequest.personnelCode) {
+      const transferApplicantSpec = await TransferApplicantSpec.findOne({
+        personnelCode: updatedRequest.personnelCode,
+      }).select("currentRequestStatus effectiveYears");
+
+      currentRequestStatus =
+        transferApplicantSpec?.currentRequestStatus || null;
+      effectiveYears = transferApplicantSpec?.effectiveYears || null;
+    }
+
+    // اضافه کردن فیلدهای اضافی
+    let uploadedDocuments = {};
+    try {
+      if (updatedRequest.uploadedDocuments) {
+        if (updatedRequest.uploadedDocuments instanceof Map) {
+          uploadedDocuments = Object.fromEntries(
+            updatedRequest.uploadedDocuments
+          );
+        } else if (typeof updatedRequest.uploadedDocuments === "object") {
+          uploadedDocuments = updatedRequest.uploadedDocuments;
+        }
+      }
+    } catch (error) {
+      console.error("Error processing uploadedDocuments:", error);
+      uploadedDocuments = {};
+    }
+
+    const finalUpdatedRequest = {
+      ...updatedRequest,
+      currentRequestStatus,
+      effectiveYears,
+      uploadedDocuments,
+      createdAt: updatedRequest.createdAt?.toISOString(),
+      updatedAt: updatedRequest.updatedAt?.toISOString(),
+    };
+
     return NextResponse.json({
       success: true,
       message: "بررسی با موفقیت ذخیره شد",
@@ -457,6 +506,7 @@ export async function PUT(request) {
         overallReviewStatus: appealRequest.overallReviewStatus,
         selectedReasons: appealRequest.selectedReasons,
       },
+      updatedRequest: finalUpdatedRequest,
     });
   } catch (error) {
     console.error("Error in PUT /api/document-review:", error);

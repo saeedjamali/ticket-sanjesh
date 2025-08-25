@@ -98,18 +98,34 @@ export async function PUT(request) {
             updateData[`destinationPriority${priority}`] = null;
             updateData[`requestedTransferType${priority}`] = null;
           }
-        } else if (transferType) {
-          // اگر فقط نوع انتقال تغییر کرده، فقط transferType را به‌روزرسانی کن
+        } else {
+          // کاربر مجاز به تغییر مقصد نیست، اما می‌تواند اولویت‌های خالی را اضافه کند
           const currentDestination =
             userSpecs[`destinationPriority${priority}`];
+
           if (currentDestination && currentDestination.districtCode) {
+            // اولویت موجود - فقط نوع انتقال را به‌روزرسانی کن
+            if (transferType) {
+              updateData[`destinationPriority${priority}`] = {
+                districtCode: currentDestination.districtCode,
+                transferType: convertTransferType(transferType),
+              };
+              // به‌روزرسانی نوع انتقال درخواستی
+              updateData[`requestedTransferType${priority}`] =
+                convertTransferType(transferType);
+            }
+          } else if (destinationCode && destinationCode.trim() !== "") {
+            // اولویت خالی - کاربر می‌تواند مقصد جدید اضافه کند
             updateData[`destinationPriority${priority}`] = {
-              districtCode: currentDestination.districtCode,
+              districtCode: destinationCode,
               transferType: convertTransferType(transferType),
             };
             // به‌روزرسانی نوع انتقال درخواستی
             updateData[`requestedTransferType${priority}`] =
               convertTransferType(transferType);
+          } else if (transferType && !currentDestination) {
+            // فقط نوع انتقال تغییر کرده برای اولویت خالی
+            // در این حالت چیزی ذخیره نمی‌کنیم چون مقصدی وجود ندارد
           }
         }
       }
@@ -136,17 +152,31 @@ export async function PUT(request) {
           const currentDestination = userSpecs[fieldName];
 
           // بررسی تغییر مقصد
-          if (
-            userSpecs.canEditDestination &&
-            destinationCode &&
-            currentDestination &&
-            currentDestination.districtCode !== destinationCode
-          ) {
-            changedPriorities.push({
-              priority: priority,
-              from: currentDestination.districtCode,
-              to: destinationCode,
-            });
+          if (destinationCode && destinationCode.trim() !== "") {
+            if (userSpecs.canEditDestination) {
+              // کاربر با دسترسی کامل - بررسی تغییر مقصد موجود
+              if (
+                currentDestination &&
+                currentDestination.districtCode !== destinationCode
+              ) {
+                changedPriorities.push({
+                  priority: priority,
+                  from: currentDestination.districtCode,
+                  to: destinationCode,
+                  action: "modified",
+                });
+              }
+            } else {
+              // کاربر با دسترسی محدود - بررسی اضافه کردن مقصد جدید
+              if (!currentDestination || !currentDestination.districtCode) {
+                changedPriorities.push({
+                  priority: priority,
+                  from: "خالی",
+                  to: destinationCode,
+                  action: "added",
+                });
+              }
+            }
           }
 
           // بررسی تغییر نوع انتقال

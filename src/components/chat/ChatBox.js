@@ -97,9 +97,9 @@ export default function ChatBox({ appealRequestId, userRole }) {
         ).length;
         setExpertUnreadCount(expertUnread);
 
-        console.log("ChatBox - Total messages:", messages.length);
-        console.log("ChatBox - Unread from expert:", unread);
-        console.log("ChatBox - Unread from applicant:", expertUnread);
+        // console.log("ChatBox - Total messages:", messages.length);
+        // console.log("ChatBox - Unread from expert:", unread);
+        // console.log("ChatBox - Unread from applicant:", expertUnread);
       }
     } catch (error) {
       console.error("خطا در بارگذاری پیام‌ها:", error);
