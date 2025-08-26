@@ -28,11 +28,14 @@ export const tokenService = {
       const secret = new TextEncoder().encode(JWT_SECRET);
       const expSeconds = parseExpiration(JWT_ACCESS_EXPIRATION);
 
-      return new SignJWT(payload)
-        .setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
-        .setExpirationTime(Math.floor(Date.now() / 1000) + expSeconds)
-        .sign(secret);
+      return (
+        new SignJWT(payload)
+          .setProtectedHeader({ alg: "HS256" })
+          .setIssuedAt()
+          .setExpirationTime("1h")
+          // .setExpirationTime(Math.floor(Date.now() / 1000) + expSeconds)
+          .sign(secret)
+      );
     } catch (error) {
       console.error("Error generating access token:", error);
       throw new Error("Failed to generate access token");
@@ -44,11 +47,14 @@ export const tokenService = {
       const secret = new TextEncoder().encode(JWT_REFRESH_SECRET);
       const expSeconds = parseExpiration(JWT_REFRESH_EXPIRATION);
 
-      return new SignJWT(payload)
-        .setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
-        .setExpirationTime(Math.floor(Date.now() / 1000) + expSeconds)
-        .sign(secret);
+      return (
+        new SignJWT(payload)
+          .setProtectedHeader({ alg: "HS256" })
+          .setIssuedAt()
+          .setExpirationTime("7d")
+          // .setExpirationTime(Math.floor(Date.now() / 1000) + expSeconds)
+          .sign(secret)
+      );
     } catch (error) {
       console.error("Error generating refresh token:", error);
       throw new Error("Failed to generate refresh token");

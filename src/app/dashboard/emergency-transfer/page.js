@@ -4322,7 +4322,7 @@ export default function EmergencyTransferPage() {
                           {userSpecs.effectiveYears}
                         </div>
                       </div>
-                      {userSpecs.medicalCommissionVerdict && (
+                      {/* {userSpecs.medicalCommissionVerdict && (
                         <div className="col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             رای کمیسیون پزشکی
@@ -4331,7 +4331,7 @@ export default function EmergencyTransferPage() {
                             {userSpecs.medicalCommissionVerdict}
                           </div>
                         </div>
-                      )}
+                      )} */}
                       {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           نوع انتقال تقاضا
