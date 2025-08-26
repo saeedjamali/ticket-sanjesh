@@ -5213,7 +5213,7 @@ export default function EmergencyTransferPage() {
                 <div className="space-y-3">
                   <div className="flex items-start gap-2">
                     <span className="font-medium text-yellow-700 mt-1 text-right text-nowrap ">
-                      تذکر 1:
+                      1:
                     </span>
                     <p className="text-yellow-700 text-sm leading-relaxed text-justify">
                       اولویت های شما طبق درخواست ثبت شده در سامانه my.medu.ir به
@@ -5224,7 +5224,7 @@ export default function EmergencyTransferPage() {
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="font-medium text-yellow-700 mt-1 text-nowrap">
-                      تذکر 2:
+                      2:
                     </span>
                     <p className="text-yellow-700 text-sm leading-relaxed text-justify">
                       درصورتیکه متقاضی تغییر نوع انتقال از دائم به موقت یا
