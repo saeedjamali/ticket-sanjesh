@@ -166,7 +166,7 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
   effectiveYears: {
     type: Number,
     required: true,
-    min: -1,
+    min: 0,
   },
   employmentField: {
     type: String,
