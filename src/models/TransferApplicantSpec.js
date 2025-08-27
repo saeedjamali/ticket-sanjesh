@@ -131,7 +131,7 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
   },
   nationalId: {
     type: String,
-    required: false, // الزامی نیست
+    required: true, // الزامی نیست
     trim: true,
     validate: {
       validator: function (v) {

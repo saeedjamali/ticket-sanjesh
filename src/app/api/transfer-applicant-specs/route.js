@@ -93,23 +93,7 @@ export async function GET(request) {
       query.currentWorkPlaceCode = currentWorkPlaceCode;
     }
 
-    // Debug log
-    console.log("API Filters:", {
-      requestStatus,
-      currentRequestStatus,
-      employmentType,
-      gender,
-      currentWorkPlaceCode,
-      status,
-      search,
-      userRole: userAuth.role,
-      userProvince: userAuth.province,
-      userDistrict: userAuth.district,
-    });
-    console.log(
-      "Final Query (before role filters):",
-      JSON.stringify(query, null, 2)
-    );
+   
 
     // فیلتر استانی برای کارشناس امور اداری استان
     if (userAuth.role === ROLES.PROVINCE_TRANSFER_EXPERT && userAuth.province) {
@@ -217,6 +201,7 @@ export async function POST(request) {
       );
     }
 
+    console.log("userAuth---------", userAuth);
     // بررسی دسترسی
     if (
       ![
@@ -239,6 +224,7 @@ export async function POST(request) {
       { field: "firstName", label: "نام" },
       { field: "lastName", label: "نام خانوادگی" },
       { field: "personnelCode", label: "کد پرسنلی" },
+      { field: "nationalId", label: "کد ملی" },
       { field: "employmentType", label: "نوع استخدام" },
       { field: "gender", label: "جنسیت" },
       { field: "mobile", label: "شماره تماس" },
@@ -372,8 +358,8 @@ export async function POST(request) {
 
         if (!existingUser) {
           // دریافت اطلاعات منطقه برای تعیین province و district
-          const district = await District.findById(
-            data.currentWorkPlaceCode
+          const district = await District.findOne(
+            { code: data.currentWorkPlaceCode }
           ).populate("province");
 
           if (!district) {

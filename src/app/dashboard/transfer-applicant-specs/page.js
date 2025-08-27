@@ -2203,7 +2203,7 @@ export default function TransferApplicantSpecsPage() {
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1 forced-color-text-black">
-                              کد ملی (8-10 رقم)
+                              کد ملی (8-10 رقم) <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
