@@ -2907,10 +2907,10 @@ export default function EmergencyTransferPage() {
 
     if (isSelected) {
       // نمایش پیام موفقیت
-      const selectionMessage = getSelectionMessage(reason, true);
-      if (selectionMessage) {
-        toast.success(selectionMessage.message);
-      }
+      // const selectionMessage = getSelectionMessage(reason, true);
+      // if (selectionMessage) {
+      //   toast.success(selectionMessage.message);
+      // }
       newSelectedReasons.add(reasonId);
 
       // بررسی محدودیت سنوات

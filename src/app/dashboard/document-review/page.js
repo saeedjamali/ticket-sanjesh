@@ -1760,30 +1760,32 @@ export default function DocumentReviewPage() {
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs transition-colors flex items-center gap-2"
                           >
                             <FaEye className="h-3 w-3" />
-                            بررسی مستندات
+                            بررسی وضعیت شمولیت
                           </button>
 
-                          {shouldShowSourceOpinionButtons(request) && (
+                          {true && (
                             <div className="flex gap-1">
                               <button
                                 onClick={() =>
                                   openSourceOpinionModal(request, "approve")
                                 }
-                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors flex items-center gap-1"
+                                disabled={!shouldShowSourceOpinionButtons(request)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="موافقت با انتقال"
                               >
                                 <FaThumbsUp className="h-3 w-3" />
-                                موافقت
+                                ثبت موافقت با انتقال
                               </button>
                               <button
                                 onClick={() =>
                                   openSourceOpinionModal(request, "reject")
                                 }
-                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors flex items-center gap-1"
+                                disabled={!shouldShowSourceOpinionButtons(request)}
+                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="مخالفت با انتقال"
                               >
                                 <FaThumbsDown className="h-3 w-3" />
-                                مخالفت
+                                ثبت مخالفت با انتقال
                               </button>
                             </div>
                           )}
@@ -1978,7 +1980,7 @@ export default function DocumentReviewPage() {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold">
-                        بررسی مستندات و تاییدات
+                        بررسی و اظهارنظر مبدأ{" "}
                       </h3>
                       <p className="text-blue-100 text-sm">
                         {selectedRequest.fullName} -{" "}
@@ -2036,6 +2038,32 @@ export default function DocumentReviewPage() {
                         </div>
                       </div>
                     )}
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">
+                        رشته شغلی:
+                      </span>
+                      <div className="text-gray-900">
+                        {selectedRequest.jobTitle}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">
+                      سنوات مؤثر:
+                      </span>
+                      <div className="text-gray-900">
+                        {selectedRequest.effectiveYears}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">
+                      امتیاز :
+                      </span>
+                      <div className="text-gray-900">
+                        {selectedRequest.score}
+                      </div>
+                    </div>
+                 
+                    
                   </div>
                 </div>
 

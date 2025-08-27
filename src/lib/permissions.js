@@ -621,7 +621,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
     role === ROLES.PROVINCE_TRANSFER_EXPERT
   ) {
     activeMenuItems.push({
-      label: "بررسی مستندات و تاییدات",
+      label: "بررسی و اظهارنظر مبدأ",
       path: "/dashboard/document-review",
       icon: "documentReview",
       requiresPhoneVerification: true,
