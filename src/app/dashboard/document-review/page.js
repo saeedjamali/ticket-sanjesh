@@ -2043,7 +2043,7 @@ export default function DocumentReviewPage() {
                         رشته شغلی:
                       </span>
                       <div className="text-gray-900">
-                        {selectedRequest.jobTitle}
+                        {selectedRequest.employmentField}
                       </div>
                     </div>
                     <div>
@@ -2059,7 +2059,7 @@ export default function DocumentReviewPage() {
                       امتیاز :
                       </span>
                       <div className="text-gray-900">
-                        {selectedRequest.score}
+                        {selectedRequest.approvedScore}
                       </div>
                     </div>
                  
