@@ -3042,7 +3042,7 @@ export default function TransferApplicantSpecsPage() {
                                 })
                               }
                               className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
-                              disabled={isDistrictExpert}
+                              disabled={isDistrictExpert || true}
                             >
                               <option value="">انتخاب کنید</option>
                               {getAvailableDistricts(99)?.map((district) => (
@@ -3077,7 +3077,8 @@ export default function TransferApplicantSpecsPage() {
                               className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
                               disabled={
                                 !formData.finalDestination?.districtCode ||
-                                isDistrictExpert
+                                isDistrictExpert ||true
+                                
                               }
                             >
                               {helpers.finalDestinationTransferTypes?.map(
