@@ -211,6 +211,8 @@ export async function GET(request) {
           ),
           currentRequestStatus, // اضافه کردن وضعیت فعلی
           effectiveYears: transferApplicantSpec?.effectiveYears || null, // اضافه کردن سنوات
+          approvedScore: transferApplicantSpec?.approvedScore || null, // اضافه کردن امتیاز
+          employmentField: transferApplicantSpec?.employmentField || null, // اضافه کردن رشته شغلی
           createdAt: req.createdAt.toISOString(),
           updatedAt: req.updatedAt.toISOString(),
         });

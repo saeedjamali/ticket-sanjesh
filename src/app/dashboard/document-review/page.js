@@ -2043,7 +2043,7 @@ export default function DocumentReviewPage() {
                         رشته شغلی:
                       </span>
                       <div className="text-gray-900">
-                        {selectedRequest.employmentField}
+                        {selectedRequest?.employmentField || "نامشخص"}
                       </div>
                     </div>
                     <div>
@@ -2051,7 +2051,7 @@ export default function DocumentReviewPage() {
                       سنوات مؤثر:
                       </span>
                       <div className="text-gray-900">
-                        {selectedRequest.effectiveYears}
+                        {selectedRequest?.effectiveYears || "نامشخص"}
                       </div>
                     </div>
                     <div>
@@ -2059,7 +2059,7 @@ export default function DocumentReviewPage() {
                       امتیاز :
                       </span>
                       <div className="text-gray-900">
-                        {selectedRequest.approvedScore}
+                        {selectedRequest?.approvedScore  || "نامشخص"}
                       </div>
                     </div>
                  
@@ -2200,64 +2200,64 @@ export default function DocumentReviewPage() {
                       }
 
                       // Debug log (temporary)
-                      if (index === 0) {
-                        console.log("Debug - Reason structure:", reason);
-                        console.log("Debug - Reason title:", reasonTitle);
-                        console.log(
-                          "Debug - Reason reasonTitle:",
-                          reason?.reasonTitle
-                        );
-                        console.log(
-                          "Debug - Requires admin approval:",
-                          populatedReason?.requiresAdminApproval
-                        );
-                        console.log(
-                          "Debug - Requires document upload:",
-                          populatedReason?.requiresDocumentUpload
-                        );
-                        console.log(
-                          "Debug - Populated reason:",
-                          populatedReason
-                        );
-                        console.log(
-                          "Debug - Full reason title:",
-                          fullReasonTitle
-                        );
-                        console.log(
-                          "Debug - Full reason description:",
-                          fullReasonDescription
-                        );
-                        console.log(
-                          "Debug - Full reason code:",
-                          fullReasonCode
-                        );
-                        console.log("Debug - Possible keys:", possibleKeys);
-                        console.log(
-                          "Debug - Document key selected:",
-                          documentKey
-                        );
-                        console.log(
-                          "Debug - uploadedDocuments keys:",
-                          Object.keys(selectedRequest.uploadedDocuments || {})
-                        );
-                        console.log(
-                          "Debug - reasonDocuments found:",
-                          reasonDocuments
-                        );
-                        console.log(
-                          "Debug - reasonDocuments length:",
-                          reasonDocuments?.length || 0
-                        );
-                        console.log(
-                          "Debug - Match found:",
-                          !!documentKey && reasonDocuments?.length > 0
-                        );
-                      }
+                      // if (index === 0) {
+                      //   console.log("Debug - Reason structure:", reason);
+                      //   console.log("Debug - Reason title:", reasonTitle);
+                      //   console.log(
+                      //     "Debug - Reason reasonTitle:",
+                      //     reason?.reasonTitle
+                      //   );
+                      //   console.log(
+                      //     "Debug - Requires admin approval:",
+                      //     populatedReason?.requiresAdminApproval
+                      //   );
+                      //   console.log(
+                      //     "Debug - Requires document upload:",
+                      //     populatedReason?.requiresDocumentUpload
+                      //   );
+                      //   console.log(
+                      //     "Debug - Populated reason:",
+                      //     populatedReason
+                      //   );
+                      //   console.log(
+                      //     "Debug - Full reason title:",
+                      //     fullReasonTitle
+                      //   );
+                      //   console.log(
+                      //     "Debug - Full reason description:",
+                      //     fullReasonDescription
+                      //   );
+                      //   console.log(
+                      //     "Debug - Full reason code:",
+                      //     fullReasonCode
+                      //   );
+                      //   console.log("Debug - Possible keys:", possibleKeys);
+                      //   console.log(
+                      //     "Debug - Document key selected:",
+                      //     documentKey
+                      //   );
+                      //   console.log(
+                      //     "Debug - uploadedDocuments keys:",
+                      //     Object.keys(selectedRequest.uploadedDocuments || {})
+                      //   );
+                      //   console.log(
+                      //     "Debug - reasonDocuments found:",
+                      //     reasonDocuments
+                      //   );
+                      //   console.log(
+                      //     "Debug - reasonDocuments length:",
+                      //     reasonDocuments?.length || 0
+                      //   );
+                      //   console.log(
+                      //     "Debug - Match found:",
+                      //     !!documentKey && reasonDocuments?.length > 0
+                      //   );
+                      // }
 
                       return (
                         <div
                           key={index}
-                          className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                          className="border border-gray-500 rounded-lg p-4 bg-gray-50"
                         >
                           {/* عنوان دلیل */}
                           <div className="mb-3">
