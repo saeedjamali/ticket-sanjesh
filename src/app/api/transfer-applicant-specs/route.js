@@ -19,7 +19,6 @@ export async function GET(request) {
         { status: 401 }
       );
     }
-    console.log("userAuth--->", userAuth);
     // بررسی دسترسی
     if (
       ![
@@ -233,6 +232,7 @@ export async function POST(request) {
     }
 
     const data = await request.json();
+    console.log("data---------", data);
     //
     // اعتبارسنجی فیلدهای ضروری
     const requiredFields = [
@@ -251,12 +251,35 @@ export async function POST(request) {
       { field: "sourceDistrictCode", label: "کد منطقه مبدا" },
     ];
 
+    // for (const { field, label } of requiredFields) {
+    //   if (!data[field]) {
+    //     return NextResponse.json(
+    //       { success: false, error: `فیلد «${label}» الزامی است` },
+    //       { status: 400 }
+    //     );
+    //   }
+    // }
+
     for (const { field, label } of requiredFields) {
-      if (!data[field]) {
-        return NextResponse.json(
-          { success: false, error: `فیلد «${label}» الزامی است` },
-          { status: 400 }
-        );
+      // برای فیلدهای عددی
+
+      // || field === 'approvedScore'
+      if (field === "effectiveYears") {
+        if (data[field] === null || data[field] === undefined) {
+          return NextResponse.json(
+            { success: false, error: `فیلد «${label}» الزامی است` },
+            { status: 400 }
+          );
+        }
+      }
+      // برای سایر فیلدها
+      else {
+        if (!data[field]) {
+          return NextResponse.json(
+            { success: false, error: `فیلد «${label}» الزامی است` },
+            { status: 400 }
+          );
+        }
       }
     }
 
