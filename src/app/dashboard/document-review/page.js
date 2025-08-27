@@ -31,6 +31,7 @@ import {
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import ChatButton from "@/components/chat/ChatButton";
+import { getFieldDisplayName } from "@/lib/fieldTranslations";
 
 export default function DocumentReviewPage() {
   const { user, userLoading } = useUser();
@@ -907,6 +908,7 @@ export default function DocumentReviewPage() {
   // باز کردن مودال بررسی
   const openReviewModal = (request) => {
     setSelectedRequest(request);
+    console.log("request-------->", request);
     setShowReviewModal(true);
     // مقداردهی اولیه reviewData از ساختار جدید
     const initialReviewData = {};
@@ -1769,7 +1771,9 @@ export default function DocumentReviewPage() {
                                 onClick={() =>
                                   openSourceOpinionModal(request, "approve")
                                 }
-                                disabled={!shouldShowSourceOpinionButtons(request)}
+                                disabled={
+                                  !shouldShowSourceOpinionButtons(request)
+                                }
                                 className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="موافقت با انتقال"
                               >
@@ -1780,7 +1784,9 @@ export default function DocumentReviewPage() {
                                 onClick={() =>
                                   openSourceOpinionModal(request, "reject")
                                 }
-                                disabled={!shouldShowSourceOpinionButtons(request)}
+                                disabled={
+                                  !shouldShowSourceOpinionButtons(request)
+                                }
                                 className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="مخالفت با انتقال"
                               >
@@ -2048,7 +2054,7 @@ export default function DocumentReviewPage() {
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-600">
-                      سنوات مؤثر:
+                        سنوات مؤثر:
                       </span>
                       <div className="text-gray-900">
                         {selectedRequest?.effectiveYears || "نامشخص"}
@@ -2056,14 +2062,12 @@ export default function DocumentReviewPage() {
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-600">
-                      امتیاز :
+                        جمع امتیاز تایید شده :
                       </span>
                       <div className="text-gray-900">
-                        {selectedRequest?.approvedScore  || "نامشخص"}
+                        {selectedRequest?.approvedScore || "نامشخص"}
                       </div>
                     </div>
-                 
-                    
                   </div>
                 </div>
 
@@ -2126,6 +2130,162 @@ export default function DocumentReviewPage() {
                     </div>
                   </div>
                 )}
+
+                {/* درخواست‌های اصلاح مشخصات */}
+                {selectedRequest.profileCorrectionRequests &&
+                  selectedRequest.profileCorrectionRequests.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                        <FaFileAlt className="h-5 w-5 text-orange-500" />
+                        درخواست‌های اصلاح مشخصات پرسنل
+                      </h4>
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <div className="space-y-3">
+                          {selectedRequest.profileCorrectionRequests.map(
+                            (correctionRequest) => (
+                              <div
+                                key={correctionRequest._id}
+                                className="bg-white border border-orange-200 rounded-lg p-4"
+                              >
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  {/* فیلد مورد اعتراض */}
+                                  <div>
+                                    <label className="text-sm font-medium text-gray-600">
+                                      فیلد مورد اعتراض:
+                                    </label>
+                                    <p className="text-gray-800 font-medium">
+                                      {getFieldDisplayName(
+                                        correctionRequest.disputedField
+                                      )}
+                                    </p>
+                                  </div>
+
+                                  {/* وضعیت */}
+                                  <div>
+                                    <label className="text-sm font-medium text-gray-600">
+                                      وضعیت:
+                                    </label>
+                                    <span
+                                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                        correctionRequest.status === "pending"
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : correctionRequest.status ===
+                                            "under_review"
+                                          ? "bg-blue-100 text-blue-800"
+                                          : correctionRequest.status ===
+                                            "approved"
+                                          ? "bg-green-100 text-green-800"
+                                          : correctionRequest.status ===
+                                            "rejected"
+                                          ? "bg-red-100 text-red-800"
+                                          : "bg-gray-100 text-gray-800"
+                                      }`}
+                                    >
+                                      {correctionRequest.status === "pending"
+                                        ? "در انتظار بررسی"
+                                        : correctionRequest.status ===
+                                          "under_review"
+                                        ? "در حال بررسی"
+                                        : correctionRequest.status ===
+                                          "approved"
+                                        ? "تایید شده"
+                                        : correctionRequest.status ===
+                                          "rejected"
+                                        ? "رد شده"
+                                        : correctionRequest.status ===
+                                          "cancelled"
+                                        ? "لغو شده"
+                                        : correctionRequest.status}
+                                    </span>
+                                  </div>
+
+                                  {/* تاریخ ایجاد */}
+                                  <div>
+                                    <label className="text-sm font-medium text-gray-600">
+                                      تاریخ ایجاد:
+                                    </label>
+                                    <p className="text-gray-800 text-sm">
+                                      {new Date(
+                                        correctionRequest.createdAt
+                                      ).toLocaleDateString("fa-IR", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                      })}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* توضیحات */}
+                                <div className="mt-3">
+                                  <label className="text-sm font-medium text-gray-600">
+                                    توضیحات:
+                                  </label>
+                                  <p className="text-gray-800 text-sm mt-1 bg-gray-50 p-3 rounded-md">
+                                    {correctionRequest.description}
+                                  </p>
+                                </div>
+
+                                {/* تصویر پیوست */}
+                                {correctionRequest.attachmentImage && (
+                                  <div className="mt-3">
+                                    <label className="text-sm font-medium text-gray-600">
+                                      تصویر پیوست:
+                                    </label>
+                                    <div className="mt-2">
+                                      <a
+                                        href={correctionRequest.attachmentImage}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
+                                      >
+                                        <FaDownload className="h-4 w-4" />
+                                        مشاهده تصویر
+                                      </a>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* پاسخ کارشناس */}
+                                {correctionRequest.expertResponse && (
+                                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                    <label className="text-sm font-medium text-blue-800">
+                                      پاسخ کارشناس:
+                                    </label>
+                                    <p className="text-blue-800 text-sm mt-1">
+                                      {correctionRequest.expertResponse}
+                                    </p>
+                                    {correctionRequest.respondedBy && (
+                                      <p className="text-blue-600 text-xs mt-2">
+                                        پاسخ‌دهنده:{" "}
+                                        {
+                                          correctionRequest.respondedBy
+                                            .firstName
+                                        }{" "}
+                                        {correctionRequest.respondedBy.lastName}
+                                      </p>
+                                    )}
+                                    {correctionRequest.respondedAt && (
+                                      <p className="text-blue-600 text-xs">
+                                        تاریخ پاسخ:{" "}
+                                        {new Date(
+                                          correctionRequest.respondedAt
+                                        ).toLocaleDateString("fa-IR", {
+                                          year: "numeric",
+                                          month: "long",
+                                          day: "numeric",
+                                        })}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                 {/* بررسی دلایل */}
                 <div className="mb-6">
@@ -2257,7 +2417,7 @@ export default function DocumentReviewPage() {
                       return (
                         <div
                           key={index}
-                          className="border border-gray-500 rounded-lg p-4 bg-gray-50"
+                          className="border border-gray-400 rounded-lg p-4 bg-gray-50"
                         >
                           {/* عنوان دلیل */}
                           <div className="mb-3">
@@ -3117,12 +3277,12 @@ export default function DocumentReviewPage() {
                         {sourceOpinionType === "approve" ? (
                           <>
                             <FaThumbsUp className="inline h-4 w-4 ml-2" />
-                            ثبت موافقت
+                            ثبت موافقت با انتقال
                           </>
                         ) : (
                           <>
                             <FaThumbsDown className="inline h-4 w-4 ml-2" />
-                            ثبت مخالفت
+                            ثبت مخالفت با انتقال
                           </>
                         )}
                       </>

@@ -8,6 +8,7 @@ import AcademicYear from "@/models/AcademicYear";
 import User from "@/models/User";
 import District from "@/models/District";
 import Province from "@/models/Province";
+import ProfileCorrectionRequest from "@/models/ProfileCorrectionRequest";
 import { authService } from "@/lib/auth/authService";
 
 // GET /api/document-review - دریافت درخواست‌های تجدید نظر برای بررسی مستندات
@@ -147,18 +148,16 @@ export async function GET(request) {
       if (req.personnelCode) {
         transferApplicantSpec = await TransferApplicantSpec.findOne({
           personnelCode: req.personnelCode,
-        }).select("currentRequestStatus currentWorkPlaceCode effectiveYears");
-
-        console.log(
-          "document-review API - TransferSpec found:",
-          !!transferApplicantSpec
+        }).select(
+          "currentRequestStatus currentWorkPlaceCode effectiveYears employmentField approvedScore"
         );
-        if (transferApplicantSpec) {
-          console.log(
-            "document-review API - currentWorkPlaceCode:",
-            transferApplicantSpec.currentWorkPlaceCode
-          );
-        }
+
+        // if (transferApplicantSpec) {
+        //   console.log(
+        //     "document-review API - currentWorkPlaceCode:",
+        //     transferApplicantSpec.currentWorkPlaceCode
+        //   );
+        // }
 
         currentRequestStatus =
           transferApplicantSpec?.currentRequestStatus || null;
@@ -176,13 +175,6 @@ export async function GET(request) {
           const district = await District.findById(user.district);
           userDistrictCode = district?.code;
         }
-
-        console.log(
-          "document-review API - Comparing:",
-          transferApplicantSpec?.currentWorkPlaceCode,
-          "vs",
-          userDistrictCode
-        );
 
         if (transferApplicantSpec?.currentWorkPlaceCode === userDistrictCode) {
           shouldInclude = true;
@@ -203,6 +195,17 @@ export async function GET(request) {
       }
 
       if (shouldInclude) {
+        // دریافت درخواست‌های اصلاح مشخصات برای این کاربر
+        let profileCorrectionRequests = [];
+        if (req.personnelCode) {
+          profileCorrectionRequests = await ProfileCorrectionRequest.find({
+            personnelCode: req.personnelCode,
+          })
+            .populate("respondedBy", "firstName lastName")
+            .sort({ createdAt: -1 })
+            .limit(10); // محدود کردن به 10 درخواست اخیر
+        }
+
         requestsWithStatusAndFiltered.push({
           ...req.toObject(),
           _id: req._id.toString(),
@@ -213,16 +216,12 @@ export async function GET(request) {
           effectiveYears: transferApplicantSpec?.effectiveYears || null, // اضافه کردن سنوات
           approvedScore: transferApplicantSpec?.approvedScore || null, // اضافه کردن امتیاز
           employmentField: transferApplicantSpec?.employmentField || null, // اضافه کردن رشته شغلی
+          profileCorrectionRequests: profileCorrectionRequests, // اضافه کردن درخواست‌های اصلاح مشخصات
           createdAt: req.createdAt.toISOString(),
           updatedAt: req.updatedAt.toISOString(),
         });
       }
     }
-
-    console.log(
-      "document-review API - Total requests after filtering:",
-      requestsWithStatusAndFiltered.length
-    );
 
     return NextResponse.json({
       success: true,
