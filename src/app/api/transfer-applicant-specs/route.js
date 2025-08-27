@@ -46,8 +46,6 @@ export async function GET(request) {
     const employmentType = searchParams.get("employmentType") || "";
     const gender = searchParams.get("gender") || "";
     const currentWorkPlaceCode = searchParams.get("currentWorkPlaceCode") || "";
-    const nationalId = searchParams.get("nationalId") || "";
-    const personnelCode = searchParams.get("personnelCode") || "";
 
     // ساخت query
     let query = {};
@@ -96,16 +94,6 @@ export async function GET(request) {
       query.currentWorkPlaceCode = currentWorkPlaceCode;
     }
 
-    // فیلتر کد ملی مشخص
-    if (nationalId) {
-      query.nationalId = nationalId;
-    }
-
-    // فیلتر کد پرسنلی مشخص
-    if (personnelCode) {
-      query.personnelCode = personnelCode;
-    }
-
     // Debug log
     console.log("API Filters:", {
       requestStatus,
@@ -113,8 +101,6 @@ export async function GET(request) {
       employmentType,
       gender,
       currentWorkPlaceCode,
-      nationalId,
-      personnelCode,
       status,
       search,
       userRole: userAuth.role,
@@ -126,13 +112,8 @@ export async function GET(request) {
       JSON.stringify(query, null, 2)
     );
 
-    // فیلتر استانی برای کارشناس امور اداری استان (اگر nationalId یا personnelCode مشخص نشده باشد)
-    if (
-      userAuth.role === ROLES.PROVINCE_TRANSFER_EXPERT &&
-      userAuth.province &&
-      !nationalId &&
-      !personnelCode
-    ) {
+    // فیلتر استانی برای کارشناس امور اداری استان
+    if (userAuth.role === ROLES.PROVINCE_TRANSFER_EXPERT && userAuth.province) {
       // اگر province یک object است، _id آن را استخراج کنیم
       const userProvinceId =
         typeof userAuth.province === "object" && userAuth.province._id
@@ -163,13 +144,8 @@ export async function GET(request) {
       }
     }
 
-    // فیلتر منطقه‌ای برای کارشناس امور اداری منطقه (اگر nationalId یا personnelCode مشخص نشده باشد)
-    if (
-      userAuth.role === ROLES.DISTRICT_TRANSFER_EXPERT &&
-      userAuth.district &&
-      !nationalId &&
-      !personnelCode
-    ) {
+    // فیلتر منطقه‌ای برای کارشناس امور اداری منطقه
+    if (userAuth.role === ROLES.DISTRICT_TRANSFER_EXPERT && userAuth.district) {
       // اگر district یک object است، code آن را استخراج کنیم
       const districtCode =
         typeof userAuth.district === "object" && userAuth.district.code
@@ -257,28 +233,28 @@ export async function POST(request) {
     }
 
     const data = await request.json();
-    console.log("data--->", data);
+    //
     // اعتبارسنجی فیلدهای ضروری
     const requiredFields = [
-      "firstName",
-      "lastName",
-      "personnelCode",
-      "employmentType",
-      "gender",
-      "mobile",
-      "effectiveYears",
-      "employmentField",
-      "fieldCode",
-      "approvedScore",
-      "requestedTransferType",
-      "currentWorkPlaceCode",
-      "sourceDistrictCode",
+      { field: "firstName", label: "نام" },
+      { field: "lastName", label: "نام خانوادگی" },
+      { field: "personnelCode", label: "کد پرسنلی" },
+      { field: "employmentType", label: "نوع استخدام" },
+      { field: "gender", label: "جنسیت" },
+      { field: "mobile", label: "شماره تماس" },
+      { field: "effectiveYears", label: "سنوات مؤثر" },
+      { field: "employmentField", label: "رشته استخدامی" },
+      { field: "fieldCode", label: "کد رشته" },
+      { field: "approvedScore", label: "امتیاز تایید شده" },
+      { field: "requestedTransferType", label: "نوع انتقال درخواستی" },
+      { field: "currentWorkPlaceCode", label: "کد محل خدمت فعلی" },
+      { field: "sourceDistrictCode", label: "کد منطقه مبدا" },
     ];
 
-    for (const field of requiredFields) {
+    for (const { field, label } of requiredFields) {
       if (!data[field]) {
         return NextResponse.json(
-          { success: false, error: `فیلد ${field} الزامی است` },
+          { success: false, error: `فیلد «${label}» الزامی است` },
           { status: 400 }
         );
       }
@@ -373,9 +349,9 @@ export async function POST(request) {
 
         if (!existingUser) {
           // دریافت اطلاعات منطقه برای تعیین province و district
-          const district = await District.findOne({
-            code: data.currentWorkPlaceCode,
-          }).populate("province");
+          const district = await District.findById(
+            data.currentWorkPlaceCode
+          ).populate("province");
 
           if (!district) {
             console.warn(
@@ -643,7 +619,6 @@ export async function PUT(request) {
         if (relatedUser) {
           relatedUser.fullName = `${spec.firstName} ${spec.lastName}`;
           relatedUser.phone = spec.mobile;
-          relatedUser.phoneVerified = false;
           await relatedUser.save();
         }
       } catch (userUpdateError) {

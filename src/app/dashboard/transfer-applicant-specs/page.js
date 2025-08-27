@@ -37,6 +37,7 @@ export default function TransferApplicantSpecsPage() {
   const [specs, setSpecs] = useState([]);
   const [helpers, setHelpers] = useState({
     districts: [],
+    employmentFields: [],
     employmentTypes: [],
     genders: [],
     transferTypes: [],
@@ -135,6 +136,7 @@ export default function TransferApplicantSpecsPage() {
     gender: "male",
     mobile: "",
     effectiveYears: 0,
+    selectedEmploymentField: "",
     employmentField: "",
     fieldCode: "",
     approvedScore: 0,
@@ -568,6 +570,7 @@ export default function TransferApplicantSpecsPage() {
       !formData.lastName.trim() ||
       !formData.personnelCode.trim() ||
       !formData.mobile.trim() ||
+      !formData.selectedEmploymentField.trim() ||
       !formData.employmentField.trim() ||
       !formData.fieldCode.trim() ||
       !formData.currentWorkPlaceCode.trim() ||
@@ -660,6 +663,9 @@ export default function TransferApplicantSpecsPage() {
       gender: spec.gender,
       mobile: spec.mobile,
       effectiveYears: spec.effectiveYears,
+      selectedEmploymentField: spec.fieldCode
+        ? `${spec.fieldCode}-${spec.employmentField}`
+        : "",
       employmentField: spec.employmentField,
       fieldCode: spec.fieldCode,
       approvedScore: spec.approvedScore,
@@ -1170,7 +1176,7 @@ export default function TransferApplicantSpecsPage() {
         province_review: "در حال بررسی استان",
         province_approval: "تایید استان",
         province_rejection: "رد استان",
-        // destination_review: "در حال بررسی مقصد",
+        destination_review: "در حال بررسی مقصد",
         destination_approval: "تایید مقصد",
         destination_rejection: "رد مقصد",
       };
@@ -1243,6 +1249,7 @@ export default function TransferApplicantSpecsPage() {
       gender: "male",
       mobile: "",
       effectiveYears: 0,
+      selectedEmploymentField: "",
       employmentField: "",
       fieldCode: "",
       approvedScore: 0,
@@ -2139,6 +2146,7 @@ export default function TransferApplicantSpecsPage() {
                             </label>
                             <input
                               type="text"
+                              disabled={editingSpec}
                               value={formData.firstName}
                               onChange={(e) =>
                                 setFormData({
@@ -2158,6 +2166,7 @@ export default function TransferApplicantSpecsPage() {
                             </label>
                             <input
                               type="text"
+                              disabled={editingSpec}
                               value={formData.lastName}
                               onChange={(e) =>
                                 setFormData({
@@ -2177,6 +2186,7 @@ export default function TransferApplicantSpecsPage() {
                             </label>
                             <input
                               type="text"
+                              disabled={editingSpec}
                               value={formData.personnelCode}
                               onChange={(e) =>
                                 setFormData({
@@ -2197,6 +2207,7 @@ export default function TransferApplicantSpecsPage() {
                             </label>
                             <input
                               type="text"
+                              disabled={editingSpec}
                               value={formData.nationalId}
                               onChange={(e) =>
                                 setFormData({
@@ -2216,6 +2227,7 @@ export default function TransferApplicantSpecsPage() {
                             </label>
                             <select
                               value={formData.gender}
+                              disabled={editingSpec}
                               onChange={(e) =>
                                 setFormData({
                                   ...formData,
@@ -2312,6 +2324,54 @@ export default function TransferApplicantSpecsPage() {
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1 forced-color-text-black">
+                              انتخاب رشته استخدامی{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                              value={formData.selectedEmploymentField}
+                              onChange={(e) => {
+                                const selectedValue = e.target.value;
+                                if (selectedValue) {
+                                  const selectedField =
+                                    helpers.employmentFields.find(
+                                      (field) =>
+                                        `${field.fieldCode}-${field.title}` ===
+                                        selectedValue
+                                    );
+                                  if (selectedField) {
+                                    setFormData({
+                                      ...formData,
+                                      selectedEmploymentField: selectedValue,
+                                      employmentField: selectedField.title,
+                                      fieldCode: selectedField.fieldCode,
+                                    });
+                                  }
+                                } else {
+                                  setFormData({
+                                    ...formData,
+                                    selectedEmploymentField: "",
+                                    employmentField: "",
+                                    fieldCode: "",
+                                  });
+                                }
+                              }}
+                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
+                              required
+                            >
+                              <option value="">انتخاب کنید</option>
+                              {helpers.employmentFields?.map((field) => (
+                                <option
+                                  key={`${field.fieldCode}-${field.title}`}
+                                  value={`${field.fieldCode}-${field.title}`}
+                                >
+                                  {field.displayName}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1 forced-color-text-black">
                               رشته استخدامی{" "}
                               <span className="text-red-500">*</span>
                             </label>
@@ -2324,8 +2384,10 @@ export default function TransferApplicantSpecsPage() {
                                   employmentField: e.target.value,
                                 })
                               }
-                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
+                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white bg-gray-50"
                               required
+                              readOnly
+                              placeholder="از لیست بالا انتخاب کنید"
                             />
                           </div>
 
@@ -2342,8 +2404,10 @@ export default function TransferApplicantSpecsPage() {
                                   fieldCode: e.target.value,
                                 })
                               }
-                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
+                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white bg-gray-50"
                               required
+                              readOnly
+                              placeholder="از لیست بالا انتخاب کنید"
                             />
                           </div>
 

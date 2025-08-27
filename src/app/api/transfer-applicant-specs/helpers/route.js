@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import District from "@/models/District";
+import EmploymentField from "@/models/EmploymentField";
 import { authService } from "@/lib/auth/authService";
 import { ROLES } from "@/lib/permissions";
 
@@ -49,9 +50,22 @@ export async function GET(request) {
         : null,
     }));
 
+    // دریافت رشته‌های استخدامی فعال
+    const employmentFields = await EmploymentField.find({ isActive: true })
+      .select("fieldCode title")
+      .sort({ title: 1 })
+      .lean();
+
+    const formattedEmploymentFields = employmentFields.map((field) => ({
+      fieldCode: field.fieldCode,
+      title: field.title,
+      displayName: `${field.fieldCode} - ${field.title}`,
+    }));
+
     return NextResponse.json({
       success: true,
       districts: formattedDistricts,
+      employmentFields: formattedEmploymentFields,
       employmentTypes: [
         { value: "official", label: "رسمی" },
         { value: "contractual", label: "پیمانی" },

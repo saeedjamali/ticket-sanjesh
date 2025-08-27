@@ -297,17 +297,17 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
         {
           label: "لیست دانش آموزان سال جاری",
           path: "/dashboard/students/current",
-          requiresPhoneVerification: true
+          requiresPhoneVerification: true,
         },
         {
           label: "لیست دانش آموزان سال گذشته",
           path: "/dashboard/students/previous",
-          requiresPhoneVerification: true
+          requiresPhoneVerification: true,
         },
         {
           label: "درخواست‌های جابجایی",
           path: "/dashboard/transfer-requests",
-          requiresPhoneVerification: true
+          requiresPhoneVerification: true,
         },
         {
           label: "بازمانده از تحصیل",
@@ -425,6 +425,11 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
         {
           label: "دلایل موافقت/مخالفت",
           path: "/dashboard/transfer-settings/approval-reasons",
+          requiresPhoneVerification: true,
+        },
+        {
+          label: "رشته‌های استخدامی",
+          path: "/dashboard/transfer-settings/employment-fields",
           requiresPhoneVerification: true,
         },
       ],
@@ -617,7 +622,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
 
   // منوی بررسی مستندات و تاییدات - برای کارشناس امور اداری منطقه و استان
   if (
-    role === ROLES.DISTRICT_TRANSFER_EXPERT ||
+    // role === ROLES.DISTRICT_TRANSFER_EXPERT ||
     role === ROLES.PROVINCE_TRANSFER_EXPERT
   ) {
     activeMenuItems.push({
