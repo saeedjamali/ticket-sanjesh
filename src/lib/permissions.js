@@ -439,7 +439,16 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
         },
       ],
     });
+    activeMenuItems.push({
+      label: "لیست متقاضیان انتقال  ",
+      path: "/dashboard/transfer-applicant-specs",
+      icon: "transferApplicantSpecs",
+      requiresPhoneVerification: role === ROLES.PROVINCE_TRANSFER_EXPERT,
+    });
+  }
 
+  // منوی مشخصات پرسنل انتقال - برای کارشناس امور اداری استان
+  if (role === ROLES.PROVINCE_TRANSFER_EXPERT) {
     activeMenuItems.push({
       label: "لیست متقاضیان انتقال  ",
       path: "/dashboard/transfer-applicant-specs",
