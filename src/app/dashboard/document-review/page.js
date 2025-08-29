@@ -55,10 +55,14 @@ export default function DocumentReviewPage() {
   const [selectedReasons, setSelectedReasons] = useState([]);
   const [sourceComment, setSourceComment] = useState("");
   const [loadingReasons, setLoadingReasons] = useState(false);
+  const [personnelStats, setPersonnelStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
-  // State برای لودینگ جداگانه دکمه‌های مشمولیت
-  const [approvingEligibility, setApprovingEligibility] = useState(false);
-  const [rejectingEligibility, setRejectingEligibility] = useState(false);
+  // State برای شرایط بندها
+  const [clauseConditions, setClauseConditions] = useState([]);
+  const [acceptedConditions, setAcceptedConditions] = useState([]);
+  const [loadingConditions, setLoadingConditions] = useState(false);
+
   const [exportingExcel, setExportingExcel] = useState(false);
 
   // State برای تشخیص ذخیره شدن تغییرات
@@ -927,270 +931,6 @@ export default function DocumentReviewPage() {
     setIsDataSaved(false); // Reset ذخیره شدن تغییرات
   };
 
-  // محاسبه وضعیت دکمه‌های تایید/رد مشمولیت
-  const getEligibilityButtonsState = (request) => {
-    if (!request?.selectedReasons?.length) {
-      return {
-        showButtons: false,
-        canApprove: false,
-        canReject: false,
-        message: "هیچ بندی انتخاب نشده است",
-      };
-    }
-    // تقسیم دلایل بر اساس نیاز به تایید کارشناس
-    const reasonsRequiringApproval = request.selectedReasons.filter(
-      (reason) => reason?.reasonId?.requiresAdminApproval === true
-    );
-
-    const reasonsNotRequiringApproval = request.selectedReasons.filter(
-      (reason) => reason?.reasonId?.requiresAdminApproval === false
-    );
-
-    // اگر هیچ دلیلی نیاز به تایید کارشناس ندارد
-    if (reasonsRequiringApproval.length === 0) {
-      return {
-        showButtons: true,
-        canApprove: true,
-        canReject: true,
-        message: "تمام بندها نیاز به بررسی کارشناس ندارند",
-      };
-    }
-
-    // بررسی وضعیت دلایلی که نیاز به تایید کارشناس دارند
-    const pendingReasons = reasonsRequiringApproval.filter(
-      (reason) => reason?.review?.status === "pending"
-    );
-
-    const approvedReasons = reasonsRequiringApproval.filter(
-      (reason) => reason?.review?.status === "approved"
-    );
-
-    const rejectedReasons = reasonsRequiringApproval.filter(
-      (reason) => reason?.review?.status === "rejected"
-    );
-
-    // اگر بندی هنوز بررسی نشده (pending)
-    if (pendingReasons.length > 0) {
-      // اگر بندی بدون نیاز به تایید کارشناس وجود دارد، دکمه‌ها فعال باشند
-      if (reasonsNotRequiringApproval.length > 0) {
-        return {
-          showButtons: true,
-          canApprove: false,
-          canReject: false,
-          message: `${pendingReasons.length} بند هنوز بررسی نشده،  ${reasonsNotRequiringApproval.length} بند نیاز به بررسی کارشناس ندارد`,
-          hasPendingButAllowDecision: true,
-        };
-      }
-      // اگر همه بندها نیاز به تایید کارشناس دارند و بعضی pending هستند
-      return {
-        showButtons: false,
-        canApprove: false,
-        canReject: false,
-        message: `${pendingReasons.length} بند هنوز بررسی نشده و منتظر تایید/رد کارشناس است`,
-      };
-    }
-
-    // اگر همه بندهای نیازمند تایید رد شده‌اند
-    if (rejectedReasons.length === reasonsRequiringApproval.length) {
-      // اگر بندی بدون نیاز به تایید کارشناس وجود دارد، دکمه‌ها فعال باشند
-      if (reasonsNotRequiringApproval.length > 0) {
-        return {
-          showButtons: true,
-          canApprove: true,
-          canReject: true,
-          message: `تمام بندهای نیازمند بررسی کارشناس، رد شده‌اند،  ${reasonsNotRequiringApproval.length} بند نیاز به بررسی کارشناس ندارد`,
-          allRequiredRejectedButHasNonRequired: true,
-        };
-      }
-      // اگر همه بندها نیاز به تایید کارشناس دارند و همه رد شده‌اند
-      return {
-        showButtons: true,
-        canApprove: false,
-        canReject: true,
-        message: "تمام بندهای نیازمند نظر کارشناس رد شده‌اند",
-        allRejected: true,
-      };
-    }
-
-    // اگر همه بندهای نیازمند تایید تایید شده‌اند
-    if (approvedReasons.length === reasonsRequiringApproval.length) {
-      // اگر بندی بدون نیاز به تایید کارشناس وجود دارد، دکمه‌ها فعال باشند
-      if (reasonsNotRequiringApproval.length > 0) {
-        return {
-          showButtons: true,
-          canApprove: true,
-          canReject: true,
-          message: `تمام بندهای نیازمند بررسی تایید شده‌اند، اما ${reasonsNotRequiringApproval.length} بند نیاز به بررسی کارشناس ندارد`,
-          allRequiredApprovedButHasNonRequired: true,
-        };
-      }
-      // اگر همه بندها نیاز به تایید کارشناس دارند و همه تایید شده‌اند
-      return {
-        showButtons: true,
-        canApprove: true,
-        canReject: false,
-        message: "تمام بندهای نیازمند بررسی کارشناس تایید شده‌اند",
-        allApproved: true,
-      };
-    }
-
-    // اگر ترکیبی از تایید و رد وجود دارد
-    return {
-      showButtons: true,
-      canApprove: true,
-      canReject: true,
-      message: `${approvedReasons.length} بند تایید و ${
-        rejectedReasons.length
-      } بند رد شده است${
-        reasonsNotRequiringApproval.length > 0
-          ? ` و ${reasonsNotRequiringApproval.length} بند نیاز به بررسی کارشناس منطقه ندارد`
-          : ""
-      }`,
-    };
-  };
-
-  // محاسبه وضعیت نهایی دکمه‌های تایید/رد مشمولیت (با در نظر گیری ذخیره شدن تغییرات)
-  const getFinalEligibilityButtonsState = (request) => {
-    console.log("getFinalEligibilityButtonsState - isDataSaved:", isDataSaved);
-    console.log("getFinalEligibilityButtonsState - request:", request);
-
-    // اگر تغییرات ذخیره نشده‌اند، دکمه‌ها غیرفعال باشند
-    if (!isDataSaved) {
-      return {
-        showButtons: true,
-        canApprove: false,
-        canReject: false,
-        message: "ابتدا باید تغییرات را ذخیره کنید",
-        allApproved: false,
-        allRejected: false,
-        allRequiredApprovedButHasNonRequired: false,
-        allRequiredRejectedButHasNonRequired: false,
-      };
-    }
-
-    // اگر تغییرات ذخیره شده، محاسبه مجدد وضعیت با داده‌های به‌روز
-    const finalState = getEligibilityButtonsState(request);
-    console.log("getFinalEligibilityButtonsState - finalState:", finalState);
-    return finalState;
-  };
-
-  // تایید/رد مشمولیت
-  const handleEligibilityDecision = async (action, comment = "") => {
-    if (!selectedRequest) return;
-    // const confirmed = window.confirm("آیا از ذخیره تغییرات اطمینان دارید؟");
-    // if (!confirmed) return;
-    // بررسی وضعیت دکمه‌ها قبل از ارسال درخواست
-    const buttonState = getFinalEligibilityButtonsState(selectedRequest);
-
-    // اگر تمام بندهای نیازمند تایید رد شده و می‌خواهد تایید کند (بدون بند غیرنیازمند)
-    if (action === "approve" && buttonState.allRejected) {
-      toast.error(
-        "امکان تایید مشمولیت وجود ندارد زیرا تمام بندهای نیازمند تایید رد شده‌اند"
-      );
-      return;
-    }
-
-    // اگر تمام بندهای نیازمند تایید تایید شده و می‌خواهد رد کند (بدون بند غیرنیازمند)
-    if (action === "reject" && buttonState.allApproved) {
-      toast.error(
-        "امکان رد مشمولیت وجود ندارد زیرا تمام بندهای نیازمند تایید تایید شده‌اند"
-      );
-      return;
-    }
-
-    // هشدارهای اضافی برای حالات خاص
-    if (
-      action === "approve" &&
-      buttonState.allRequiredRejectedButHasNonRequired
-    ) {
-      toast(
-        "توجه: تمام بندهای نیازمند بررسی کارشناس رد شده‌اند، اما تایید مشمولیت بر اساس بندهای غیرنیازمند انجام می‌شود",
-        {
-          icon: "⚠️",
-          style: {
-            borderLeft: "4px solid #f59e0b",
-            backgroundColor: "#fef3c7",
-            color: "#92400e",
-          },
-        }
-      );
-    }
-
-    if (
-      action === "reject" &&
-      buttonState.allRequiredApprovedButHasNonRequired
-    ) {
-      toast(
-        "توجه: تمام بندهای نیازمند بررسی کارشناس تایید شده‌اند، اما رد مشمولیت بر اساس بندهای غیرنیازمند انجام می‌شود",
-        {
-          icon: "⚠️",
-          style: {
-            borderLeft: "4px solid #f59e0b",
-            backgroundColor: "#fef3c7",
-            color: "#92400e",
-          },
-        }
-      );
-    }
-
-    if (buttonState.hasPendingButAllowDecision) {
-      toast(
-        "توجه: برخی بندها هنوز بررسی نشده‌اند، اما تصمیم‌گیری بر اساس بندهای غیرنیازمند انجام می‌شود",
-        {
-          icon: "ℹ️",
-          style: {
-            borderLeft: "4px solid #3b82f6",
-            backgroundColor: "#dbeafe",
-            color: "#1e40af",
-          },
-        }
-      );
-    }
-
-    try {
-      // تنظیم لودینگ مخصوص هر دکمه
-      if (action === "approve") {
-        setApprovingEligibility(true);
-      } else {
-        setRejectingEligibility(true);
-      }
-
-      const response = await fetch("/api/document-review", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          requestId: selectedRequest._id,
-          action: action, // 'approve' یا 'reject'
-          comment: comment,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success(data.message);
-        setShowReviewModal(false);
-        setSelectedRequest(null);
-        setReviewData({});
-        fetchAppealRequests(); // بازخوانی لیست
-      } else {
-        toast.error(data.error || "خطا در عملیات");
-      }
-    } catch (error) {
-      console.error("Error in eligibility decision:", error);
-      toast.error("خطا در ارتباط با سرور");
-    } finally {
-      // خاموش کردن لودینگ مخصوص هر دکمه
-      if (action === "approve") {
-        setApprovingEligibility(false);
-      } else {
-        setRejectingEligibility(false);
-      }
-    }
-  };
-
   // ذخیره بررسی
   const handleSaveReview = async () => {
     try {
@@ -1209,7 +949,8 @@ export default function DocumentReviewPage() {
       const data = await response.json();
 
       if (data.success) {
-        toast.success("بررسی با موفقیت ذخیره شد و وضعیت کاربر به‌روزرسانی شد");
+        // نمایش پیام مناسب بر اساس تصمیم‌گیری خودکار
+        toast.success(data.message);
         setIsDataSaved(true); // تنظیم ذخیره شدن تغییرات
 
         // به‌روزرسانی درخواست انتخاب شده با داده‌های جدید
@@ -1223,12 +964,21 @@ export default function DocumentReviewPage() {
 
         fetchAppealRequests(); // بازیابی لیست به‌روز
 
-        // مدال را بسته نمی‌کنیم تا کاربر بتواند دکمه‌های مشمولیت را ببیند
-        // setShowReviewModal(false);
-        // setSelectedRequest(null);
-        // setReviewData({});
+        // اگر تصمیم‌گیری خودکار انجام شده، مدال را ببندیم
+        if (data.data?.autoDecision?.made) {
+          setTimeout(() => {
+            setShowReviewModal(false);
+            setSelectedRequest(null);
+            setReviewData({});
+            setIsDataSaved(false);
+          }, 2000); // 2 ثانیه تاخیر برای نمایش پیام
+        }
       } else {
-        toast.error(data.error || "خطا در ذخیره بررسی");
+        console.error("API Error Details:", data);
+        const errorMessage = data.details
+          ? `${data.error}: ${data.details}`
+          : data.error || "خطا در ذخیره بررسی";
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error("Error saving review:", error);
@@ -1238,13 +988,122 @@ export default function DocumentReviewPage() {
     }
   };
 
+  // دریافت آمار وضعیت کاربران هم‌رشته و هم‌جنس
+  const fetchPersonnelStats = async (personnelCode, districtCode) => {
+    try {
+      setLoadingStats(true);
+      const response = await fetch(
+        `/api/personnel-stats?personnelCode=${personnelCode}&districtCode=${districtCode}`
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        setPersonnelStats(data.data);
+      } else {
+        console.error("خطا در دریافت آمار:", data.error);
+        toast.error("خطا در دریافت آمار کاربران");
+      }
+    } catch (error) {
+      console.error("Error fetching personnel stats:", error);
+      toast.error("خطا در ارتباط با سرور");
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  // دریافت دلایل انتخاب بندها
+  const handleReasonSelection = async () => {
+    if (sourceOpinionType === "approve" && selectedReasons.length > 0) {
+      await fetchClauseConditions(selectedReasons, "approval");
+    }
+  };
+
+  // دریافت شرایط بندها
+  const fetchClauseConditions = async (selectedClauses, conditionType) => {
+    try {
+      setLoadingConditions(true);
+
+      const response = await fetch("/api/clause-conditions/by-clauses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          selectedClauses,
+          conditionType,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "خطا در دریافت شرایط بندها");
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setClauseConditions(data.data.conditions);
+        setAcceptedConditions([]); // ریست کردن شرایط تایید شده
+      } else {
+        throw new Error(data.error || "خطا در دریافت شرایط بندها");
+      }
+    } catch (error) {
+      console.error("❌ Error fetching clause conditions:", error);
+      toast.error("خطا در دریافت شرایط بندها: " + error.message);
+      setClauseConditions([]);
+      setAcceptedConditions([]);
+    } finally {
+      setLoadingConditions(false);
+    }
+  };
+
   // باز کردن مدال نظر مبدا
-  const openSourceOpinionModal = (personnel, opinionType) => {
+  const openSourceOpinionModal = async (personnel, opinionType) => {
     setSelectedPersonnel(personnel);
     setSourceOpinionType(opinionType);
     setSelectedReasons([]);
     setSourceComment("");
+    setPersonnelStats(null);
+    setClauseConditions([]);
+    setAcceptedConditions([]);
     setShowSourceOpinionModal(true);
+
+    // دریافت آمار کاربران هم‌رشته و هم‌جنس
+    if (personnel.personnelCode && personnel.districtCode) {
+      await fetchPersonnelStats(
+        personnel.personnelCode,
+        personnel.districtCode
+      );
+    }
+
+    // دریافت دلایل موافقت/مخالفت
+    await fetchApprovalReasons();
+
+    // برای موافقت، استخراج بندهای تایید شده از درخواست کاربر
+    if (opinionType === "approve" && personnel.selectedReasons) {
+      const approvedReasonIds = personnel.selectedReasons
+        .filter((reason) => reason.review?.status === "approved")
+        .map((reason) => reason.reasonId._id || reason.reasonId);
+
+      if (approvedReasonIds.length > 0) {
+        setSelectedReasons(approvedReasonIds);
+        // دریافت شرایط مربوط به بندهای تایید شده
+        await fetchClauseConditions(approvedReasonIds, "approval");
+      }
+    }
+
+    // برای مخالفت، استخراج بندهای رد شده از درخواست کاربر
+    if (opinionType === "reject" && personnel.selectedReasons) {
+      const rejectedReasonIds = personnel.selectedReasons
+        .filter((reason) => reason.review?.status === "rejected")
+        .map((reason) => reason.reasonId._id || reason.reasonId);
+
+      if (rejectedReasonIds.length > 0) {
+        setSelectedReasons(rejectedReasonIds);
+        // دریافت شرایط مربوط به بندهای رد شده
+        await fetchClauseConditions(rejectedReasonIds, "rejection");
+      }
+    }
   };
 
   // بستن مدال نظر مبدا
@@ -1254,6 +1113,11 @@ export default function DocumentReviewPage() {
     setSourceOpinionType(null);
     setSelectedReasons([]);
     setSourceComment("");
+    setPersonnelStats(null);
+    setLoadingStats(false);
+    setClauseConditions([]);
+    setAcceptedConditions([]);
+    setLoadingConditions(false);
   };
 
   // ثبت نظر مبدا (موافقت یا مخالفت)
@@ -1765,7 +1629,8 @@ export default function DocumentReviewPage() {
                             بررسی وضعیت شمولیت
                           </button>
 
-                          {true && (
+                          {request.currentRequestStatus ===
+                            "exception_eligibility_approval" && (
                             <div className="flex gap-1">
                               <button
                                 onClick={() =>
@@ -2573,45 +2438,6 @@ export default function DocumentReviewPage() {
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex gap-2 ml-4">
-                                {/* دکمه‌های تایید/رد فقط برای دلایلی که نیاز به تایید کارشناس دارند */}
-                                {populatedReason?.requiresAdminApproval ? (
-                                  <>
-                                    <button
-                                      onClick={() =>
-                                        setReviewData((prev) => ({
-                                          ...prev,
-                                          [reasonKey]: "approved",
-                                        }))
-                                      }
-                                      className={`px-3 py-1 rounded text-xs transition-colors flex items-center gap-1 ${
-                                        reviewData[reasonKey] === "approved"
-                                          ? "bg-green-100 text-green-800 border border-green-300"
-                                          : "bg-gray-100 text-gray-600 hover:bg-green-50"
-                                      }`}
-                                    >
-                                      <FaCheck className="h-3 w-3" />
-                                      تایید
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        setReviewData((prev) => ({
-                                          ...prev,
-                                          [reasonKey]: "rejected",
-                                        }))
-                                      }
-                                      className={`px-3 py-1 rounded text-xs transition-colors flex items-center gap-1 ${
-                                        reviewData[reasonKey] === "rejected"
-                                          ? "bg-red-100 text-red-800 border border-red-300"
-                                          : "bg-gray-100 text-gray-600 hover:bg-red-50"
-                                      }`}
-                                    >
-                                      <FaTimes className="h-3 w-3" />
-                                      رد
-                                    </button>
-                                  </>
-                                ) : null}
-                              </div>
                             </div>
                           </div>
 
@@ -2911,6 +2737,44 @@ export default function DocumentReviewPage() {
                                 )}
                               </div>
                             </div>
+
+                            {/* دکمه‌های تایید/رد - بعد از توضیحات کارشناس */}
+                            {populatedReason?.requiresAdminApproval && (
+                              <div className="mt-3 flex gap-3 justify-end">
+                                <button
+                                  onClick={() =>
+                                    setReviewData((prev) => ({
+                                      ...prev,
+                                      [reasonKey]: "approved",
+                                    }))
+                                  }
+                                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                                    reviewData[reasonKey] === "approved"
+                                      ? "bg-green-600 text-white shadow-lg shadow-green-200"
+                                      : "bg-green-100 text-green-700 hover:bg-green-600 hover:text-white border border-green-300"
+                                  }`}
+                                >
+                                  <FaCheck className="h-4 w-4" />
+                                  تایید
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    setReviewData((prev) => ({
+                                      ...prev,
+                                      [reasonKey]: "rejected",
+                                    }))
+                                  }
+                                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                                    reviewData[reasonKey] === "rejected"
+                                      ? "bg-red-600 text-white shadow-lg shadow-red-200"
+                                      : "bg-red-100 text-red-700 hover:bg-red-600 hover:text-white border border-red-300"
+                                  }`}
+                                >
+                                  <FaTimes className="h-4 w-4" />
+                                  رد
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -2959,8 +2823,8 @@ export default function DocumentReviewPage() {
                         !canPerformDocumentReview(selectedRequest)
                           ? getDocumentReviewDisabledMessage(selectedRequest)
                           : isDataSaved
-                          ? "تغییرات ذخیره شده - حالا می‌توانید دکمه‌های مشمولیت را استفاده کنید"
-                          : "ذخیره تغییرات جهت فعال‌سازی دکمه‌های مشمولیت"
+                          ? "تغییرات ذخیره شده و تصمیم‌گیری خودکار انجام شد"
+                          : "ذخیره تغییرات و تصمیم‌گیری خودکار مشمولیت"
                       }
                     >
                       {submitting ? (
@@ -2977,106 +2841,126 @@ export default function DocumentReviewPage() {
                     </button>
                   </div>
 
-                  {/* پیام هشدار برای ذخیره تغییرات */}
-                  {!isDataSaved &&
-                    canPerformDocumentReview(selectedRequest) && (
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                        <div className="flex items-center gap-2">
-                          <FaInfoCircle className="text-yellow-600" />
-                          <span className="text-sm text-yellow-800">
-                            برای فعال‌سازی دکمه‌های تایید/رد مشمولیت، ابتدا باید
-                            تغییرات را ذخیره کنید
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                  {/* دکمه‌های تایید/رد مشمولیت */}
+                  {/* نمایش وضعیت تصمیم‌گیری خودکار مشمولیت */}
                   {canPerformDocumentReview(selectedRequest) &&
                     (() => {
-                      const buttonsState =
-                        getFinalEligibilityButtonsState(selectedRequest);
-
-                      if (!buttonsState.showButtons) {
-                        return (
-                          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                            <div className="flex items-center gap-2">
-                              <FaInfoCircle className="h-4 w-4 text-yellow-600" />
-                              <span className="text-sm text-yellow-800">
-                                {buttonsState.message}
-                              </span>
-                            </div>
-                          </div>
+                      // محاسبه وضعیت بندها
+                      const reasonsRequiringApproval =
+                        selectedRequest.selectedReasons.filter(
+                          (reason) =>
+                            reason?.reasonId?.requiresAdminApproval === true
                         );
+
+                      const reviewedReasons = reasonsRequiringApproval.filter(
+                        (reason) =>
+                          reason.review?.status &&
+                          reason.review.status !== "pending"
+                      );
+
+                      const pendingReasons = reasonsRequiringApproval.filter(
+                        (reason) =>
+                          !reason.review?.status ||
+                          reason.review.status === "pending"
+                      );
+
+                      const approvedReasons = reviewedReasons.filter(
+                        (reason) => reason.review?.status === "approved"
+                      );
+
+                      const rejectedReasons = reviewedReasons.filter(
+                        (reason) => reason.review?.status === "rejected"
+                      );
+
+                      // تعیین وضعیت و پیام
+                      let statusInfo = null;
+
+                      if (reasonsRequiringApproval.length === 0) {
+                        statusInfo = {
+                          type: "info",
+                          icon: <FaInfoCircle className="h-5 w-5" />,
+                          title: "بدون نیاز به بررسی",
+                          message:
+                            "این درخواست شامل بندهایی که نیاز به تایید کارشناس دارند نمی‌باشد",
+                          bgColor: "bg-gray-50",
+                          borderColor: "border-gray-200",
+                          textColor: "text-gray-700",
+                          titleColor: "text-gray-800",
+                        };
+                      } else if (pendingReasons.length > 0) {
+                        statusInfo = {
+                          type: "pending",
+                          icon: <FaClock className="h-5 w-5" />,
+                          title: "در حال بررسی",
+                          message: `${pendingReasons.length} بند در انتظار تکمیل بررسی - ${reviewedReasons.length} بند بررسی شده`,
+                          bgColor: "bg-yellow-50",
+                          borderColor: "border-yellow-200",
+                          textColor: "text-yellow-700",
+                          titleColor: "text-yellow-800",
+                        };
+                      } else if (approvedReasons.length > 0) {
+                        statusInfo = {
+                          type: "approved",
+                          icon: <FaCheck className="h-5 w-5" />,
+                          title: "✅ تایید مشمولیت استثنا",
+                          message: `${approvedReasons.length} بند تایید شده از ${reasonsRequiringApproval.length} بند - وضعیت کاربر به‌روزرسانی شد`,
+                          bgColor: "bg-green-50",
+                          borderColor: "border-green-200",
+                          textColor: "text-green-700",
+                          titleColor: "text-green-800",
+                        };
+                      } else if (
+                        rejectedReasons.length ===
+                          reasonsRequiringApproval.length &&
+                        reasonsRequiringApproval.length > 0
+                      ) {
+                        statusInfo = {
+                          type: "rejected",
+                          icon: <FaTimes className="h-5 w-5" />,
+                          title: "❌ رد مشمولیت استثنا",
+                          message: `همه ${rejectedReasons.length} بند رد شده - وضعیت کاربر به‌روزرسانی شد`,
+                          bgColor: "bg-red-50",
+                          borderColor: "border-red-200",
+                          textColor: "text-red-700",
+                          titleColor: "text-red-800",
+                        };
                       }
 
+                      if (!statusInfo) return null;
+
                       return (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <div className="mb-3">
-                            <h4 className="text-sm font-medium text-blue-800 mb-1">
-                              🎯 تصمیم‌گیری نهایی مشمولیت استثنا
-                            </h4>
-                            <p className="text-xs text-blue-700">
-                              {buttonsState.message}
-                            </p>
-                          </div>
+                        <div
+                          className={`${statusInfo.bgColor} border ${statusInfo.borderColor} rounded-lg p-4`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`${statusInfo.titleColor} mt-0.5`}>
+                              {statusInfo.icon}
+                            </div>
+                            <div className="flex-1">
+                              <h4
+                                className={`text-sm font-medium ${statusInfo.titleColor} mb-1`}
+                              >
+                                {statusInfo.title}
+                              </h4>
+                              <p className={`text-xs ${statusInfo.textColor}`}>
+                                {statusInfo.message}
+                              </p>
 
-                          <div className="flex gap-3">
-                            <button
-                              onClick={() =>
-                                handleEligibilityDecision("approve")
-                              }
-                              disabled={
-                                approvingEligibility ||
-                                rejectingEligibility ||
-                                !buttonsState.canApprove
-                              }
-                              className={`${
-                                buttonsState.canApprove
-                                  ? "bg-green-600 hover:bg-green-700"
-                                  : "bg-gray-400 cursor-not-allowed"
-                              } disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm`}
-                            >
-                              {approvingEligibility ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                  در حال تایید...
-                                </>
-                              ) : (
-                                <>
-                                  <FaCheck className="h-4 w-4" />
-                                  تایید مشمولیت
-                                </>
+                              {/* نمایش جزئیات بیشتر برای حالت در حال بررسی */}
+                              {statusInfo.type === "pending" && (
+                                <div className="mt-2 space-y-1">
+                                  {approvedReasons.length > 0 && (
+                                    <div className="text-xs text-green-600">
+                                      ✅ {approvedReasons.length} بند تایید شده
+                                    </div>
+                                  )}
+                                  {rejectedReasons.length > 0 && (
+                                    <div className="text-xs text-red-600">
+                                      ❌ {rejectedReasons.length} بند رد شده
+                                    </div>
+                                  )}
+                                </div>
                               )}
-                            </button>
-
-                            <button
-                              onClick={() =>
-                                handleEligibilityDecision("reject")
-                              }
-                              disabled={
-                                approvingEligibility ||
-                                rejectingEligibility ||
-                                !buttonsState.canReject
-                              }
-                              className={`${
-                                buttonsState.canReject
-                                  ? "bg-red-600 hover:bg-red-700"
-                                  : "bg-gray-400 cursor-not-allowed"
-                              } disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2 text-sm`}
-                            >
-                              {rejectingEligibility ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                  در حال رد...
-                                </>
-                              ) : (
-                                <>
-                                  <FaTimes className="h-4 w-4" />
-                                  رد مشمولیت
-                                </>
-                              )}
-                            </button>
+                            </div>
                           </div>
                         </div>
                       );
@@ -3163,75 +3047,446 @@ export default function DocumentReviewPage() {
                   </div>
                 </div>
 
-                {/* انتخاب دلایل */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    {sourceOpinionType === "approve"
-                      ? "دلایل موافقت:"
-                      : "دلایل مخالفت:"}
-                    <span className="text-red-500">*</span>
-                  </label>
-
-                  {loadingReasons ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                      <span className="mr-2 text-gray-600">
-                        در حال بارگذاری دلایل...
+                {/* آمار وضعیت کاربران هم‌رشته و هم‌جنس */}
+                {loadingStats ? (
+                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      <span className="text-sm text-blue-700">
+                        در حال بارگیری آمار کاربران...
                       </span>
                     </div>
-                  ) : (
-                    <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
-                      {(sourceOpinionType === "approve"
-                        ? approvalReasons.approval
-                        : approvalReasons.rejection
-                      ).map((reason) => (
-                        <label
-                          key={reason._id}
-                          className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedReasons.includes(reason._id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedReasons((prev) => [
-                                  ...prev,
-                                  reason._id,
-                                ]);
-                              } else {
-                                setSelectedReasons((prev) =>
-                                  prev.filter((id) => id !== reason._id)
-                                );
-                              }
-                            }}
-                            className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">
-                              {reason.title}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              کد: {reason.code}
-                            </div>
-                          </div>
-                        </label>
-                      ))}
+                  </div>
+                ) : personnelStats ? (
+                  <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                    <h4 className="font-medium text-indigo-800 mb-3 flex items-center gap-2">
+                      <FaUser className="h-4 w-4" />
+                      وضعیت پرسنل هم‌رشته و هم‌جنس در منطقه
+                    </h4>
 
-                      {(sourceOpinionType === "approve"
-                        ? approvalReasons.approval
-                        : approvalReasons.rejection
-                      ).length === 0 && (
-                        <div className="text-center py-4 text-gray-500">
-                          هیچ دلیلی برای{" "}
-                          {sourceOpinionType === "approve"
-                            ? "موافقت"
-                            : "مخالفت"}{" "}
-                          تعریف نشده است
+                    {/* جدول آمار وضعیت‌ها */}
+                    <div className="overflow-x-auto mb-4">
+                      <table className="w-full text-xs border-collapse bg-white rounded-lg overflow-hidden shadow-sm">
+                        <thead>
+                          <tr className="bg-gradient-to-r from-indigo-100 to-indigo-200">
+                            <th className="border-r border-indigo-300 px-3 py-2 text-indigo-800 font-medium">
+                              <div className="flex items-center justify-center gap-1">
+                                <FaUser className="h-3 w-3" />
+                                تایید کاربر
+                              </div>
+                            </th>
+                            <th className="border-r border-indigo-300 px-3 py-2 text-indigo-800 font-medium">
+                              <div className="flex items-center justify-center gap-1">
+                                <FaClock className="h-3 w-3" />
+                                در حال بررسی
+                              </div>
+                            </th>
+                            <th className="border-r border-indigo-300 px-3 py-2 text-indigo-800 font-medium">
+                              <div className="flex items-center justify-center gap-1">
+                                <FaCheck className="h-3 w-3" />
+                                تایید مشمولیت
+                              </div>
+                            </th>
+                            <th className="px-3 py-2 text-indigo-800 font-medium">
+                              <div className="flex items-center justify-center gap-1">
+                                <FaThumbsUp className="h-3 w-3" />
+                                موافقت مبدا
+                              </div>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr className="bg-white hover:bg-indigo-25">
+                            <td className="border-r border-indigo-200 px-3 py-3 text-center">
+                              <div className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 rounded-full font-bold">
+                                {personnelStats.statusStats.user_approval}
+                              </div>
+                            </td>
+                            <td className="border-r border-indigo-200 px-3 py-3 text-center">
+                              <div className="inline-flex items-center justify-center w-8 h-8 bg-yellow-100 text-yellow-800 rounded-full font-bold">
+                                {personnelStats.statusStats.source_review}
+                              </div>
+                            </td>
+                            <td className="border-r border-indigo-200 px-3 py-3 text-center">
+                              <div className="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-800 rounded-full font-bold">
+                                {
+                                  personnelStats.statusStats
+                                    .exception_eligibility_approval
+                                }
+                              </div>
+                            </td>
+                            <td className="px-3 py-3 text-center">
+                              <div className="inline-flex items-center justify-center w-8 h-8 bg-emerald-100 text-emerald-800 rounded-full font-bold">
+                                {personnelStats.statusStats.source_approval}
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* اطلاعات رتبه‌بندی */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                      <div className="bg-white p-2 rounded border border-indigo-200">
+                        <div className="text-indigo-600 font-medium">
+                          رشته تحصیلی:
+                        </div>
+                        <div className="font-bold text-indigo-800">
+                          {personnelStats.fieldCode} -{" "}
+                          {personnelStats.employmentField}
+                        </div>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-indigo-200">
+                        <div className="text-indigo-600 font-medium">
+                          جنسیت:
+                        </div>
+                        <div className="font-bold text-indigo-800">
+                          {personnelStats.gender === "male" ? "آقا" : "خانم"}
+                        </div>
+                      </div>
+                      <div className="bg-white p-2 rounded border border-indigo-200">
+                        <div className="text-indigo-600 font-medium">
+                          کل هم‌گروه:
+                        </div>
+                        <div className="font-bold text-indigo-800">
+                          {personnelStats.totalSimilarPersonnel} نفر
+                        </div>
+                      </div>
+                      {personnelStats.ranking.rank && (
+                        <div className="bg-white p-2 rounded border border-indigo-200">
+                          <div className="text-indigo-600 font-medium">
+                            رتبه در گروه:
+                          </div>
+                          <div className="font-bold text-indigo-800">
+                            {personnelStats.ranking.rank} از{" "}
+                            {personnelStats.ranking.totalPersonnel}
+                          </div>
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
+
+                    {/* نمره تایید شده */}
+                    {personnelStats.ranking.approvedScore && (
+                      <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded">
+                        <div className="text-xs text-green-700 flex items-center gap-2">
+                          <FaCheck className="h-3 w-3" />
+                          <span className="font-medium">نمره تایید شده:</span>
+                          <span className="font-bold text-green-800">
+                            {personnelStats.ranking.approvedScore}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
+
+                {/* بندهای تایید شده کاربر و شرایط مربوطه */}
+                {sourceOpinionType === "approve" ? (
+                  <>
+                    {/* بندهای تایید شده و شرایط مربوطه */}
+                    {selectedPersonnel.selectedReasons && (
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          بندهای تایید شده و شرایط مربوطه:
+                          {clauseConditions.length > 0 && (
+                            <span className="text-red-500">*</span>
+                          )}
+                        </label>
+
+                        {loadingConditions ? (
+                          <div className="flex items-center justify-center py-8">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                            <span className="mr-2 text-gray-600">
+                              در حال بارگذاری شرایط...
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="space-y-4 bg-green-50 border border-green-200 rounded-lg p-4">
+                            {selectedPersonnel.selectedReasons
+                              .filter(
+                                (reason) => reason.review?.status === "approved"
+                              )
+                              .map((reason) => {
+                                const reasonId =
+                                  reason.reasonId._id || reason.reasonId;
+                                const relatedConditions =
+                                  clauseConditions.filter((condition) =>
+                                    condition.relatedClauses.some(
+                                      (rc) =>
+                                        (rc.clauseId._id || rc.clauseId) ===
+                                        reasonId
+                                    )
+                                  );
+
+                                return (
+                                  <div
+                                    key={reasonId}
+                                    className="bg-white rounded-lg border border-green-100 p-3"
+                                  >
+                                    {/* عنوان بند */}
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                      <div className="flex-1">
+                                        <div className="font-medium text-gray-900">
+                                          {reason.reasonId?.title ||
+                                            reason.reasonTitle ||
+                                            reason.title}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                          {reason.reasonTitle || reason.title}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* شرایط این بند */}
+                                    {relatedConditions.length > 0 ? (
+                                      <div className="space-y-2 mr-5">
+                                        <div className="text-sm font-medium text-gray-700">
+                                          شرایط این بند:
+                                        </div>
+                                        {relatedConditions.map((condition) => (
+                                          <label
+                                            key={condition._id}
+                                            className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer border border-gray-100"
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={acceptedConditions.includes(
+                                                condition._id
+                                              )}
+                                              onChange={(e) => {
+                                                if (e.target.checked) {
+                                                  setAcceptedConditions(
+                                                    (prev) => [
+                                                      ...prev,
+                                                      condition._id,
+                                                    ]
+                                                  );
+                                                } else {
+                                                  setAcceptedConditions(
+                                                    (prev) =>
+                                                      prev.filter(
+                                                        (id) =>
+                                                          id !== condition._id
+                                                      )
+                                                  );
+                                                }
+                                              }}
+                                              className="mt-1 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                                            />
+                                            <div className="flex-1">
+                                              <div className="font-medium text-gray-900 text-sm">
+                                                {condition.title}
+                                              </div>
+                                              {condition.description && (
+                                                <div className="text-xs text-gray-600 mt-1">
+                                                  {condition.description}
+                                                </div>
+                                              )}
+                                              <div className="flex items-center gap-2 mt-1">
+                                                <span
+                                                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                                    condition.importanceLevel ===
+                                                    "critical"
+                                                      ? "bg-red-100 text-red-800"
+                                                      : condition.importanceLevel ===
+                                                        "high"
+                                                      ? "bg-orange-100 text-orange-800"
+                                                      : condition.importanceLevel ===
+                                                        "medium"
+                                                      ? "bg-yellow-100 text-yellow-800"
+                                                      : "bg-gray-100 text-gray-800"
+                                                  }`}
+                                                >
+                                                  {condition.importanceLevel ===
+                                                    "critical" && "حیاتی"}
+                                                  {condition.importanceLevel ===
+                                                    "high" && "مهم"}
+                                                  {condition.importanceLevel ===
+                                                    "medium" && "متوسط"}
+                                                  {condition.importanceLevel ===
+                                                    "low" && "کم"}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-sm text-gray-500 mr-5 italic">
+                                        هیچ شرط خاصی برای این بند تعریف نشده است
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+
+                            {selectedPersonnel.selectedReasons.filter(
+                              (reason) => reason.review?.status === "approved"
+                            ).length === 0 && (
+                              <div className="text-center py-6 text-gray-500">
+                                هیچ بند تایید شده‌ای برای این کاربر وجود ندارد
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  /* بندهای رد شده کاربر و شرایط مربوطه */
+                  <>
+                    {/* بندهای رد شده و شرایط مربوطه */}
+                    {selectedPersonnel.selectedReasons && (
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          بندهای تایید شده و شرایط مربوطه:
+                          {clauseConditions.length > 0 && (
+                            <span className="text-red-500">*</span>
+                          )}
+                        </label>
+
+                        {loadingConditions ? (
+                          <div className="flex items-center justify-center py-8">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                            <span className="mr-2 text-gray-600">
+                              در حال بارگذاری شرایط...
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="space-y-4 bg-red-50 border border-red-200 rounded-lg p-4">
+                            {selectedPersonnel.selectedReasons
+                              .filter(
+                                (reason) => reason.review?.status === "approved"
+                              )
+                              .map((reason) => {
+                                const reasonId =
+                                  reason.reasonId._id || reason.reasonId;
+                                const relatedConditions =
+                                  clauseConditions.filter((condition) =>
+                                    condition.relatedClauses.some(
+                                      (rc) =>
+                                        (rc.clauseId._id || rc.clauseId) ===
+                                        reasonId
+                                    )
+                                  );
+
+                                return (
+                                  <div
+                                    key={reasonId}
+                                    className="bg-white rounded-lg border border-red-100 p-3"
+                                  >
+                                    {/* عنوان بند */}
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                                      <div className="flex-1">
+                                        <div className="font-medium text-gray-900">
+                                          {reason.reasonId?.title ||
+                                            reason.reasonTitle ||
+                                            reason.title}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                          {reason.reasonTitle || reason.title}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* شرایط این بند */}
+                                    {relatedConditions.length > 0 ? (
+                                      <div className="space-y-2 mr-5">
+                                        <div className="text-sm font-medium text-gray-700">
+                                          شرایط این بند:
+                                        </div>
+                                        {relatedConditions.map((condition) => (
+                                          <label
+                                            key={condition._id}
+                                            className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer border border-gray-100"
+                                          >
+                                            <input
+                                              type="checkbox"
+                                              checked={acceptedConditions.includes(
+                                                condition._id
+                                              )}
+                                              onChange={(e) => {
+                                                if (e.target.checked) {
+                                                  setAcceptedConditions(
+                                                    (prev) => [
+                                                      ...prev,
+                                                      condition._id,
+                                                    ]
+                                                  );
+                                                } else {
+                                                  setAcceptedConditions(
+                                                    (prev) =>
+                                                      prev.filter(
+                                                        (id) =>
+                                                          id !== condition._id
+                                                      )
+                                                  );
+                                                }
+                                              }}
+                                              className="mt-1 h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                                            />
+                                            <div className="flex-1">
+                                              <div className="font-medium text-gray-900 text-sm">
+                                                {condition.title}
+                                              </div>
+                                              {condition.description && (
+                                                <div className="text-xs text-gray-600 mt-1">
+                                                  {condition.description}
+                                                </div>
+                                              )}
+                                              <div className="flex items-center gap-2 mt-1">
+                                                <span
+                                                  className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                                    condition.importanceLevel ===
+                                                    "critical"
+                                                      ? "bg-red-100 text-red-800"
+                                                      : condition.importanceLevel ===
+                                                        "high"
+                                                      ? "bg-orange-100 text-orange-800"
+                                                      : condition.importanceLevel ===
+                                                        "medium"
+                                                      ? "bg-yellow-100 text-yellow-800"
+                                                      : "bg-gray-100 text-gray-800"
+                                                  }`}
+                                                >
+                                                  {condition.importanceLevel ===
+                                                    "critical" && "حیاتی"}
+                                                  {condition.importanceLevel ===
+                                                    "high" && "مهم"}
+                                                  {condition.importanceLevel ===
+                                                    "medium" && "متوسط"}
+                                                  {condition.importanceLevel ===
+                                                    "low" && "کم"}
+                                                </span>
+                                              </div>
+                                            </div>
+                                          </label>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-sm text-gray-500 mr-5 italic">
+                                        هیچ شرط خاصی برای این بند تعریف نشده است
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+
+                            {selectedPersonnel.selectedReasons.filter(
+                              (reason) => reason.review?.status === "rejected"
+                            ).length === 0 && (
+                              <div className="text-center py-6 text-gray-500">
+                                هیچ بند رد شده‌ای برای این کاربر وجود ندارد
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
 
                 {/* توضیحات */}
                 <div className="mb-6">
@@ -3260,7 +3515,14 @@ export default function DocumentReviewPage() {
                   </button>
                   <button
                     onClick={handleSourceOpinion}
-                    disabled={submitting || selectedReasons.length === 0}
+                    disabled={
+                      submitting ||
+                      (sourceOpinionType === "approve"
+                        ? clauseConditions.length > 0 &&
+                          acceptedConditions.length !== clauseConditions.length
+                        : clauseConditions.length > 0 &&
+                          acceptedConditions.length !== clauseConditions.length)
+                    }
                     className={`flex-1 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                       sourceOpinionType === "approve"
                         ? "bg-green-600 hover:bg-green-700 disabled:bg-green-400"

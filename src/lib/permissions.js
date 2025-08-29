@@ -403,9 +403,9 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       ],
     });
   }
-
+  // || role === ROLES.PROVINCE_TRANSFER_EXPERT
   // منوی تنظیمات انتقالات - برای مدیر سیستم و کارشناس امور اداری استان
-  if (role === ROLES.SYSTEM_ADMIN || role === ROLES.PROVINCE_TRANSFER_EXPERT) {
+  if (role === ROLES.SYSTEM_ADMIN) {
     activeMenuItems.push({
       label: "تنظیمات انتقالات",
       path: "/dashboard/transfer-settings",
@@ -418,7 +418,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
           requiresPhoneVerification: true,
         },
         {
-          label: "علل انتقال",
+          label: "بند های انتقال",
           path: "/dashboard/transfer-settings/transfer-reasons",
           requiresPhoneVerification: true,
         },
@@ -430,6 +430,11 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
         {
           label: "رشته‌های استخدامی",
           path: "/dashboard/transfer-settings/employment-fields",
+          requiresPhoneVerification: true,
+        },
+        {
+          label: "شرایط بندها",
+          path: "/dashboard/transfer-settings/clause-conditions",
           requiresPhoneVerification: true,
         },
       ],
@@ -622,6 +627,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
 
   // منوی بررسی مستندات و تاییدات - برای کارشناس امور اداری منطقه و استان
   if (
+    // ||role === ROLES.DISTRICT_TRANSFER_EXPERT
     // role === ROLES.DISTRICT_TRANSFER_EXPERT ||
     role === ROLES.PROVINCE_TRANSFER_EXPERT
   ) {

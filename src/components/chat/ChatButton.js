@@ -20,12 +20,7 @@ export default function ChatButton({
   unreadCount = 0,
   chatStatus = "open",
 }) {
-  console.log(
-    "ChatButton rendered for appealRequestId:",
-    appealRequestId,
-    "unreadCount:",
-    unreadCount
-  );
+  
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");

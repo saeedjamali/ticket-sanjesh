@@ -137,13 +137,6 @@ export async function GET(request) {
       let currentRequestStatus = null;
       let transferApplicantSpec = null;
 
-      console.log(
-        "document-review API - Processing request:",
-        req._id,
-        "personnelCode:",
-        req.personnelCode
-      );
-
       // جستجو بر اساس personnelCode
       if (req.personnelCode) {
         transferApplicantSpec = await TransferApplicantSpec.findOne({
@@ -189,9 +182,6 @@ export async function GET(request) {
       } else if (user.role === "provinceTransferExpert") {
         // برای کارشناس استان: بررسی provinceCode درخواست
         shouldInclude = true; // قبلاً فیلتر شده
-        console.log(
-          "document-review API - Request included for province expert"
-        );
       }
 
       if (shouldInclude) {
@@ -275,8 +265,11 @@ export async function PUT(request) {
       );
     }
 
-    // یافتن درخواست
-    const appealRequest = await AppealRequest.findById(requestId);
+    // یافتن درخواست با populate
+    const appealRequest = await AppealRequest.findById(requestId).populate({
+      path: "selectedReasons.reasonId",
+      model: "TransferReason",
+    });
 
     if (!appealRequest) {
       return NextResponse.json(
@@ -371,38 +364,98 @@ export async function PUT(request) {
 
     await appealRequest.save();
 
-    // تغییر وضعیت کاربر در TransferApplicantSpec به source_review
-    if (hasReviews && appealRequest.personnelCode) {
+    // بازیابی مجدد با populate برای اطمینان از داده‌های به‌روز
+    const refreshedAppealRequest = await AppealRequest.findById(
+      appealRequest._id
+    ).populate({
+      path: "selectedReasons.reasonId",
+      model: "TransferReason",
+    });
+
+    // منطق تصمیم‌گیری خودکار مشمولیت
+    let autoDecisionResult = null;
+    if (hasReviews && refreshedAppealRequest.personnelCode) {
       const transferApplicantSpec = await TransferApplicantSpec.findOne({
-        personnelCode: appealRequest.personnelCode,
+        personnelCode: refreshedAppealRequest.personnelCode,
       });
 
       if (transferApplicantSpec) {
         const previousStatus = transferApplicantSpec.currentRequestStatus;
 
-        // فقط اگر وضعیت فعلی source_review نباشد، تغییر دهیم
-        if (previousStatus !== "source_review") {
-          // به‌روزرسانی وضعیت به source_review
-          transferApplicantSpec.currentRequestStatus = "source_review";
+        // بررسی وضعیت بندهای نیازمند تایید کارشناس
+        const reasonsRequiringApproval =
+          refreshedAppealRequest.selectedReasons.filter((reason) => {
+            return reason.reasonId?.requiresAdminApproval === true;
+          });
+
+        // محاسبه آمار بررسی‌ها
+        const reviewedReasons = reasonsRequiringApproval.filter((reason) => {
+          return reason.review?.status && reason.review.status !== "pending";
+        });
+        const pendingReasons = reasonsRequiringApproval.filter(
+          (reason) =>
+            !reason.review?.status || reason.review.status === "pending"
+        );
+        const approvedReasons = reviewedReasons.filter(
+          (reason) => reason.review?.status === "approved"
+        );
+        const rejectedReasons = reviewedReasons.filter(
+          (reason) => reason.review?.status === "rejected"
+        );
+
+        let newStatus = null;
+        let statusReason = "";
+        let autoDecisionMade = false;
+
+        // تصمیم‌گیری بر اساس وضعیت بندها
+        if (pendingReasons.length > 0) {
+          // هنوز بندهایی pending هستند - وضعیت در حال بررسی
+          newStatus = "source_review";
+          statusReason = `در حال بررسی مستندات - ${pendingReasons.length} بند در انتظار بررسی`;
+        } else if (
+          reasonsRequiringApproval.length > 0 &&
+          reviewedReasons.length === reasonsRequiringApproval.length
+        ) {
+          // همه بندها بررسی شده‌اند
+          if (approvedReasons.length > 0) {
+            // حداقل یک بند تایید شده - تایید مشمولیت
+            newStatus = "exception_eligibility_approval";
+            statusReason = `تایید مشمولیت استثنا - ${approvedReasons.length} بند تایید شده از ${reasonsRequiringApproval.length} بند`;
+            autoDecisionMade = true;
+          } else if (
+            rejectedReasons.length === reasonsRequiringApproval.length
+          ) {
+            // همه بندها رد شده - رد مشمولیت
+            newStatus = "exception_eligibility_rejection";
+            statusReason = `رد مشمولیت استثنا - همه ${rejectedReasons.length} بند رد شده`;
+            autoDecisionMade = true;
+          }
+        }
+
+        // اگر وضعیت جدید تعیین شده و متفاوت از وضعیت فعلی است
+        if (newStatus && previousStatus !== newStatus) {
+          transferApplicantSpec.currentRequestStatus = newStatus;
 
           // اضافه کردن به workflow
           transferApplicantSpec.requestStatusWorkflow.push({
-            status: "source_review",
+            status: newStatus,
             changedBy: user.userId,
             changedAt: new Date(),
             previousStatus: previousStatus,
-            reason: "شروع بررسی مستندات توسط کارشناس",
+            reason: statusReason,
             metadata: {
-              reviewType: "document_review_start",
+              reviewType: autoDecisionMade
+                ? "auto_eligibility_decision"
+                : "document_review_start",
               reviewerRole: user.role,
               reviewerLocationCode: reviewerLocationCode,
-              appealRequestId: appealRequest._id.toString(),
-              reviewedReasonsCount: Object.keys(reviewData).filter(
-                (key) =>
-                  !key.includes("_comment") &&
-                  (reviewData[key] === "approved" ||
-                    reviewData[key] === "rejected")
-              ).length,
+              appealRequestId: refreshedAppealRequest._id.toString(),
+              reasonsRequiringApproval: reasonsRequiringApproval.length,
+              reviewedReasonsCount: reviewedReasons.length,
+              approvedReasonsCount: approvedReasons.length,
+              rejectedReasonsCount: rejectedReasons.length,
+              pendingReasonsCount: pendingReasons.length,
+              autoDecisionMade: autoDecisionMade,
               totalCommentsCount: Object.keys(reviewData).filter(
                 (key) => key.includes("_comment") && reviewData[key].trim()
               ).length,
@@ -416,42 +469,48 @@ export async function PUT(request) {
 
           transferApplicantSpec.statusLog.push({
             fromStatus: previousStatus,
-            toStatus: "source_review",
+            toStatus: newStatus,
             actionType: "status_change",
             performedBy: new mongoose.Types.ObjectId(user.userId),
             performedAt: new Date(),
-            comment: `شروع بررسی مستندات توسط ${
-              user.role === "districtTransferExpert"
-                ? "کارشناس منطقه"
-                : "کارشناس استان"
-            }`,
+            comment: statusReason,
             metadata: {
-              reviewType: "document_review_start",
+              reviewType: autoDecisionMade
+                ? "auto_eligibility_decision"
+                : "document_review_start",
               reviewerRole: user.role,
-              appealRequestId: appealRequest._id.toString(),
+              appealRequestId: refreshedAppealRequest._id.toString(),
               locationCode: reviewerLocationCode,
+              autoDecisionMade: autoDecisionMade,
             },
           });
 
           await transferApplicantSpec.save();
-          const reviewedCount = Object.keys(reviewData).filter(
-            (key) =>
-              !key.includes("_comment") &&
-              (reviewData[key] === "approved" || reviewData[key] === "rejected")
-          ).length;
-          const commentsCount = Object.keys(reviewData).filter(
-            (key) => key.includes("_comment") && reviewData[key].trim()
-          ).length;
+
+          // تنظیم نتیجه تصمیم‌گیری خودکار
+          autoDecisionResult = {
+            made: autoDecisionMade,
+            previousStatus: previousStatus,
+            newStatus: newStatus,
+            statusReason: statusReason,
+            reasonsRequiringApproval: reasonsRequiringApproval.length,
+            reviewedReasonsCount: reviewedReasons.length,
+            approvedReasonsCount: approvedReasons.length,
+            rejectedReasonsCount: rejectedReasons.length,
+            pendingReasonsCount: pendingReasons.length,
+          };
 
           console.log(
-            `Status changed to source_review for personnel: ${appealRequest.personnelCode} by ${user.role}. Reviewed reasons: ${reviewedCount}, Comments: ${commentsCount}`
+            `Auto eligibility decision for personnel: ${refreshedAppealRequest.personnelCode} - Status: ${newStatus}, Decision Made: ${autoDecisionMade}`
           );
         }
       }
     }
 
-    // دریافت مجدد درخواست کامل با populate
-    const updatedRequest = await AppealRequest.findById(appealRequest._id)
+    // استفاده از درخواست refresh شده و populate اضافی
+    const updatedRequest = await AppealRequest.findById(
+      refreshedAppealRequest._id
+    )
       .populate({
         path: "selectedReasons.reasonId",
         model: "TransferReason",
@@ -499,13 +558,28 @@ export async function PUT(request) {
       updatedAt: updatedRequest.updatedAt?.toISOString(),
     };
 
+    // تعیین پیام مناسب بر اساس تصمیم‌گیری خودکار
+    let responseMessage = "بررسی با موفقیت ذخیره شد";
+    if (autoDecisionResult?.made) {
+      if (autoDecisionResult.newStatus === "exception_eligibility_approval") {
+        responseMessage = `✅ تایید مشمولیت استثنا - ${autoDecisionResult.approvedReasonsCount} بند تایید شده`;
+      } else if (
+        autoDecisionResult.newStatus === "exception_eligibility_rejection"
+      ) {
+        responseMessage = `❌ رد مشمولیت استثنا - همه ${autoDecisionResult.rejectedReasonsCount} بند رد شده`;
+      }
+    } else if (autoDecisionResult?.pendingReasonsCount > 0) {
+      responseMessage = `بررسی ذخیره شد - ${autoDecisionResult.pendingReasonsCount} بند در انتظار تکمیل بررسی`;
+    }
+
     return NextResponse.json({
       success: true,
-      message: "بررسی با موفقیت ذخیره شد",
+      message: responseMessage,
       data: {
-        id: appealRequest._id.toString(),
-        overallReviewStatus: appealRequest.overallReviewStatus,
-        selectedReasons: appealRequest.selectedReasons,
+        id: refreshedAppealRequest._id.toString(),
+        overallReviewStatus: refreshedAppealRequest.overallReviewStatus,
+        selectedReasons: refreshedAppealRequest.selectedReasons,
+        autoDecision: autoDecisionResult,
       },
       updatedRequest: finalUpdatedRequest,
     });
@@ -515,194 +589,12 @@ export async function PUT(request) {
       {
         success: false,
         error: "خطا در ذخیره بررسی",
+        details: error.message,
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
       },
       { status: 500 }
     );
   }
 }
 
-// POST /api/document-review - تایید/رد نهایی مشمولیت استثنا
-export async function POST(request) {
-  try {
-    const user = await authService.validateToken(request);
-
-    if (!user || !user.userId) {
-      return NextResponse.json(
-        { success: false, error: "عدم احراز هویت" },
-        { status: 401 }
-      );
-    }
-
-    // بررسی دسترسی
-    if (
-      !["districtTransferExpert", "provinceTransferExpert"].includes(user.role)
-    ) {
-      return NextResponse.json(
-        { success: false, error: "عدم دسترسی" },
-        { status: 403 }
-      );
-    }
-
-    await connectDB();
-
-    const body = await request.json();
-    const { requestId, action, comment } = body; // action: 'approve' یا 'reject'
-
-    // اعتبارسنجی ورودی‌ها
-    if (!requestId || !action || !["approve", "reject"].includes(action)) {
-      return NextResponse.json(
-        { success: false, error: "شناسه درخواست و عمل (تایید/رد) الزامی است" },
-        { status: 400 }
-      );
-    }
-
-    // یافتن درخواست
-    const appealRequest = await AppealRequest.findById(requestId).populate({
-      path: "selectedReasons.reasonId",
-      model: "TransferReason",
-      select: "requiresAdminApproval title",
-    });
-
-    if (!appealRequest) {
-      return NextResponse.json(
-        { success: false, error: "درخواست یافت نشد" },
-        { status: 404 }
-      );
-    }
-
-    // بررسی دسترسی به این درخواست خاص
-    let hasAccess = false;
-
-    if (user.role === "districtTransferExpert") {
-      let userDistrictCode;
-      if (typeof user.district === "object" && user.district?.code) {
-        userDistrictCode = user.district.code;
-      } else if (typeof user.district === "string") {
-        const district = await District.findById(user.district);
-        userDistrictCode = district?.code;
-      }
-      hasAccess = appealRequest.districtCode === userDistrictCode;
-    } else if (user.role === "provinceTransferExpert") {
-      let userProvinceCode;
-      if (typeof user.province === "object" && user.province?.code) {
-        userProvinceCode = user.province.code;
-      } else if (typeof user.province === "string") {
-        const province = await Province.findById(user.province);
-        userProvinceCode = province?.code;
-      }
-      hasAccess = appealRequest.provinceCode === userProvinceCode;
-    }
-
-    if (!hasAccess) {
-      return NextResponse.json(
-        { success: false, error: "عدم دسترسی به این درخواست" },
-        { status: 403 }
-      );
-    }
-
-    // تعیین وضعیت جدید در TransferApplicantSpec
-    const newStatus =
-      action === "approve"
-        ? "exception_eligibility_approval"
-        : "exception_eligibility_rejection";
-
-    // به‌روزرسانی تصمیم نهایی در AppealRequest
-    appealRequest.eligibilityDecision = {
-      decision: action === "approve" ? "approved" : "rejected",
-      decidedBy: user.userId,
-      decidedAt: new Date(),
-      comment: comment || "",
-      deciderRole: user.role,
-    };
-
-    appealRequest.overallReviewStatus = "completed";
-
-    await appealRequest.save();
-
-    // تغییر وضعیت کاربر در TransferApplicantSpec
-    if (appealRequest.personnelCode) {
-      const transferApplicantSpec = await TransferApplicantSpec.findOne({
-        personnelCode: appealRequest.personnelCode,
-      });
-
-      if (transferApplicantSpec) {
-        const previousStatus = transferApplicantSpec.currentRequestStatus;
-
-        // به‌روزرسانی وضعیت
-        transferApplicantSpec.currentRequestStatus = newStatus;
-
-        // اضافه کردن به workflow
-        transferApplicantSpec.requestStatusWorkflow.push({
-          status: newStatus,
-          changedBy: user.userId,
-          changedAt: new Date(),
-          previousStatus: previousStatus,
-          reason:
-            action === "approve" ? "تایید مشمولیت استثنا" : "رد مشمولیت استثنا",
-          metadata: {
-            reviewType: "final_eligibility_review",
-            reviewerRole: user.role,
-            action: action,
-            comment: comment || "",
-            finalDecision: true,
-            appealRequestId: requestId,
-          },
-        });
-
-        // اضافه کردن به statusLog
-        if (!transferApplicantSpec.statusLog) {
-          transferApplicantSpec.statusLog = [];
-        }
-
-        transferApplicantSpec.statusLog.push({
-          fromStatus: previousStatus,
-          toStatus: newStatus,
-          actionType: action === "approve" ? "approval" : "rejection",
-          performedBy: new mongoose.Types.ObjectId(user.userId),
-          performedAt: new Date(),
-          comment: `${
-            action === "approve" ? "تایید" : "رد"
-          } مشمولیت استثنا توسط ${
-            user.role === "districtTransferExpert"
-              ? "کارشناس منطقه"
-              : "کارشناس استان"
-          }`,
-          metadata: {
-            reviewType: "final_eligibility_review",
-            appealRequestId: requestId,
-            decision: action,
-            userComment: comment || "",
-            finalDecision: true,
-          },
-        });
-
-        await transferApplicantSpec.save();
-        console.log(
-          `Status changed to ${newStatus} for personnel: ${appealRequest.personnelCode} - Decision: ${action}`
-        );
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      message:
-        action === "approve"
-          ? "مشمولیت استثنا تایید شد"
-          : "مشمولیت استثنا رد شد",
-      data: {
-        id: appealRequest._id.toString(),
-        eligibilityDecision: appealRequest.eligibilityDecision,
-        newStatus: newStatus,
-      },
-    });
-  } catch (error) {
-    console.error("Error in POST /api/document-review:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: "خطا در تایید/رد مشمولیت",
-      },
-      { status: 500 }
-    );
-  }
-}
+// POST endpoint removed - eligibility decisions are now handled automatically in PUT endpoint

@@ -80,12 +80,12 @@ const ImportantNotice = () => {
 
               {/* محتوای اطلاعیه */}
               <div className="flex-1 min-w-0">
-                <h3 className="font-extrabold  mb-2 flex items-center gap-2 text-2xl">
+                <h3 className="font-extrabold  mb-2 flex items-center gap-2 md:text-2xl text-xl">
                   <FaExclamationTriangle className="h-4 w-4 text-yellow-200" />
                   {NOTICE_CONFIG.content.title}
                 </h3>
 
-                <div className="text-lg leading-relaxed space-y-1 mt-4">
+                <div className="md:text-lg text-sm leading-relaxed space-y-1 mt-4">
                   {NOTICE_CONFIG.content.description.map((paragraph, index) => (
                     <p
                       key={index}
