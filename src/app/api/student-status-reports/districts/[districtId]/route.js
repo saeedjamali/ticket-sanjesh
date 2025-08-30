@@ -7,6 +7,7 @@ import AcademicYear from "@/models/AcademicYear";
 import ExamCenter from "@/models/ExamCenter";
 import CourseGrade from "@/models/CourseGrade";
 import CourseBranchField from "@/models/CourseBranchField";
+import dbConnect from "@/lib/dbConnect";
 
 export async function GET(request, { params }) {
   try {
@@ -18,28 +19,24 @@ export async function GET(request, { params }) {
       );
     }
 
-    await connectDB();
+    await dbConnect();
 
-    const { districtId } = params;
+    const { districtId } = await params;
     const { searchParams } = new URL(request.url);
     const course = searchParams.get("course");
     const branch = searchParams.get("branch");
     const sortBy = searchParams.get("sortBy") || "registrationPercentage"; // فیلد مرتب‌سازی
     const sortOrder = searchParams.get("sortOrder") || "desc"; // ترتیب مرتب‌سازی (asc/desc)
 
-    console.log("📊 District API Sorting Debug:", {
-      sortBy,
-      sortOrder,
-      course,
-      branch,
-      districtId,
-      url: request.url,
-    });
-
+    console.log("🔍 user:----->", user);
     // بررسی دسترسی کاربر به منطقه
     if (user.role === "provinceRegistrationExpert" && user.province) {
       const district = await District.findById(districtId).populate("province");
-      if (!district || district.province._id.toString() !== user.province) {
+
+      if (
+        !district ||
+        district.province._id.toString() !== user.province._id.toString()
+      ) {
         return NextResponse.json(
           { success: false, message: "دسترسی به این منطقه ندارید" },
           { status: 403 }
@@ -54,12 +51,14 @@ export async function GET(request, { params }) {
       }
     }
 
+    console.log("🔍 districtIdddddddddddddddddddd:----->", districtId);
     // دریافت اطلاعات منطقه
     const district = await District.findById(districtId).populate(
       "province",
       "name code"
     );
 
+    console.log("🔍 district:----->", district);
     if (!district) {
       return NextResponse.json(
         { success: false, message: "منطقه یافت نشد" },
@@ -75,6 +74,8 @@ export async function GET(request, { params }) {
         { status: 400 }
       );
     }
+
+    console.log("🔍 currentYear:----->", currentYear);
 
     const currentYearNumber = parseInt(currentYear.name.split("-")[0]);
     const previousYearName = `${currentYearNumber - 1}-${currentYearNumber}`;
@@ -239,6 +240,8 @@ export async function GET(request, { params }) {
         previousAcademicYear: previousYearName,
       });
     }
+
+    console.log("🔍 schoolsData:----->", schoolsData);
 
     // مرتب‌سازی بر اساس پارامتر انتخاب شده
     schoolsData.sort((a, b) => {

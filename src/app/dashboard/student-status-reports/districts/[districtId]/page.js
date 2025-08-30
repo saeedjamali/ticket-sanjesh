@@ -31,7 +31,6 @@ export default function DistrictDetailPage() {
     fetchFilters();
   }, []);
 
-  console.log("🔍 filters:----->", filters);
   useEffect(() => {
     fetchData();
   }, [filters.course, filters.branch, filters.sortBy, filters.sortOrder]);
@@ -116,12 +115,7 @@ export default function DistrictDetailPage() {
       if (filters.sortBy) params.append("sortBy", filters.sortBy);
       if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
 
-      console.log("🔍 District Sorting Debug:", {
-        sortBy: filters.sortBy,
-        sortOrder: filters.sortOrder,
-        fullUrl: url + (params.toString() ? `?${params.toString()}` : ""),
-      });
-
+     
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
@@ -132,6 +126,8 @@ export default function DistrictDetailPage() {
 
       if (response.ok) {
         const result = await response.json();
+
+        console.log("🔍 result:----->", result);
         setDistrict(result.data.district);
         setSchools(result.data.schools);
         setSummary(result.data.summary);
