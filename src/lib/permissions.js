@@ -647,6 +647,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
       requiresPhoneVerification: true,
     });
   }
+  // console.log("role------->", role);
   activeMenuItems.push({
     label: "پروفایل ",
     path: "/dashboard/profile",
