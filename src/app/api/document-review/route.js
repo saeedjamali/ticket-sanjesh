@@ -206,6 +206,8 @@ export async function GET(request) {
           effectiveYears: transferApplicantSpec?.effectiveYears || null, // اضافه کردن سنوات
           approvedScore: transferApplicantSpec?.approvedScore || null, // اضافه کردن امتیاز
           employmentField: transferApplicantSpec?.employmentField || null, // اضافه کردن رشته شغلی
+          sourceOpinionTransferType:
+            transferApplicantSpec?.sourceOpinionTransferType || null, // نظر اداره مبدا درباره نوع انتقال
           profileCorrectionRequests: profileCorrectionRequests, // اضافه کردن درخواست‌های اصلاح مشخصات
           createdAt: req.createdAt.toISOString(),
           updatedAt: req.updatedAt.toISOString(),

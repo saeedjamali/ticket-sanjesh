@@ -100,6 +100,11 @@ export default function TransferApplicantSpecsPage() {
       label: "نوع انتقال درخواستی",
       default: true,
     },
+    {
+      key: "sourceOpinionTransferType",
+      label: "نظر مبدا نوع انتقال",
+      default: false,
+    },
     { key: "currentWorkPlaceCode", label: "کد محل خدمت", default: true },
     { key: "sourceDistrictCode", label: "کد مبدا", default: false },
     { key: "destinationPriority1", label: "اولویت مقصد 1", default: true },
@@ -410,6 +415,12 @@ export default function TransferApplicantSpecsPage() {
         return spec.approvedScore;
       case "requestedTransferType":
         return spec.requestedTransferType === "permanent" ? "دائم" : "موقت";
+      case "sourceOpinionTransferType":
+        return spec.sourceOpinionTransferType === "permanent"
+          ? "دائم"
+          : spec.sourceOpinionTransferType === "temporary"
+          ? "موقت"
+          : "-";
       case "currentWorkPlaceCode":
         return spec.currentWorkPlaceCode || "-";
       case "sourceDistrictCode":
@@ -2203,7 +2214,8 @@ export default function TransferApplicantSpecsPage() {
 
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1 forced-color-text-black">
-                              کد ملی (8-10 رقم) <span className="text-red-500">*</span>
+                              کد ملی (8-10 رقم){" "}
+                              <span className="text-red-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -2965,13 +2977,22 @@ export default function TransferApplicantSpecsPage() {
                             </label>
                             <select
                               value={formData.medicalCommissionCode}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const selectedCode =
+                                  parseInt(e.target.value) || "";
+                                // پیدا کردن متن مربوط به کد انتخاب شده
+                                const selectedCommission =
+                                  helpers.medicalCommissionCodes?.find(
+                                    (code) => code.value === selectedCode
+                                  );
+
                                 setFormData({
                                   ...formData,
-                                  medicalCommissionCode:
-                                    parseInt(e.target.value) || "",
-                                })
-                              }
+                                  medicalCommissionCode: selectedCode,
+                                  medicalCommissionVerdict:
+                                    selectedCommission?.label || "",
+                                });
+                              }}
                               className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
                               disabled={isDistrictExpert}
                             >
@@ -2990,15 +3011,10 @@ export default function TransferApplicantSpecsPage() {
                             </label>
                             <textarea
                               value={formData.medicalCommissionVerdict}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  medicalCommissionVerdict: e.target.value,
-                                })
-                              }
+                              readOnly
                               rows={2}
-                              className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
-                              disabled={isDistrictExpert}
+                              className="w-full rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-700 cursor-not-allowed forced-color-text-black forced-color-bg-gray"
+                              placeholder="متن خودکار بر اساس کد انتخاب شده پر خواهد شد"
                             />
                           </div>
                         </div>
@@ -3077,8 +3093,8 @@ export default function TransferApplicantSpecsPage() {
                               className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
                               disabled={
                                 !formData.finalDestination?.districtCode ||
-                                isDistrictExpert ||true
-                                
+                                isDistrictExpert ||
+                                true
                               }
                             >
                               {helpers.finalDestinationTransferTypes?.map(

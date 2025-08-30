@@ -22,7 +22,13 @@ export async function POST(request) {
     await connectDB();
 
     const body = await request.json();
-    const { personnelCode, action, reasonIds, comment } = body; // action: 'approve' یا 'reject'
+    const {
+      personnelCode,
+      action,
+      reasonIds,
+      comment,
+      sourceOpinionTransferType,
+    } = body; // action: 'approve' یا 'reject'
 
     // اعتبارسنجی ورودی‌ها
     if (!personnelCode || !action || !["approve", "reject"].includes(action)) {
@@ -78,6 +84,15 @@ export async function POST(request) {
     // به‌روزرسانی وضعیت در TransferApplicantSpec
     transferApplicantSpec.currentRequestStatus = newStatus;
 
+    // ثبت نظر اداره مبدا درباره نوع انتقال (در صورت وجود)
+    if (
+      sourceOpinionTransferType &&
+      ["permanent", "temporary"].includes(sourceOpinionTransferType)
+    ) {
+      transferApplicantSpec.sourceOpinionTransferType =
+        sourceOpinionTransferType;
+    }
+
     // افزودن به requestStatusWorkflow
     if (!transferApplicantSpec.requestStatusWorkflow) {
       transferApplicantSpec.requestStatusWorkflow = [];
@@ -98,6 +113,7 @@ export async function POST(request) {
         action: action,
         selectedReasonIds: reasonIds,
         comment: comment || "",
+        sourceOpinionTransferType: sourceOpinionTransferType || null,
         finalDecision: true,
       },
     });
@@ -120,6 +136,7 @@ export async function POST(request) {
         reviewType: "source_opinion",
         selectedReasonIds: reasonIds,
         userComment: comment || "",
+        sourceOpinionTransferType: sourceOpinionTransferType || null,
         finalDecision: true,
       },
     });
@@ -153,8 +170,3 @@ export async function POST(request) {
     );
   }
 }
-
-
-
-
-

@@ -191,6 +191,14 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
     required: true,
   },
 
+  // نظر اداره مبدا درباره نوع انتقال
+  sourceOpinionTransferType: {
+    type: String,
+    enum: ["permanent", "temporary"], // انتقال دائم، انتقال موقت
+    required: false, // اختیاری
+    trim: true,
+  },
+
   // کدهای مکانی
   currentWorkPlaceCode: {
     type: String,

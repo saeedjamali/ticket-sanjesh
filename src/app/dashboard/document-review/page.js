@@ -62,6 +62,8 @@ export default function DocumentReviewPage() {
   const [clauseConditions, setClauseConditions] = useState([]);
   const [acceptedConditions, setAcceptedConditions] = useState([]);
   const [loadingConditions, setLoadingConditions] = useState(false);
+  const [sourceOpinionTransferType, setSourceOpinionTransferType] =
+    useState("");
 
   const [exportingExcel, setExportingExcel] = useState(false);
 
@@ -236,27 +238,13 @@ export default function DocumentReviewPage() {
               }
             );
             const data = await response.json();
-            console.log(
-              `API Response for nationalId ${request.nationalId}:`,
-              data
-            );
 
             let transferSpec = null;
             if (data.success && data.specs && Array.isArray(data.specs)) {
               // Debug: چاپ تمام nationalId های موجود
-              console.log(
-                "Available nationalIds in API:",
-                data.specs.map((spec) => spec.nationalId)
-              );
-              console.log("Looking for nationalId:", request.nationalId);
-              console.log("nationalId type:", typeof request.nationalId);
 
               transferSpec = data.specs.find(
                 (spec) => String(spec.nationalId) === String(request.nationalId)
-              );
-              console.log(
-                `Found in data.specs for ${request.nationalId}:`,
-                transferSpec
               );
             } else if (data.success && data.data && Array.isArray(data.data)) {
               transferSpec = data.data.find(
@@ -354,9 +342,6 @@ export default function DocumentReviewPage() {
             districtCode: request.districtCode,
             sourceDistrictCode: request.sourceDistrictCode,
           });
-          console.log("Transfer Spec (ts):", ts);
-          console.log("Transfer Spec type:", typeof ts);
-          console.log("Transfer Spec keys:", ts ? Object.keys(ts) : "null");
 
           if (ts) {
             console.log("sourceDistrictCode:", ts.sourceDistrictCode);
@@ -574,6 +559,14 @@ export default function DocumentReviewPage() {
 
           // وضعیت پرسنل
           "وضعیت پرسنل": getStatusText(request.currentRequestStatus),
+
+          // نظر اداره مبدا درباره نوع انتقال
+          "نظر مبدا نوع انتقال":
+            request.sourceOpinionTransferType === "permanent"
+              ? "انتقال دائم"
+              : request.sourceOpinionTransferType === "temporary"
+              ? "انتقال موقت"
+              : "-",
 
           // تصمیم کلی منطقه
           "تصمیم منطقه": (() => {
@@ -1040,7 +1033,6 @@ export default function DocumentReviewPage() {
       }
 
       const data = await response.json();
-
       if (data.success) {
         setClauseConditions(data.data.conditions);
         setAcceptedConditions([]); // ریست کردن شرایط تایید شده
@@ -1094,14 +1086,14 @@ export default function DocumentReviewPage() {
 
     // برای مخالفت، استخراج بندهای رد شده از درخواست کاربر
     if (opinionType === "reject" && personnel.selectedReasons) {
-      const rejectedReasonIds = personnel.selectedReasons
-        .filter((reason) => reason.review?.status === "rejected")
+      const approvedReasonIds = personnel.selectedReasons
+        .filter((reason) => reason.review?.status === "approved")
         .map((reason) => reason.reasonId._id || reason.reasonId);
 
-      if (rejectedReasonIds.length > 0) {
-        setSelectedReasons(rejectedReasonIds);
+      if (approvedReasonIds.length > 0) {
+        setSelectedReasons(approvedReasonIds);
         // دریافت شرایط مربوط به بندهای رد شده
-        await fetchClauseConditions(rejectedReasonIds, "rejection");
+        await fetchClauseConditions(approvedReasonIds, "rejection");
       }
     }
   };
@@ -1118,12 +1110,19 @@ export default function DocumentReviewPage() {
     setClauseConditions([]);
     setAcceptedConditions([]);
     setLoadingConditions(false);
+    setSourceOpinionTransferType("");
   };
 
   // ثبت نظر مبدا (موافقت یا مخالفت)
   const handleSourceOpinion = async () => {
     if (selectedReasons.length === 0) {
       toast.error("لطفاً حداقل یک دلیل انتخاب کنید");
+      return;
+    }
+
+    // بررسی اجباری بودن نوع انتقال برای موافقت
+    if (sourceOpinionType === "approve" && !sourceOpinionTransferType) {
+      toast.error("لطفاً نوع انتقال را مشخص کنید");
       return;
     }
 
@@ -1139,6 +1138,7 @@ export default function DocumentReviewPage() {
           action: sourceOpinionType,
           reasonIds: selectedReasons,
           comment: sourceComment.trim(),
+          sourceOpinionTransferType: sourceOpinionTransferType || null,
         }),
       });
 
@@ -1475,6 +1475,9 @@ export default function DocumentReviewPage() {
                       وضعیت بررسی
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      نظر مبدا نوع انتقال
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       آخرین بروزرسانی
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1578,6 +1581,25 @@ export default function DocumentReviewPage() {
                             request.overallReviewStatus || "pending"
                           )}
                         </span>
+                      </td>
+
+                      {/* ستون نظر مبدا نوع انتقال */}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {request.sourceOpinionTransferType ? (
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              request.sourceOpinionTransferType === "permanent"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-orange-100 text-orange-800"
+                            }`}
+                          >
+                            {request.sourceOpinionTransferType === "permanent"
+                              ? "دائم"
+                              : "موقت"}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-sm">-</span>
+                        )}
                       </td>
 
                       {/* ستون آخرین بروزرسانی */}
@@ -3488,6 +3510,48 @@ export default function DocumentReviewPage() {
                   </>
                 )}
 
+                {/* نظر اداره مبدا درباره نوع انتقال - فقط برای موافقت */}
+                {sourceOpinionType === "approve" && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      نظر اداره مبدا درباره نوع انتقال:
+                      <span className="text-red-500 text-xs ml-1">*</span>
+                    </label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="sourceOpinionTransferType"
+                          value="permanent"
+                          checked={sourceOpinionTransferType === "permanent"}
+                          onChange={(e) =>
+                            setSourceOpinionTransferType(e.target.value)
+                          }
+                          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">
+                          انتقال دائم
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="sourceOpinionTransferType"
+                          value="temporary"
+                          checked={sourceOpinionTransferType === "temporary"}
+                          onChange={(e) =>
+                            setSourceOpinionTransferType(e.target.value)
+                          }
+                          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">
+                          انتقال موقت
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
                 {/* توضیحات */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -3518,8 +3582,10 @@ export default function DocumentReviewPage() {
                     disabled={
                       submitting ||
                       (sourceOpinionType === "approve"
-                        ? clauseConditions.length > 0 &&
-                          acceptedConditions.length !== clauseConditions.length
+                        ? !sourceOpinionTransferType ||
+                          (clauseConditions.length > 0 &&
+                            acceptedConditions.length !==
+                              clauseConditions.length)
                         : clauseConditions.length > 0 &&
                           acceptedConditions.length !== clauseConditions.length)
                     }
