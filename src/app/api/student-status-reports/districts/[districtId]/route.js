@@ -28,7 +28,6 @@ export async function GET(request, { params }) {
     const sortBy = searchParams.get("sortBy") || "registrationPercentage"; // فیلد مرتب‌سازی
     const sortOrder = searchParams.get("sortOrder") || "desc"; // ترتیب مرتب‌سازی (asc/desc)
 
-    console.log("🔍 user:----->", user);
     // بررسی دسترسی کاربر به منطقه
     if (user.role === "provinceRegistrationExpert" && user.province) {
       const district = await District.findById(districtId).populate("province");

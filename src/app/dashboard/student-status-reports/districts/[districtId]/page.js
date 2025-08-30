@@ -127,7 +127,6 @@ export default function DistrictDetailPage() {
       if (response.ok) {
         const result = await response.json();
 
-        console.log("🔍 result:----->", result);
         setDistrict(result.data.district);
         setSchools(result.data.schools);
         setSummary(result.data.summary);
