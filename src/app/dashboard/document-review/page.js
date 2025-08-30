@@ -238,6 +238,7 @@ export default function DocumentReviewPage() {
               }
             );
             const data = await response.json();
+            console.log("data------->", data);
 
             let transferSpec = null;
             if (data.success && data.specs && Array.isArray(data.specs)) {
@@ -501,6 +502,22 @@ export default function DocumentReviewPage() {
             return "-";
           })(),
 
+          // مقصد نهایی
+          "مقصد نهایی": (() => {
+            const finalDest = ts?.finalDestination;
+            if (finalDest && typeof finalDest === "object") {
+              return finalDest.districtCode || "-";
+            }
+            return "-";
+          })(),
+          "نوع انتقال نهایی": (() => {
+            const finalDest = ts?.finalDestination;
+            if (finalDest && typeof finalDest === "object") {
+              return getTransferTypeText(finalDest.transferType);
+            }
+            return "-";
+          })(),
+
           // اضافه کردن ستون‌های دلایل
           ...reasonsColumns,
 
@@ -562,9 +579,9 @@ export default function DocumentReviewPage() {
 
           // نظر اداره مبدا درباره نوع انتقال
           "نظر مبدا نوع انتقال":
-            request.sourceOpinionTransferType === "permanent"
+            ts?.sourceOpinionTransferType === "permanent"
               ? "انتقال دائم"
-              : request.sourceOpinionTransferType === "temporary"
+              : ts?.sourceOpinionTransferType === "temporary"
               ? "انتقال موقت"
               : "-",
 
@@ -640,6 +657,11 @@ export default function DocumentReviewPage() {
           "نظرات کاربر": request.userComments || "-",
           سنوات: ts?.effectiveYears ? `${ts.effectiveYears} سال` : "-",
           "نوع استخدام": ts?.employmentType || "-",
+          "کد رای کمیسیون پزشکی": ts?.medicalCommissionCode || "-",
+          "رای کمیسیون پزشکی": ts?.medicalCommissionVerdict || "-",
+          "امتیاز تایید شده": ts?.approvedScore || "-",
+          "رشته استخدامی": ts?.employmentField || "-",
+          "کد رشته": ts?.fieldCode || "-",
           "سال تحصیلی": request.academicYear || "-",
           "تاریخ درخواست": request.createdAt
             ? new Date(request.createdAt).toLocaleDateString("fa-IR") +
@@ -663,11 +685,13 @@ export default function DocumentReviewPage() {
         { wch: 15 }, // شماره تماس
         { wch: 12 }, // کد مبدا
 
-        // اولویت‌های مقصد (14 ستون)
+        // اولویت‌های مقصد (14 ستون) + مقصد نهایی (2 ستون)
         ...Array(7)
           .fill()
           .map(() => [{ wch: 15 }, { wch: 20 }])
           .flat(),
+        { wch: 15 }, // مقصد نهایی
+        { wch: 20 }, // نوع انتقال نهایی
 
         // ستون‌های دلایل (متغیر بر اساس تعداد دلایل)
         ...allTransferReasons.map(() => ({ wch: 12 })),
@@ -680,12 +704,18 @@ export default function DocumentReviewPage() {
         { wch: 20 }, // تصمیم نهایی مشمولیت
         { wch: 25 }, // تاریخ آخرین بررسی
         { wch: 25 }, // وضعیت پرسنل
+        { wch: 20 }, // نظر مبدا نوع انتقال
         { wch: 15 }, // تصمیم منطقه
         { wch: 60 }, // نظر منطقه
         { wch: 80 }, // جزئیات بررسی دلایل
         { wch: 40 }, // نظرات کاربر
         { wch: 12 }, // سنوات
         { wch: 15 }, // نوع استخدام
+        { wch: 15 }, // کد رای کمیسیون پزشکی
+        { wch: 50 }, // رای کمیسیون پزشکی
+        { wch: 15 }, // امتیاز تایید شده
+        { wch: 25 }, // رشته استخدامی
+        { wch: 12 }, // کد رشته
         { wch: 15 }, // سال تحصیلی
         { wch: 25 }, // تاریخ درخواست
       ];

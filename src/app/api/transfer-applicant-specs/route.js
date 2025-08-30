@@ -45,12 +45,17 @@ export async function GET(request) {
     const employmentType = searchParams.get("employmentType") || "";
     const gender = searchParams.get("gender") || "";
     const currentWorkPlaceCode = searchParams.get("currentWorkPlaceCode") || "";
+    const nationalId = searchParams.get("nationalId") || "";
 
     // ساخت query
     let query = {};
 
+    // فیلتر مستقیم nationalId (اولویت دارد)
+    if (nationalId) {
+      query.nationalId = nationalId;
+    }
     // فیلتر جستجو
-    if (search) {
+    else if (search) {
       query.$or = [
         { firstName: { $regex: search, $options: "i" } },
         { lastName: { $regex: search, $options: "i" } },
@@ -92,8 +97,6 @@ export async function GET(request) {
     if (currentWorkPlaceCode) {
       query.currentWorkPlaceCode = currentWorkPlaceCode;
     }
-
-   
 
     // فیلتر استانی برای کارشناس امور اداری استان
     if (userAuth.role === ROLES.PROVINCE_TRANSFER_EXPERT && userAuth.province) {
@@ -358,9 +361,9 @@ export async function POST(request) {
 
         if (!existingUser) {
           // دریافت اطلاعات منطقه برای تعیین province و district
-          const district = await District.findOne(
-            { code: data.currentWorkPlaceCode }
-          ).populate("province");
+          const district = await District.findOne({
+            code: data.currentWorkPlaceCode,
+          }).populate("province");
 
           if (!district) {
             console.warn(
