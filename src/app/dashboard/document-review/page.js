@@ -3187,7 +3187,7 @@ export default function DocumentReviewPage() {
                     {selectedPersonnel.selectedReasons && (
                       <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-3">
-                          بندهای تایید شده و شرایط مربوطه:
+                          بندهای مشمول و شرایط مربوطه:
                           {clauseConditions.length > 0 && (
                             <span className="text-red-500">*</span>
                           )}
@@ -3283,7 +3283,7 @@ export default function DocumentReviewPage() {
                                                   {condition.description}
                                                 </div>
                                               )}
-                                              <div className="flex items-center gap-2 mt-1">
+                                              {/* <div className="flex items-center gap-2 mt-1">
                                                 <span
                                                   className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                                                     condition.importanceLevel ===
@@ -3307,7 +3307,7 @@ export default function DocumentReviewPage() {
                                                   {condition.importanceLevel ===
                                                     "low" && "کم"}
                                                 </span>
-                                              </div>
+                                              </div> */}
                                             </div>
                                           </label>
                                         ))}
@@ -3340,7 +3340,7 @@ export default function DocumentReviewPage() {
                     {selectedPersonnel.selectedReasons && (
                       <div className="mb-6">
                         <label className="block text-sm font-medium text-gray-700 mb-3">
-                          بندهای تایید شده و شرایط مربوطه:
+                          بندهای مشمول و شرایط مربوطه:
                           {clauseConditions.length > 0 && (
                             <span className="text-red-500">*</span>
                           )}
@@ -3436,7 +3436,7 @@ export default function DocumentReviewPage() {
                                                   {condition.description}
                                                 </div>
                                               )}
-                                              <div className="flex items-center gap-2 mt-1">
+                                              {/* <div className="flex items-center gap-2 mt-1">
                                                 <span
                                                   className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                                                     condition.importanceLevel ===
@@ -3460,7 +3460,7 @@ export default function DocumentReviewPage() {
                                                   {condition.importanceLevel ===
                                                     "low" && "کم"}
                                                 </span>
-                                              </div>
+                                              </div> */}
                                             </div>
                                           </label>
                                         ))}

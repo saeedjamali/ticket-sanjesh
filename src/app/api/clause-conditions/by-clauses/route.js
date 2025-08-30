@@ -30,7 +30,8 @@ export async function POST(request) {
 
     const body = await request.json();
     const { selectedClauses, conditionType } = body;
-
+    console.log("selectedClauses------->", selectedClauses);
+    console.log("conditionType------->", conditionType);
     // اعتبارسنجی ورودی
     if (
       !selectedClauses ||
