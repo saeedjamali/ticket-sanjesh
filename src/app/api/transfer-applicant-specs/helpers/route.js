@@ -96,27 +96,28 @@ export async function GET(request) {
         { value: 3, label: "ثبت نام ناقص" },
         { value: 4, label: "رد درخواست توسط منطقه مبدا" },
       ],
+     
       requestStatuses: [
         { value: "user_no_action", label: "عدم اقدام کاربر" },
-        { value: "awaiting_user_approval", label: "در انتظار تایید کاربر" },
-        { value: "user_approval", label: "تایید کاربر" },
+        { value: "awaiting_user_approval", label: "درخواست ناقص" },
+        { value: "user_approval", label: "در انتظار بررسی" },
         { value: "source_review", label: "در حال بررسی مبدا" },
         {
           value: "exception_eligibility_approval",
-          label: "تایید مشمولیت استثنا",
+          label: "تایید مشمولیت",
         },
         {
           value: "exception_eligibility_rejection",
-          label: "رد مشمولیت استثنا",
+          label: "رد مشمولیت (فاقد شرایط)",
         },
-        { value: "source_approval", label: "تایید مبدا" },
-        { value: "source_rejection", label: "رد مبدا" },
+        { value: "source_approval", label: "موافقت مبدا (موقت/دائم)" },
+        { value: "source_rejection", label: "مخالفت مبدا" },
         { value: "province_review", label: "در حال بررسی توسط استان" },
-        { value: "province_approval", label: "تایید استان" },
-        { value: "province_rejection", label: "رد استان" },
+        { value: "province_approval", label: "موافقت استان" },
+        { value: "province_rejection", label: "مخالفت استان" },
         // { value: "destination_review", label: "در حال بررسی مقصد" },
-        { value: "destination_approval", label: "تایید مقصد" },
-        { value: "destination_rejection", label: "رد مقصد" },
+        { value: "destination_approval", label: "موافقت مقصد" },
+        { value: "destination_rejection", label: "مخالفت مقصد" },
       ],
       medicalCommissionCodes: [
         {

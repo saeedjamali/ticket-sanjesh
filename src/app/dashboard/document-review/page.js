@@ -50,6 +50,13 @@ export default function DocumentReviewPage() {
     return typeMap[type] || type || "-";
   };
 
+  // تابع کمکی برای پیدا کردن نام منطقه بر اساس کد
+  const getDistrictName = (districtCode) => {
+    if (!districtCode || !helpers.districts) return "";
+    const district = helpers.districts.find((d) => d.code === districtCode);
+    return district ? district.name : "";
+  };
+
   // تابع ترجمه وضعیت
   const getStatusText = (status) => {
     const statusMap = {
@@ -111,6 +118,7 @@ export default function DocumentReviewPage() {
   const [helpers, setHelpers] = useState({
     employmentFields: [],
     genders: [],
+    districts: [],
   });
 
   // State برای تشخیص ذخیره شدن تغییرات
@@ -230,6 +238,7 @@ export default function DocumentReviewPage() {
         setHelpers({
           employmentFields: data.employmentFields || [],
           genders: data.genders || [],
+          districts: data.districts || [],
         });
       }
     } catch (error) {
@@ -644,9 +653,9 @@ export default function DocumentReviewPage() {
           // نظر اداره مبدا درباره نوع انتقال
           "نظر مبدا نوع انتقال":
             ts?.sourceOpinionTransferType === "permanent"
-              ? "انتقال دائم"
+              ? "موافقت دائم"
               : ts?.sourceOpinionTransferType === "temporary"
-              ? "انتقال موقت"
+              ? "موافقت موقت"
               : "-",
 
           // تصمیم کلی منطقه
@@ -1340,7 +1349,7 @@ export default function DocumentReviewPage() {
     const currentStatusText = getStatusPersianText(
       request.currentRequestStatus
     );
-    return `بررسی مستندات تنها برای درخواست‌های با وضعیت "تایید کاربر"، "در حال بررسی مبدا"، "تایید مشمولیت استثنا" یا "رد مشمولیت استثنا" امکان‌پذیر است. وضعیت فعلی: ${currentStatusText}`;
+    return `بررسی مستندات تنها برای درخواست‌های با وضعیت "در انتظار بررسی"، "در حال بررسی مبدا"، "تایید مشمولیت" یا "رد مشمولیت (فاقد شرایط)" امکان‌پذیر است. وضعیت فعلی: ${currentStatusText}`;
   };
 
   // ترجمه وضعیت به فارسی
@@ -1353,31 +1362,31 @@ export default function DocumentReviewPage() {
 
       // وضعیت‌های کاربر
       user_no_action: "عدم اقدام کاربر",
-      awaiting_user_approval: "در انتظار تایید کاربر",
-      user_approval: "تایید کاربر",
+      awaiting_user_approval: "درخواست ناقص",
+      user_approval: "در انتظار بررسی",
 
       // وضعیت‌های بررسی مستندات
       source_review: "در حال بررسی مبدا",
-      exception_eligibility_approval: "تایید مشمولیت استثنا",
-      exception_eligibility_rejection: "رد مشمولیت استثنا",
+      exception_eligibility_approval: "تایید مشمولیت",
+      exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
 
       // وضعیت‌های نظر مبدا
-      source_approval: "موافقت مبدا",
+      source_approval: "موافقت مبدا (موقت/دائم)",
       source_rejection: "مخالفت مبدا",
 
       // وضعیت‌های استان
-      province_review: "در حال بررسی استان",
-      province_approval: "تایید استان",
-      province_rejection: "رد استان",
+      province_review: "در حال بررسی توسط استان",
+      province_approval: "موافقت استان",
+      province_rejection: "مخالفت استان",
 
       // وضعیت‌های مقصد
       // destination_review: "در حال بررسی مقصد",
-      destination_approval: "تایید مقصد",
-      destination_rejection: "رد مقصد",
+      destination_approval: "موافقت مقصد",
+      destination_rejection: "مخالفت مقصد",
 
       // وضعیت‌های نهایی
-      final_approval: "تایید نهایی",
-      final_rejection: "رد نهایی",
+      final_approval: "موافقت نهایی",
+      final_rejection: "مخالفت نهایی",
       completed: "تکمیل شده",
       cancelled: "لغو شده",
       archived: "بایگانی شده",
@@ -1947,7 +1956,7 @@ export default function DocumentReviewPage() {
                                   !shouldShowSourceOpinionButtons(request)
                                 }
                                 className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="مخالفت با انتقال"
+                                title="مخالفت با انتقال ثبت"
                               >
                                 <FaThumbsDown className="h-3 w-3" />
                                 ثبت مخالفت با انتقال
@@ -2253,7 +2262,18 @@ export default function DocumentReviewPage() {
                         منطقه اصلی محل خدمت (مبدأ انتقال){" "}
                       </div>
                       <div className="font-medium text-gray-900">
-                        {selectedRequest.currentWorkPlaceCode || "نامشخص"}
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">
+                            {selectedRequest.currentWorkPlaceCode || "نامشخص"}
+                          </span>
+                          {selectedRequest.currentWorkPlaceCode && (
+                            <span className="text-xs text-gray-600 mt-1">
+                              {getDistrictName(
+                                selectedRequest.currentWorkPlaceCode
+                              ) || "نام منطقه نامشخص"}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     {selectedRequest.phone && (
@@ -2307,6 +2327,13 @@ export default function DocumentReviewPage() {
                                           <div className="font-medium text-gray-900 text-xs">
                                             {destination.districtCode || "-"}
                                           </div>
+                                          {destination.districtCode && (
+                                            <div className="text-xs text-gray-600 font-medium">
+                                              {getDistrictName(
+                                                destination.districtCode
+                                              ) || "نام منطقه نامشخص"}
+                                            </div>
+                                          )}
                                           <div className="text-xs text-gray-500">
                                             {getTransferTypeText(
                                               destination.transferType
@@ -3073,124 +3100,143 @@ export default function DocumentReviewPage() {
                               </div>
                             )}
 
-                          {/* فیلد توضیحات کارشناس */}
+                          {/* باکس یکپارچه بررسی و اظهارنظر */}
                           <div className="mt-3">
-                            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-                              <div className="flex items-center gap-2 mb-2">
-                                <FaUser className="h-3 w-3 text-indigo-600" />
-                                <label className="text-xs font-medium text-indigo-700">
-                                  توضیحات کارشناس (اختیاری):
-                                </label>
+                            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-lg p-4 shadow-sm">
+                              {/* فیلد توضیحات کارشناس */}
+                              <div className="mb-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <FaUser className="h-3 w-3 text-indigo-600" />
+                                  <label className="text-sm font-medium text-indigo-700">
+                                    توضیحات کارشناس (اختیاری):
+                                  </label>
+                                </div>
+                                <textarea
+                                  placeholder="نظر، توضیحات یا دلیل تصمیم خود را برای این دلیل وارد کنید..."
+                                  className="w-full px-3 py-2 border border-indigo-300 rounded-lg text-sm resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white/80"
+                                  rows={3}
+                                  value={
+                                    reviewData[`${reasonKey}_comment`] || ""
+                                  }
+                                  onChange={(e) =>
+                                    setReviewData((prev) => ({
+                                      ...prev,
+                                      [`${reasonKey}_comment`]: e.target.value,
+                                    }))
+                                  }
+                                />
                               </div>
-                              <textarea
-                                placeholder="نظر، توضیحات یا دلیل تصمیم خود را برای این دلیل وارد کنید..."
-                                className="w-full px-3 py-2 border border-indigo-300 rounded text-sm resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                rows={3}
-                                value={reviewData[`${reasonKey}_comment`] || ""}
-                                onChange={(e) =>
-                                  setReviewData((prev) => ({
-                                    ...prev,
-                                    [`${reasonKey}_comment`]: e.target.value,
-                                  }))
-                                }
-                              />
-                              {/* نمایش اطلاعات بررسی موجود */}
-                              <div className="mt-2 space-y-1">
-                                {/* وضعیت بررسی */}
-                                {reviewData[reasonKey] &&
-                                  reviewData[reasonKey] !== "pending" && (
-                                    <div className="text-xs">
-                                      <span className="text-indigo-600">
-                                        🔍 وضعیت بررسی:{" "}
-                                      </span>
-                                      <span
-                                        className={`font-medium ${
+
+                              {/* دکمه‌های تایید/رد */}
+                              {populatedReason?.requiresAdminApproval && (
+                                <div className="border-t border-indigo-200 pt-4">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                                    <p className="text-sm text-blue-800 font-semibold">
+                                      وضعیت شمولیت این متقاضی را درخصوص این بند،
+                                      مشخص کنید:
+                                    </p>
+                                  </div>
+
+                                  {/* دکمه‌ها و اطلاعات بررسی */}
+                                  <div className="space-y-3">
+                                    <div className="flex gap-3 justify-end">
+                                      <button
+                                        onClick={() =>
+                                          setReviewData((prev) => ({
+                                            ...prev,
+                                            [reasonKey]: "approved",
+                                          }))
+                                        }
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                                           reviewData[reasonKey] === "approved"
-                                            ? "text-green-700"
-                                            : "text-red-700"
+                                            ? "bg-green-600 text-white shadow-lg shadow-green-200"
+                                            : "bg-green-100 text-green-700 hover:bg-green-600 hover:text-white border border-green-300"
                                         }`}
                                       >
-                                        {reviewData[reasonKey] === "approved"
-                                          ? "تایید شده"
-                                          : "رد شده"}
-                                      </span>
+                                        <FaCheck className="h-4 w-4" />
+                                        تایید
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          setReviewData((prev) => ({
+                                            ...prev,
+                                            [reasonKey]: "rejected",
+                                          }))
+                                        }
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                                          reviewData[reasonKey] === "rejected"
+                                            ? "bg-red-600 text-white shadow-lg shadow-red-200"
+                                            : "bg-red-100 text-red-700 hover:bg-red-600 hover:text-white border border-red-300"
+                                        }`}
+                                      >
+                                        <FaTimes className="h-4 w-4" />
+                                        رد
+                                      </button>
                                     </div>
-                                  )}
 
-                                {/* بررسی قبلی توسط کارشناس */}
-                                {reason.review && reason.review.reviewedBy && (
-                                  <div className="text-xs text-gray-600">
-                                    <span className="text-indigo-600">
-                                      👤 آخرین بررسی:{" "}
-                                    </span>
-                                    <span>
-                                      {new Date(
-                                        reason.review.reviewedAt
-                                      ).toLocaleDateString("fa-IR", {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                        year: "numeric",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                        second: "2-digit",
-                                      })}{" "}
-                                      -{" "}
-                                      {reason.review.reviewerRole ===
-                                      "districtTransferExpert"
-                                        ? " کارشناس منطقه"
-                                        : " کارشناس استان"}
-                                    </span>
+                                    {/* نمایش اطلاعات بررسی موجود - در انتهای هر بند */}
+                                    {((reviewData[reasonKey] &&
+                                      reviewData[reasonKey] !== "pending") ||
+                                      (reason.review &&
+                                        reason.review.reviewedBy)) && (
+                                      <div className="bg-white/50 rounded-md p-3 border border-indigo-300/30 space-y-2">
+                                        {/* وضعیت بررسی */}
+                                        {reviewData[reasonKey] &&
+                                          reviewData[reasonKey] !==
+                                            "pending" && (
+                                            <div className="text-xs">
+                                              <span className="text-indigo-600 font-medium">
+                                                🔍 وضعیت بررسی:{" "}
+                                              </span>
+                                              <span
+                                                className={`font-bold ${
+                                                  reviewData[reasonKey] ===
+                                                  "approved"
+                                                    ? "text-green-700"
+                                                    : "text-red-700"
+                                                }`}
+                                              >
+                                                {reviewData[reasonKey] ===
+                                                "approved"
+                                                  ? "تایید شده"
+                                                  : "رد شده"}
+                                              </span>
+                                            </div>
+                                          )}
+
+                                        {/* بررسی قبلی توسط کارشناس */}
+                                        {reason.review &&
+                                          reason.review.reviewedBy && (
+                                            <div className="text-xs text-gray-600">
+                                              <span className="text-indigo-600 font-medium">
+                                                👤 آخرین بررسی:{" "}
+                                              </span>
+                                              <span>
+                                                {new Date(
+                                                  reason.review.reviewedAt
+                                                ).toLocaleDateString("fa-IR", {
+                                                  day: "2-digit",
+                                                  month: "2-digit",
+                                                  year: "numeric",
+                                                  hour: "2-digit",
+                                                  minute: "2-digit",
+                                                  second: "2-digit",
+                                                })}{" "}
+                                                -{" "}
+                                                {reason.review.reviewerRole ===
+                                                "districtTransferExpert"
+                                                  ? "کارشناس منطقه"
+                                                  : "کارشناس استان"}
+                                              </span>
+                                            </div>
+                                          )}
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
+                                </div>
+                              )}
                             </div>
-
-                            {/* دکمه‌های تایید/رد - بعد از توضیحات کارشناس */}
-                            {populatedReason?.requiresAdminApproval && (
-                              <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg shadow-sm">
-                                <div className="flex items-center gap-2 mb-3">
-                                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                                  <p className="text-sm text-blue-800 font-semibold">
-                                    وضعیت شمولیت این متقاضی را درخصوص این بند،
-                                    مشخص کنید:
-                                  </p>
-                                </div>
-                                <div className="flex gap-3 justify-end">
-                                  <button
-                                    onClick={() =>
-                                      setReviewData((prev) => ({
-                                        ...prev,
-                                        [reasonKey]: "approved",
-                                      }))
-                                    }
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                                      reviewData[reasonKey] === "approved"
-                                        ? "bg-green-600 text-white shadow-lg shadow-green-200"
-                                        : "bg-green-100 text-green-700 hover:bg-green-600 hover:text-white border border-green-300"
-                                    }`}
-                                  >
-                                    <FaCheck className="h-4 w-4" />
-                                    تایید
-                                  </button>
-                                  <button
-                                    onClick={() =>
-                                      setReviewData((prev) => ({
-                                        ...prev,
-                                        [reasonKey]: "rejected",
-                                      }))
-                                    }
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                                      reviewData[reasonKey] === "rejected"
-                                        ? "bg-red-600 text-white shadow-lg shadow-red-200"
-                                        : "bg-red-100 text-red-700 hover:bg-red-600 hover:text-white border border-red-300"
-                                    }`}
-                                  >
-                                    <FaTimes className="h-4 w-4" />
-                                    رد
-                                  </button>
-                                </div>
-                              </div>
-                            )}
                           </div>
                         </div>
                       );
@@ -3251,7 +3297,9 @@ export default function DocumentReviewPage() {
                       ) : (
                         <>
                           <FaCheck className="h-4 w-4" />
-                          {isDataSaved ? "ذخیره شده ✓" : "ذخیره تغییرات"}
+                          {isDataSaved
+                            ? "ذخیره شده ✓"
+                            : " ذخیره (ثبت وضعیت شمولیت)"}
                         </>
                       )}
                     </button>
@@ -3422,7 +3470,7 @@ export default function DocumentReviewPage() {
                       <h3 className="text-lg font-bold">
                         {sourceOpinionType === "approve"
                           ? "ثبت موافقت با انتقال"
-                          : "مخالفت با انتقال"}
+                          : "ثبت مخالفت با انتقال"}
                       </h3>
                       <p className="text-sm opacity-90">
                         {sourceOpinionType === "approve"
@@ -3487,7 +3535,18 @@ export default function DocumentReviewPage() {
                         منطقه اصلی محل خدمت (مبدأ انتقال){" "}
                       </div>
                       <div className="font-medium text-gray-900">
-                        {selectedPersonnel.currentWorkPlaceCode || "نامشخص"}
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">
+                            {selectedPersonnel.currentWorkPlaceCode || "نامشخص"}
+                          </span>
+                          {selectedPersonnel.currentWorkPlaceCode && (
+                            <span className="text-xs text-gray-600 mt-1">
+                              {getDistrictName(
+                                selectedPersonnel.currentWorkPlaceCode
+                              ) || "نام منطقه نامشخص"}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -3533,6 +3592,13 @@ export default function DocumentReviewPage() {
                                           <div className="font-medium text-gray-900 text-xs">
                                             {destination.districtCode || "-"}
                                           </div>
+                                          {destination.districtCode && (
+                                            <div className="text-xs text-gray-600 font-medium">
+                                              {getDistrictName(
+                                                destination.districtCode
+                                              ) || "نام منطقه نامشخص"}
+                                            </div>
+                                          )}
                                           <div className="text-xs text-gray-500">
                                             {getTransferTypeText(
                                               destination.transferType
@@ -3578,13 +3644,13 @@ export default function DocumentReviewPage() {
                             <th className="border-r border-indigo-300 px-3 py-2 text-indigo-800 font-medium">
                               <div className="flex items-center justify-center gap-1">
                                 <FaUser className="h-3 w-3" />
-                                تایید کاربر
+                                در انتظار بررسی
                               </div>
                             </th>
                             <th className="border-r border-indigo-300 px-3 py-2 text-indigo-800 font-medium">
                               <div className="flex items-center justify-center gap-1">
                                 <FaClock className="h-3 w-3" />
-                                در حال بررسی
+                                در حال بررسی مبدا
                               </div>
                             </th>
                             <th className="border-r border-indigo-300 px-3 py-2 text-indigo-800 font-medium">
@@ -3676,7 +3742,7 @@ export default function DocumentReviewPage() {
                       <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded">
                         <div className="text-xs text-green-700 flex items-center gap-2">
                           <FaCheck className="h-3 w-3" />
-                          <span className="font-medium">نمره تایید شده:</span>
+                          <span className="font-medium">امتیاز تایید شده:</span>
                           <span className="font-bold text-green-800">
                             {personnelStats.ranking.approvedScore}
                           </span>
@@ -3699,7 +3765,7 @@ export default function DocumentReviewPage() {
                         <FaList className="h-4 w-4" />
                         {loadingPersonnelList
                           ? "در حال بارگذاری..."
-                          : "مشاهده لیست پرسنل همین گروه"}
+                          : "نمایش لیست متقاضیان تجدیدنظر در این گروه رشته/جنسیت"}
                       </button>
                     </div>
                   </div>

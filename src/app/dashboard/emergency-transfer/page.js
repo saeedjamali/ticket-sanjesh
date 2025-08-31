@@ -55,17 +55,17 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       },
       {
         status: "awaiting_user_approval",
-        title: "تکمیل اطلاعات",
+        title: "درخواست ناقص",
         description: "در انتظار تکمیل توسط کاربر",
       },
       {
         status: "user_approval",
-        title: "تایید کاربر",
+        title: "در انتظار بررسی",
         description: "درخواست توسط کاربر تایید شد",
       },
       {
         status: "source_review",
-        title: "بررسی مبدا",
+        title: "در حال بررسی مبدا",
         description: "در حال بررسی توسط منطقه مبدا",
       },
     ];
@@ -74,7 +74,7 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
     if (currentStatus === "exception_eligibility_rejection") {
       baseSteps.push({
         status: "exception_eligibility_rejection",
-        title: "رد مشمولیت استثنا",
+        title: "رد مشمولیت (فاقد شرایط)",
         description: "مشمولیت استثنا رد شد",
       });
     } else if (currentStatus === "source_rejection") {
@@ -1940,6 +1940,11 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
 
 export default function EmergencyTransferPage() {
   const { user, loading: userLoading } = useUserContext();
+
+  // بررسی محدودیت تاریخ و وضعیت کاربر
+  const [accessRestricted, setAccessRestricted] = useState(false);
+  const [restrictionMessage, setRestrictionMessage] = useState("");
+
   const [isVerifying, setIsVerifying] = useState(false);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -2005,6 +2010,35 @@ export default function EmergencyTransferPage() {
   // State for initial status check
   const [initialStatusChecked, setInitialStatusChecked] = useState(false);
 
+  // بررسی محدودیت تاریخ و وضعیت کاربر
+  useEffect(() => {
+    const checkAccessRestrictions = async () => {
+      // بررسی تاریخ محدودیت (از ساعت 24 امشب 31 اگوست 2025)
+      const restrictionDate = new Date("2025-08-31T24:00:00");
+      const currentDate = new Date();
+
+      if (currentDate >= restrictionDate) {
+        // اگر تاریخ محدودیت رسیده، بررسی وضعیت کاربر
+        // اگر userSpecs وجود ندارد یا وضعیت awaiting_user_approval نیست
+        if (
+          !userSpecs ||
+          userSpecs.currentRequestStatus !== "awaiting_user_approval"
+        ) {
+          setAccessRestricted(true);
+          setRestrictionMessage(
+            "مهلت ثبت درخواست تجدیدنظر به پایان رسیده است."
+          );
+        }
+      }
+    };
+
+    // فقط زمانی چک کن که user موجود باشد و phoneVerified باشد و userSpecs بارگذاری شده باشد
+    // userSpecs ممکن است null باشد (کاربرانی که هنوز درخواستی ندارند) اما باید منتظر بمانیم تا بارگذاری تمام شود
+    if (user && !userLoading && user.phoneVerified && !loadingSpecs) {
+      checkAccessRestrictions();
+    }
+  }, [user, userLoading, user?.phoneVerified, userSpecs, loadingSpecs]);
+
   // تابع تبدیل شماره مرحله به فارسی (فقط برای main component)
   const getStepDisplayName = (step) => {
     const stepMap = {
@@ -2032,7 +2066,7 @@ export default function EmergencyTransferPage() {
       },
       {
         status: "user_approval",
-        title: "تایید کاربر",
+        title: "در انتظار بررسی",
         description: "درخواست توسط کاربر تایید شد",
       },
       {
@@ -2311,7 +2345,7 @@ export default function EmergencyTransferPage() {
     setSubmittingFinalRequest(true);
 
     try {
-      // تغییر وضعیت درخواست به user_approval (تایید کاربر)
+      // تغییر وضعیت درخواست به user_approval ()
       const response = await fetch("/api/transfer-applicant/final-submission", {
         method: "POST",
         headers: {
@@ -3772,6 +3806,57 @@ export default function EmergencyTransferPage() {
           </div>
         )}
       </>
+    );
+  }
+
+  // بررسی محدودیت دسترسی
+  if (accessRestricted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg border border-red-200 overflow-hidden">
+            <div className="bg-gradient-to-r from-red-500 to-orange-500 p-6">
+              <div className="flex items-center gap-4 text-white">
+                <div className="bg-white/20 p-3 rounded-lg">
+                  <FaExclamationTriangle className="h-8 w-8" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold">محدودیت دسترسی</h1>
+                  <p className="text-red-100 text-sm">
+                    مهلت ثبت درخواست تجدیدنظر به پایان رسیده است
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <FaExclamationTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-red-800 mb-2">
+                      عدم امکان دسترسی
+                    </h3>
+                    <p className="text-red-700 text-sm leading-relaxed">
+                      {restrictionMessage}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <button
+                  onClick={() => window.history.back()}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2 mx-auto"
+                >
+                  <FaArrowLeft className="h-4 w-4" />
+                  بازگشت
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 

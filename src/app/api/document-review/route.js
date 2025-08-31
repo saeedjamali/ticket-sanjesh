@@ -46,9 +46,6 @@ export async function GET(request) {
       selectedReasons: { $exists: true, $ne: [] }, // فقط درخواست‌هایی که دلایل انتخاب شده دارند
     };
 
-    console.log("document-review API - user role:", user.role);
-    console.log("document-review API - user district:", user.district);
-
     // بر اساس نقش کاربر، فیلتر کردن درخواست‌ها
     if (user.role === "districtTransferExpert") {
       // برای کارشناس منطقه: فقط درخواست‌هایی که districtCode برابر کد منطقه کاربر است
@@ -477,6 +474,7 @@ export async function PUT(request) {
           ) {
             // همه بندها رد شده - رد مشمولیت
             newStatus = "exception_eligibility_rejection";
+
             statusReason = `رد مشمولیت استثنا - همه ${rejectedReasons.length} بند رد شده`;
             autoDecisionMade = true;
           }
@@ -485,6 +483,7 @@ export async function PUT(request) {
         // اگر وضعیت جدید تعیین شده و متفاوت از وضعیت فعلی است
         if (newStatus && previousStatus !== newStatus) {
           transferApplicantSpec.currentRequestStatus = newStatus;
+          transferApplicantSpec.sourceOpinionTransferType = null;
 
           // اضافه کردن به workflow
           transferApplicantSpec.requestStatusWorkflow.push({
