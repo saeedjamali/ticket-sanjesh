@@ -2016,7 +2016,7 @@ export default function EmergencyTransferPage() {
       // بررسی تاریخ محدودیت (از ساعت 24 امشب 31 اگوست 2025)
       const restrictionDate = new Date("2025-08-31T24:00:00");
       const currentDate = new Date();
-
+      console.log("userSpecs  ====?", userSpecs);
       if (currentDate >= restrictionDate) {
         // اگر تاریخ محدودیت رسیده، بررسی وضعیت کاربر
         // اگر userSpecs وجود ندارد یا وضعیت awaiting_user_approval نیست
@@ -2028,16 +2028,24 @@ export default function EmergencyTransferPage() {
           setRestrictionMessage(
             "مهلت ثبت درخواست تجدیدنظر به پایان رسیده است."
           );
+        } else {
+          // اگر کاربر مجاز است، محدودیت را برطرف کن
+          setAccessRestricted(false);
+          setRestrictionMessage("");
         }
+      } else {
+        // اگر هنوز تاریخ محدودیت نرسیده، محدودیت را برطرف کن
+        setAccessRestricted(false);
+        setRestrictionMessage("");
       }
     };
 
     // فقط زمانی چک کن که user موجود باشد و phoneVerified باشد و userSpecs بارگذاری شده باشد
     // userSpecs ممکن است null باشد (کاربرانی که هنوز درخواستی ندارند) اما باید منتظر بمانیم تا بارگذاری تمام شود
-    if (user && !userLoading && user.phoneVerified && !loadingSpecs) {
+    if (userSpecs) {
       checkAccessRestrictions();
     }
-  }, [user, userLoading, user?.phoneVerified, userSpecs, loadingSpecs]);
+  }, [userSpecs]);
 
   // تابع تبدیل شماره مرحله به فارسی (فقط برای main component)
   const getStepDisplayName = (step) => {
