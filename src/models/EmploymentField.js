@@ -46,6 +46,13 @@ const EmploymentFieldSchema = new mongoose.Schema({
     maxlength: 500,
   },
 
+  // مشترک (جنسیت مهم نیست)
+  isShared: {
+    type: Boolean,
+    default: false,
+    comment: "نشان‌دهنده این که در این رشته استخدامی، جنسیت مهم نیست",
+  },
+
   // تاریخ ایجاد
   createdAt: {
     type: Date,

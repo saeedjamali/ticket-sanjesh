@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import connectDB from "@/lib/db";
 import TransferApplicantSpec from "@/models/TransferApplicantSpec";
+import EmploymentField from "@/models/EmploymentField";
 import { authService } from "@/lib/auth/authService";
 
 // GET /api/personnel-stats - دریافت آمار وضعیت کاربران هم‌رشته و هم‌جنس
@@ -61,35 +62,17 @@ export async function GET(request) {
       );
     }
 
-    // آمار وضعیت‌های کاربران هم‌رشته و هم‌جنس در همان منطقه
-    const statusCounts = await TransferApplicantSpec.aggregate([
-      {
-        $match: {
-          fieldCode: fieldCode,
-          gender: gender,
-          currentWorkPlaceCode: districtCode,
-          currentRequestStatus: {
-            $in: [
-              "user_approval",
-              "source_review",
-              "exception_eligibility_approval",
-              "source_approval",
-            ],
-          },
-        },
-      },
-      {
-        $group: {
-          _id: "$currentRequestStatus",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-
-    // محاسبه کل کاربران هم‌رشته و هم‌جنس
-    const totalSimilarPersonnel = await TransferApplicantSpec.countDocuments({
+    // بررسی اینکه آیا این رشته استخدامی مشترک است یا نه
+    const employmentFieldInfo = await EmploymentField.findOne({
       fieldCode: fieldCode,
-      gender: gender,
+      isActive: true,
+    });
+
+    const isSharedField = employmentFieldInfo?.isShared || false;
+
+    // آمار وضعیت‌های کاربران هم‌رشته (و هم‌جنس در صورت عدم اشتراک) در همان منطقه
+    const matchQuery = {
+      fieldCode: fieldCode,
       currentWorkPlaceCode: districtCode,
       currentRequestStatus: {
         $in: [
@@ -99,7 +82,29 @@ export async function GET(request) {
           "source_approval",
         ],
       },
-    });
+    };
+
+    // اگر رشته مشترک نیست، جنسیت را هم در نظر بگیر
+    if (!isSharedField) {
+      matchQuery.gender = gender;
+    }
+
+    const statusCounts = await TransferApplicantSpec.aggregate([
+      {
+        $match: matchQuery,
+      },
+      {
+        $group: {
+          _id: "$currentRequestStatus",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // محاسبه کل کاربران هم‌رشته (و هم‌جنس در صورت عدم اشتراک)
+    const totalSimilarPersonnel = await TransferApplicantSpec.countDocuments(
+      matchQuery
+    );
 
     // تبدیل نتایج به فرمت مناسب
     const stats = {
@@ -116,22 +121,14 @@ export async function GET(request) {
     });
     console.log("statusCounts----------->", statusCounts);
     // محاسبه رتبه کاربر بر اساس approvedScore
+    const rankMatchQuery = {
+      ...matchQuery,
+      approvedScore: { $exists: true, $ne: null },
+    };
+
     const rankResult = await TransferApplicantSpec.aggregate([
       {
-        $match: {
-          fieldCode: fieldCode,
-          gender: gender,
-          currentWorkPlaceCode: districtCode,
-          currentRequestStatus: {
-            $in: [
-              "user_approval",
-              "source_review",
-              "exception_eligibility_approval",
-              "source_approval",
-            ],
-          },
-          approvedScore: { $exists: true, $ne: null },
-        },
+        $match: rankMatchQuery,
       },
       {
         $sort: { approvedScore: -1 }, // مرتب‌سازی نزولی
@@ -172,6 +169,7 @@ export async function GET(request) {
         fieldCode: fieldCode,
         employmentField: employmentField,
         gender: gender,
+        isSharedField: isSharedField,
         currentWorkPlaceCode: districtCode,
         statusStats: stats,
         totalSimilarPersonnel: totalSimilarPersonnel,

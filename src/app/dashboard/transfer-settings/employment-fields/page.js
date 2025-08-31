@@ -45,6 +45,7 @@ export default function EmploymentFieldsPage() {
     title: "",
     description: "",
     isActive: true,
+    isShared: false,
   });
 
   // State برای pagination
@@ -121,6 +122,7 @@ export default function EmploymentFieldsPage() {
       title: "",
       description: "",
       isActive: true,
+      isShared: false,
     });
     setShowModal(true);
   };
@@ -134,6 +136,7 @@ export default function EmploymentFieldsPage() {
       title: field.title,
       description: field.description || "",
       isActive: field.isActive,
+      isShared: field.isShared || false,
     });
     setShowModal(true);
   };
@@ -312,6 +315,7 @@ export default function EmploymentFieldsPage() {
       "کد رشته": field.fieldCode,
       "عنوان رشته": field.title,
       توضیحات: field.description || "",
+      مشترک: field.isShared ? "بله" : "خیر",
       وضعیت: field.isActive ? "فعال" : "غیرفعال",
       "تاریخ ایجاد": new Date(field.createdAt).toLocaleDateString("fa-IR"),
       ایجادکننده: field.createdBy
@@ -350,6 +354,10 @@ export default function EmploymentFieldsPage() {
           fieldCode: row["کد رشته"] || row["fieldCode"] || "",
           title: row["عنوان رشته"] || row["title"] || "",
           description: row["توضیحات"] || row["description"] || "",
+          isShared:
+            row["مشترک"] === "بله" ||
+            row["isShared"] === true ||
+            row["isShared"] === "true",
           isActive:
             row["وضعیت"] === "فعال" ||
             row["isActive"] === true ||
@@ -401,6 +409,7 @@ export default function EmploymentFieldsPage() {
               title: item.title,
               description: item.description,
               isActive: item.isActive,
+              isShared: item.isShared,
             }),
           });
 
@@ -602,6 +611,9 @@ export default function EmploymentFieldsPage() {
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       توضیحات
                     </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      مشترک
+                    </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       وضعیت
                     </th>
@@ -649,6 +661,19 @@ export default function EmploymentFieldsPage() {
                         <div className="text-sm text-gray-600 max-w-xs truncate">
                           {field.description || "-"}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {field.isShared ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <FaCheckCircle className="h-3 w-3 mr-1" />
+                            مشترک
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <FaTimes className="h-3 w-3 mr-1" />
+                            جنسیتی
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -842,19 +867,36 @@ export default function EmploymentFieldsPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      name="isActive"
-                      checked={formData.isActive}
-                      onChange={handleInputChange}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700">
-                      فعال
-                    </span>
-                  </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        name="isActive"
+                        checked={formData.isActive}
+                        onChange={handleInputChange}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm font-medium text-gray-700">
+                        فعال
+                      </span>
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        name="isShared"
+                        checked={formData.isShared}
+                        onChange={handleInputChange}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      />
+                      <span className="text-sm font-medium text-gray-700">
+                        مشترک (جنسیت مهم نیست)
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -921,12 +963,14 @@ export default function EmploymentFieldsPage() {
                           "کد رشته": "101",
                           "عنوان رشته": "پزشکی عمومی",
                           توضیحات: "رشته پزشکی عمومی",
+                          مشترک: "خیر",
                           وضعیت: "فعال",
                         },
                         {
                           "کد رشته": "102",
                           "عنوان رشته": "دندانپزشکی",
                           توضیحات: "رشته دندانپزشکی",
+                          مشترک: "بله",
                           وضعیت: "فعال",
                         },
                       ];
@@ -943,7 +987,7 @@ export default function EmploymentFieldsPage() {
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
                   ستون‌های مورد نیاز: کد رشته، عنوان رشته، توضیحات (اختیاری),
-                  وضعیت (فعال/غیرفعال)
+                  مشترک (بله/خیر - اختیاری), وضعیت (فعال/غیرفعال)
                 </p>
               </div>
 

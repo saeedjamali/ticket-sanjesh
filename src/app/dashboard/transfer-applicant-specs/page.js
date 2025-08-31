@@ -56,7 +56,7 @@ export default function TransferApplicantSpecsPage() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [filters, setFilters] = useState({
-    employmentType: "",
+    employmentField: "",
     gender: "",
     transferType: "",
     currentWorkPlace: "",
@@ -72,6 +72,8 @@ export default function TransferApplicantSpecsPage() {
     createdDateFrom: "",
     createdDateTo: "",
   });
+  const [sortBy, setSortBy] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc"); // "asc" or "desc"
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -239,10 +241,12 @@ export default function TransferApplicantSpecsPage() {
           ...(filters.requestStatus && {
             currentRequestStatus: filters.requestStatus, // استفاده از فیلد جدید
           }),
-          ...(filters.employmentType && {
-            employmentType: filters.employmentType,
+          ...(filters.employmentField && {
+            fieldCode: filters.employmentField,
           }),
           ...(filters.gender && { gender: filters.gender }),
+          ...(sortBy && { sortBy: sortBy }),
+          ...(sortBy && sortOrder && { sortOrder: sortOrder }),
           // فیلتر منطقه برای کارشناس منطقه
           ...(user?.role === "districtTransferExpert" &&
             user?.district && {
@@ -284,8 +288,10 @@ export default function TransferApplicantSpecsPage() {
       debouncedSearchTerm,
       statusFilter,
       filters.requestStatus,
-      filters.employmentType,
+      filters.employmentField,
       filters.gender,
+      sortBy,
+      sortOrder,
       user?.role,
       user?.district,
     ]
@@ -301,8 +307,9 @@ export default function TransferApplicantSpecsPage() {
         !debouncedSearchTerm &&
         !statusFilter &&
         !filters.requestStatus &&
-        !filters.employmentType &&
-        !filters.gender;
+        !filters.employmentField &&
+        !filters.gender &&
+        !sortBy;
       fetchSpecs(isInitialLoad);
     }
   }, [
@@ -313,8 +320,9 @@ export default function TransferApplicantSpecsPage() {
     debouncedSearchTerm,
     statusFilter,
     filters.requestStatus,
-    filters.employmentType,
+    filters.employmentField,
     filters.gender,
+    sortBy,
   ]);
 
   // خودکار پر کردن فیلدهای منطقه برای کارشناس منطقه
@@ -1182,11 +1190,11 @@ export default function TransferApplicantSpecsPage() {
         source_review: "در حال بررسی مبدا",
         exception_eligibility_approval: "تایید مشمولیت استثنا",
         exception_eligibility_rejection: "رد مشمولیت استثنا",
-        source_approval: "تایید مبدا",
-        source_rejection: "رد مبدا",
+        source_approval: "موافقت مبدا",
+        source_rejection: "مخالفت مبدا",  
         province_review: "در حال بررسی استان",
-        province_approval: "تایید استان",
-        province_rejection: "رد استان",
+        province_approval: "موافقت استان",
+        province_rejection: "مخالفت استان",
         destination_review: "در حال بررسی مقصد",
         destination_approval: "تایید مقصد",
         destination_rejection: "رد مقصد",
@@ -1592,19 +1600,19 @@ export default function TransferApplicantSpecsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 forced-color-text-black">
-                  نوع استخدام
+                  رشته استخدامی
                 </label>
                 <select
-                  value={filters.employmentType}
+                  value={filters.employmentField}
                   onChange={(e) =>
-                    setFilters({ ...filters, employmentType: e.target.value })
+                    setFilters({ ...filters, employmentField: e.target.value })
                   }
                   className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5 transition-all duration-200 forced-color-text-black forced-color-bg-white"
                 >
-                  <option value="">همه</option>
-                  {helpers.employmentTypes?.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
+                  <option value="">همه رشته‌ها</option>
+                  {helpers.employmentFields?.map((field) => (
+                    <option key={field.fieldCode} value={field.fieldCode}>
+                      {field.displayName}
                     </option>
                   ))}
                 </select>
@@ -1650,14 +1658,40 @@ export default function TransferApplicantSpecsPage() {
                 </select>
               </div>
 
-              <div className="flex items-end">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 forced-color-text-black">
+                  مرتب‌سازی براساس امتیاز
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="flex-1 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5 transition-all duration-200 forced-color-text-black forced-color-bg-white"
+                  >
+                    <option value="">بدون مرتب‌سازی</option>
+                    <option value="approvedScore">امتیاز تایید شده</option>
+                  </select>
+                  {sortBy && (
+                    <select
+                      value={sortOrder}
+                      onChange={(e) => setSortOrder(e.target.value)}
+                      className="w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5 transition-all duration-200 forced-color-text-black forced-color-bg-white"
+                    >
+                      <option value="desc">نزولی</option>
+                      <option value="asc">صعودی</option>
+                    </select>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-4">
                 <button
                   onClick={() => {
                     setSearchTerm("");
                     setDebouncedSearchTerm("");
                     setStatusFilter("");
                     setFilters({
-                      employmentType: "",
+                      employmentField: "",
                       gender: "",
                       transferType: "",
                       currentWorkPlace: "",
@@ -1673,6 +1707,8 @@ export default function TransferApplicantSpecsPage() {
                       createdDateFrom: "",
                       createdDateTo: "",
                     });
+                    setSortBy("");
+                    setSortOrder("desc");
                     setCurrentPage(1);
                   }}
                   className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 shadow-sm"

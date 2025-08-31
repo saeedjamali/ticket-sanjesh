@@ -35,6 +35,13 @@ export async function GET(request) {
 
     await connectDB();
 
+    // دریافت پارامترهای query
+    const { searchParams } = new URL(request.url);
+    const employmentField = searchParams.get("employmentField") || "";
+    const gender = searchParams.get("gender") || "";
+    const sortBy = searchParams.get("sortBy") || "";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
+
     let query = {
       selectedReasons: { $exists: true, $ne: [] }, // فقط درخواست‌هایی که دلایل انتخاب شده دارند
     };
@@ -142,7 +149,7 @@ export async function GET(request) {
         transferApplicantSpec = await TransferApplicantSpec.findOne({
           personnelCode: req.personnelCode,
         }).select(
-          "currentRequestStatus currentWorkPlaceCode effectiveYears employmentField approvedScore"
+          "currentRequestStatus currentWorkPlaceCode effectiveYears employmentField approvedScore fieldCode gender sourceOpinionTransferType destinationPriority1 destinationPriority2 destinationPriority3 destinationPriority4 destinationPriority5 destinationPriority6 destinationPriority7"
         );
 
         // if (transferApplicantSpec) {
@@ -154,6 +161,23 @@ export async function GET(request) {
 
         currentRequestStatus =
           transferApplicantSpec?.currentRequestStatus || null;
+
+        // تبدیل destinationPriority1-7 به آرایه
+        if (transferApplicantSpec) {
+          const destinationPriorities = [];
+          for (let i = 1; i <= 7; i++) {
+            const priorityField =
+              transferApplicantSpec[`destinationPriority${i}`];
+            if (priorityField && priorityField.districtCode) {
+              destinationPriorities.push({
+                priority: i,
+                districtCode: priorityField.districtCode,
+                transferType: priorityField.transferType,
+              });
+            }
+          }
+          transferApplicantSpec.destinationPriorities = destinationPriorities;
+        }
       }
 
       // فیلتر کردن بر اساس نقش کاربر
@@ -196,23 +220,47 @@ export async function GET(request) {
             .limit(10); // محدود کردن به 10 درخواست اخیر
         }
 
-        requestsWithStatusAndFiltered.push({
-          ...req.toObject(),
-          _id: req._id.toString(),
-          uploadedDocuments: Object.fromEntries(
-            req.uploadedDocuments || new Map()
-          ),
-          currentRequestStatus, // اضافه کردن وضعیت فعلی
-          effectiveYears: transferApplicantSpec?.effectiveYears || null, // اضافه کردن سنوات
-          approvedScore: transferApplicantSpec?.approvedScore || null, // اضافه کردن امتیاز
-          employmentField: transferApplicantSpec?.employmentField || null, // اضافه کردن رشته شغلی
-          sourceOpinionTransferType:
-            transferApplicantSpec?.sourceOpinionTransferType || null, // نظر اداره مبدا درباره نوع انتقال
-          profileCorrectionRequests: profileCorrectionRequests, // اضافه کردن درخواست‌های اصلاح مشخصات
-          createdAt: req.createdAt.toISOString(),
-          updatedAt: req.updatedAt.toISOString(),
-        });
+        // اعمال فیلترهای اضافی
+        const matchesEmploymentField =
+          !employmentField ||
+          transferApplicantSpec?.fieldCode === employmentField;
+        const matchesGender =
+          !gender || transferApplicantSpec?.gender === gender;
+
+        if (matchesEmploymentField && matchesGender) {
+          requestsWithStatusAndFiltered.push({
+            ...req.toObject(),
+            _id: req._id.toString(),
+            uploadedDocuments: Object.fromEntries(
+              req.uploadedDocuments || new Map()
+            ),
+            currentRequestStatus, // اضافه کردن وضعیت فعلی
+            effectiveYears: transferApplicantSpec?.effectiveYears || null, // اضافه کردن سنوات
+            approvedScore: transferApplicantSpec?.approvedScore || null, // اضافه کردن امتیاز
+            employmentField: transferApplicantSpec?.employmentField || null, // اضافه کردن رشته شغلی
+            fieldCode: transferApplicantSpec?.fieldCode || null, // اضافه کردن کد رشته
+            gender: transferApplicantSpec?.gender || null, // اضافه کردن جنسیت
+            currentWorkPlaceCode:
+              transferApplicantSpec?.currentWorkPlaceCode || null, // اضافه کردن منطقه محل خدمت
+            destinationPriorities:
+              transferApplicantSpec?.destinationPriorities || [], // اضافه کردن اولویت‌های مقصد
+            sourceOpinionTransferType:
+              transferApplicantSpec?.sourceOpinionTransferType || null, // نظر اداره مبدا درباره نوع انتقال
+            profileCorrectionRequests: profileCorrectionRequests, // اضافه کردن درخواست‌های اصلاح مشخصات
+            createdAt: req.createdAt.toISOString(),
+            updatedAt: req.updatedAt.toISOString(),
+          });
+        }
       }
+    }
+
+    // مرتب‌سازی نتایج
+    if (sortBy === "approvedScore") {
+      requestsWithStatusAndFiltered.sort((a, b) => {
+        const scoreA = a.approvedScore || 0;
+        const scoreB = b.approvedScore || 0;
+        return sortOrder === "asc" ? scoreA - scoreB : scoreB - scoreA;
+      });
     }
 
     return NextResponse.json({

@@ -100,7 +100,7 @@ export async function POST(request) {
     await connectDB();
 
     const body = await request.json();
-    const { fieldCode, title, description, isActive } = body;
+    const { fieldCode, title, description, isActive, isShared } = body;
     console.log("body---------", body);
     // اعتبارسنجی ورودی‌ها
     if (!fieldCode || !title) {
@@ -125,6 +125,7 @@ export async function POST(request) {
       title: title.trim(),
       description: description?.trim(),
       isActive: isActive !== undefined ? isActive : true,
+      isShared: isShared !== undefined ? isShared : false,
       createdBy: user.userId,
       updatedBy: user.userId,
     });
@@ -184,7 +185,7 @@ export async function PUT(request) {
     await connectDB();
 
     const body = await request.json();
-    const { id, fieldCode, title, description, isActive } = body;
+    const { id, fieldCode, title, description, isActive, isShared } = body;
 
     // اعتبارسنجی ورودی‌ها
     if (!id) {
@@ -228,6 +229,8 @@ export async function PUT(request) {
     employmentField.description = description?.trim();
     employmentField.isActive =
       isActive !== undefined ? isActive : employmentField.isActive;
+    employmentField.isShared =
+      isShared !== undefined ? isShared : employmentField.isShared;
     employmentField.updatedBy = user.userId;
 
     await employmentField.save();

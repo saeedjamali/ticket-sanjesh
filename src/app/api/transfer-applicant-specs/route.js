@@ -43,9 +43,12 @@ export async function GET(request) {
     const requestStatus = searchParams.get("requestStatus") || "";
     const currentRequestStatus = searchParams.get("currentRequestStatus") || "";
     const employmentType = searchParams.get("employmentType") || "";
+    const fieldCode = searchParams.get("fieldCode") || "";
     const gender = searchParams.get("gender") || "";
     const currentWorkPlaceCode = searchParams.get("currentWorkPlaceCode") || "";
     const nationalId = searchParams.get("nationalId") || "";
+    const sortBy = searchParams.get("sortBy") || "";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
 
     // ساخت query
     let query = {};
@@ -88,6 +91,11 @@ export async function GET(request) {
     // فیلتر نوع استخدام
     if (employmentType) {
       query.employmentType = employmentType;
+    }
+
+    // فیلتر رشته استخدامی
+    if (fieldCode) {
+      query.fieldCode = fieldCode;
     }
 
     // فیلتر جنسیت
@@ -151,10 +159,16 @@ export async function GET(request) {
 
     const skip = (page - 1) * limit;
 
+    // تعیین نوع مرتب‌سازی
+    let sortOptions = { createdAt: -1 }; // پیش‌فرض
+    if (sortBy === "approvedScore") {
+      sortOptions = { approvedScore: sortOrder === "asc" ? 1 : -1 };
+    }
+
     const [specs, total] = await Promise.all([
       TransferApplicantSpec.find(query)
         .populate("createdBy", "fullName")
-        .sort({ createdAt: -1 })
+        .sort(sortOptions)
         .skip(skip)
         .limit(limit)
         .lean(),

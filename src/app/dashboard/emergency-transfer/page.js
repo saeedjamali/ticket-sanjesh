@@ -80,7 +80,7 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
     } else if (currentStatus === "source_rejection") {
       baseSteps.push({
         status: "source_rejection",
-        title: "رد مبدا",
+        title: "مخالفت مبدا",
         description: "درخواست توسط منطقه مبدا رد شد",
       });
     } else {
@@ -105,7 +105,7 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       baseSteps.push(
         {
           status: "source_approval",
-          title: "تایید مبدا",
+          title: "موافقت مبدا",
           description: "توسط منطقه مبدا تایید شد",
         },
         {
@@ -118,14 +118,14 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       if (currentStatus === "province_rejection") {
         baseSteps.push({
           status: "province_rejection",
-          title: "رد استان",
+          title: "مخالفت استان",
           description: "درخواست توسط استان رد شد",
         });
       } else {
         baseSteps.push(
           {
             status: "province_approval",
-            title: "تایید استان",
+            title: "موافقت استان",
             description: "توسط استان تایید شد",
           },
           // {
@@ -264,8 +264,8 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       source_review: "در حال بررسی مبدا",
       exception_eligibility_approval: "تایید مشمولیت استثنا",
       exception_eligibility_rejection: "رد مشمولیت استثنا",
-      source_approval: "نظر نهایی مبدا",
-      source_rejection: "رد مبدا",
+      source_approval: "موافقت مبدا",
+      source_rejection: "مخالفت مبدا",
       province_review: "در حال برسی توسط استان",
       province_approval: "نظر نهایی استان",
       province_rejection: "رد استان",

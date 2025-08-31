@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@/context/UserContext";
 import { toast } from "react-hot-toast";
 import {
@@ -28,6 +28,8 @@ import {
   FaAngleDoubleRight,
   FaChevronUp,
   FaChevronDown,
+  FaMapMarkerAlt,
+  FaList,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import ChatButton from "@/components/chat/ChatButton";
@@ -35,10 +37,47 @@ import { getFieldDisplayName } from "@/lib/fieldTranslations";
 
 export default function DocumentReviewPage() {
   const { user, userLoading } = useUser();
+
+  // تابع ترجمه نوع انتقال
+  const getTransferTypeText = (type) => {
+    const typeMap = {
+      permanent_preferred: "دائم (ترجیحی)",
+      permanent_only: "فقط دائم",
+      temporary_only: "فقط موقت",
+      permanent: "دائم",
+      temporary: "موقت",
+    };
+    return typeMap[type] || type || "-";
+  };
+
+  // تابع ترجمه وضعیت
+  const getStatusText = (status) => {
+    const statusMap = {
+      user_no_action: "عدم اقدام کاربر",
+      awaiting_user_approval: "در انتظار تایید کاربر",
+      user_approval: "تایید کاربر",
+      source_review: "در حال بررسی مبدا",
+      exception_eligibility_approval: "تایید مشمولیت استثنا",
+      exception_eligibility_rejection: "رد مشمولیت استثنا",
+      source_approval: "موافقت مبدا",
+      source_rejection: "مخالفت مبدا",
+      province_review: "در حال بررسی استان",
+      province_approval: "تایید استان",
+      province_rejection: "رد استان",
+      destination_review: "در حال بررسی مقصد",
+      destination_approval: "تایید مقصد",
+      destination_rejection: "رد مقصد",
+    };
+    return statusMap[status] || status || "-";
+  };
   const [appealRequests, setAppealRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [employmentFieldFilter, setEmploymentFieldFilter] = useState("");
+  const [genderFilter, setGenderFilter] = useState("");
+  const [sortBy, setSortBy] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewData, setReviewData] = useState({});
@@ -57,6 +96,9 @@ export default function DocumentReviewPage() {
   const [loadingReasons, setLoadingReasons] = useState(false);
   const [personnelStats, setPersonnelStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(false);
+  const [showPersonnelListModal, setShowPersonnelListModal] = useState(false);
+  const [personnelList, setPersonnelList] = useState([]);
+  const [loadingPersonnelList, setLoadingPersonnelList] = useState(false);
 
   // State برای شرایط بندها
   const [clauseConditions, setClauseConditions] = useState([]);
@@ -66,6 +108,10 @@ export default function DocumentReviewPage() {
     useState("");
 
   const [exportingExcel, setExportingExcel] = useState(false);
+  const [helpers, setHelpers] = useState({
+    employmentFields: [],
+    genders: [],
+  });
 
   // State برای تشخیص ذخیره شدن تغییرات
   const [isDataSaved, setIsDataSaved] = useState(false);
@@ -150,13 +196,13 @@ export default function DocumentReviewPage() {
     },
     {
       value: "source_approval",
-      label: "تایید مبدا",
+      label: "موافقت مبدا",
       color: "bg-green-600",
       icon: FaThumbsUp,
     },
     {
       value: "source_rejection",
-      label: "رد مبدا",
+      label: "مخالفت مبدا",
       color: "bg-red-600",
       icon: FaThumbsDown,
     },
@@ -174,11 +220,44 @@ export default function DocumentReviewPage() {
     },
   ];
 
+  // دریافت اطلاعات کمکی
+  const fetchHelpers = async () => {
+    try {
+      const response = await fetch("/api/transfer-applicant-specs/helpers");
+      const data = await response.json();
+
+      if (data.success) {
+        setHelpers({
+          employmentFields: data.employmentFields || [],
+          genders: data.genders || [],
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching helpers:", error);
+    }
+  };
+
   // دریافت لیست درخواست‌های تجدید نظر
-  const fetchAppealRequests = async () => {
+  const fetchAppealRequests = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/document-review", {
+      const params = new URLSearchParams();
+
+      if (employmentFieldFilter) {
+        params.append("employmentField", employmentFieldFilter);
+      }
+      if (genderFilter) {
+        params.append("gender", genderFilter);
+      }
+      if (sortBy) {
+        params.append("sortBy", sortBy);
+        params.append("sortOrder", sortOrder);
+      }
+
+      const url = `/api/document-review${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
+      const response = await fetch(url, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -196,7 +275,23 @@ export default function DocumentReviewPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [employmentFieldFilter, genderFilter, sortBy, sortOrder]);
+
+  // دریافت اولیه داده‌ها
+  useEffect(() => {
+    if (user && !userLoading) {
+      fetchHelpers();
+      fetchAppealRequests();
+    }
+  }, [
+    user,
+    userLoading,
+    employmentFieldFilter,
+    genderFilter,
+    sortBy,
+    sortOrder,
+    fetchAppealRequests,
+  ]);
 
   // دریافت دلایل موافقت و مخالفت
   const fetchApprovalReasons = async () => {
@@ -287,37 +382,6 @@ export default function DocumentReviewPage() {
       const allTransferReasons = transferReasonsData.success
         ? transferReasonsData.reasons
         : [];
-
-      // تابع ترجمه نوع انتقال
-      const getTransferTypeText = (type) => {
-        const typeMap = {
-          permanent_preferred: "دائم (ترجیحی)",
-          permanent_only: "فقط دائم",
-          temporary_only: "فقط موقت",
-        };
-        return typeMap[type] || type || "-";
-      };
-
-      // تابع ترجمه وضعیت
-      const getStatusText = (status) => {
-        const statusMap = {
-          user_no_action: "عدم اقدام کاربر",
-          awaiting_user_approval: "در انتظار تایید کاربر",
-          user_approval: "تایید کاربر",
-          source_review: "در حال بررسی مبدا",
-          exception_eligibility_approval: "تایید مشمولیت استثنا",
-          exception_eligibility_rejection: "رد مشمولیت استثنا",
-          source_approval: "تایید مبدا",
-          source_rejection: "رد مبدا",
-          province_review: "در حال بررسی استان",
-          province_approval: "تایید استان",
-          province_rejection: "رد استان",
-          // destination_review: "در حال بررسی مقصد",
-          destination_approval: "تایید مقصد",
-          destination_rejection: "رد مقصد",
-        };
-        return statusMap[status] || status || "-";
-      };
 
       // تابع ترجمه وضعیت بررسی دلیل
       const getReviewStatusText = (status) => {
@@ -752,20 +816,47 @@ export default function DocumentReviewPage() {
     const matchesStatus =
       statusFilter === "all" || request.currentRequestStatus === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    const matchesEmploymentField =
+      !employmentFieldFilter || request.fieldCode === employmentFieldFilter;
+
+    const matchesGender = !genderFilter || request.gender === genderFilter;
+
+    return (
+      matchesSearch && matchesStatus && matchesEmploymentField && matchesGender
+    );
+  });
+
+  // مرتب‌سازی درخواست‌ها
+  const sortedRequests = [...filteredRequests].sort((a, b) => {
+    if (!sortBy) return 0;
+
+    if (sortBy === "approvedScore") {
+      const scoreA = a.approvedScore || 0;
+      const scoreB = b.approvedScore || 0;
+      return sortOrder === "asc" ? scoreA - scoreB : scoreB - scoreA;
+    }
+
+    return 0;
   });
 
   // محاسبات pagination
-  const totalItems = filteredRequests.length;
+  const totalItems = sortedRequests.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
+  const paginatedRequests = sortedRequests.slice(startIndex, endIndex);
 
   // reset page when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
+  }, [
+    searchTerm,
+    statusFilter,
+    employmentFieldFilter,
+    genderFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
   // تابع‌های pagination
   const goToPage = (page) => {
@@ -812,8 +903,8 @@ export default function DocumentReviewPage() {
     }
   };
 
-  // تابع دریافت متن وضعیت
-  const getStatusText = (status) => {
+  // تابع دریافت متن وضعیت بررسی
+  const getReviewStatusDisplayText = (status) => {
     switch (status) {
       case "pending":
         return "در انتظار بررسی";
@@ -935,7 +1026,6 @@ export default function DocumentReviewPage() {
   // باز کردن مودال بررسی
   const openReviewModal = (request) => {
     setSelectedRequest(request);
-    console.log("request-------->", request);
     setShowReviewModal(true);
     // مقداردهی اولیه reviewData از ساختار جدید
     const initialReviewData = {};
@@ -1031,6 +1121,30 @@ export default function DocumentReviewPage() {
       toast.error("خطا در ارتباط با سرور");
     } finally {
       setLoadingStats(false);
+    }
+  };
+
+  // دریافت لیست پرسنل هم‌رشته و هم‌جنس
+  const fetchPersonnelList = async (personnelCode, districtCode) => {
+    try {
+      setLoadingPersonnelList(true);
+      const response = await fetch(
+        `/api/personnel-list?personnelCode=${personnelCode}&districtCode=${districtCode}`
+      );
+      const data = await response.json();
+
+      if (data.success) {
+        setPersonnelList(data.data.personnelList);
+        setShowPersonnelListModal(true);
+      } else {
+        console.error("خطا در دریافت لیست پرسنل:", data.error);
+        toast.error("خطا در دریافت لیست پرسنل");
+      }
+    } catch (error) {
+      console.error("Error fetching personnel list:", error);
+      toast.error("خطا در ارتباط با سرور");
+    } finally {
+      setLoadingPersonnelList(false);
     }
   };
 
@@ -1280,7 +1394,7 @@ export default function DocumentReviewPage() {
       fetchAppealRequests();
       fetchApprovalReasons();
     }
-  }, [user]);
+  }, [user, fetchAppealRequests]);
 
   if (userLoading) {
     return (
@@ -1403,61 +1517,154 @@ export default function DocumentReviewPage() {
 
           {/* Filters */}
           <div className="p-6 border-b border-gray-200">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* جستجو */}
-              <div className="flex-1">
-                <div className="relative">
-                  <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <input
-                    type="text"
-                    placeholder="جستجو بر اساس نام، کد ملی یا کد پرسنلی..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+            <div className="space-y-4">
+              {/* ردیف اول: جستجو و دکمه اکسل */}
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* جستجو */}
+                <div className="flex-1">
+                  <div className="relative">
+                    <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="جستجو بر اساس نام، کد ملی یا کد پرسنلی..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* دکمه دریافت گزارش اکسل */}
+                <div className="md:w-64">
+                  <button
+                    onClick={handleExportToExcel}
+                    disabled={exportingExcel || filteredRequests.length === 0}
+                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    title="دریافت گزارش کامل اکسل"
+                  >
+                    {exportingExcel ? (
+                      <>
+                        <FaSpinner className="h-4 w-4 animate-spin" />
+                        در حال تولید گزارش...
+                      </>
+                    ) : (
+                      <>
+                        <FaFileExcel className="h-4 w-4" />
+                        گزارش کامل اکسل
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* تعداد نتایج */}
+                <div className="flex items-center text-sm text-gray-600 md:w-32">
+                  <FaFilter className="h-4 w-4 ml-2" />
+                  {filteredRequests.length} نتیجه
                 </div>
               </div>
 
-              {/* فیلتر وضعیت */}
-              <div className="md:w-48">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="all">همه وضعیت‌ها</option>
-                  <option value="pending">در انتظار بررسی</option>
-                  <option value="in_review">در حال بررسی</option>
-                  <option value="completed">تکمیل شده</option>
-                </select>
-              </div>
+              {/* ردیف دوم: فیلترها */}
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* فیلتر وضعیت */}
+                <div className="md:w-48">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    وضعیت درخواست
+                  </label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="all">همه وضعیت‌ها</option>
+                    <option value="pending">در انتظار بررسی</option>
+                    <option value="in_review">در حال بررسی</option>
+                    <option value="completed">تکمیل شده</option>
+                  </select>
+                </div>
 
-              {/* دکمه دریافت گزارش اکسل */}
-              <div className="md:w-64">
-                <button
-                  onClick={handleExportToExcel}
-                  disabled={exportingExcel || filteredRequests.length === 0}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-                  title="دریافت گزارش کامل اکسل"
-                >
-                  {exportingExcel ? (
-                    <>
-                      <FaSpinner className="h-4 w-4 animate-spin" />
-                      در حال تولید گزارش...
-                    </>
-                  ) : (
-                    <>
-                      <FaFileExcel className="h-4 w-4" />
-                      گزارش کامل اکسل
-                    </>
-                  )}
-                </button>
-              </div>
+                {/* فیلتر رشته استخدامی */}
+                <div className="md:w-48">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    رشته استخدامی
+                  </label>
+                  <select
+                    value={employmentFieldFilter}
+                    onChange={(e) => setEmploymentFieldFilter(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">همه رشته‌ها</option>
+                    {helpers.employmentFields?.map((field) => (
+                      <option key={field.fieldCode} value={field.fieldCode}>
+                        {field.displayName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              {/* تعداد نتایج */}
-              <div className="flex items-center text-sm text-gray-600">
-                <FaFilter className="h-4 w-4 ml-2" />
-                {filteredRequests.length} درخواست یافت شد
+                {/* فیلتر جنسیت */}
+                <div className="md:w-32">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    جنسیت
+                  </label>
+                  <select
+                    value={genderFilter}
+                    onChange={(e) => setGenderFilter(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">همه</option>
+                    {helpers.genders?.map((gender) => (
+                      <option key={gender.value} value={gender.value}>
+                        {gender.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* مرتب‌سازی براساس امتیاز */}
+                <div className="md:w-48">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    مرتب‌سازی امتیاز
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    >
+                      <option value="">بدون مرتب‌سازی</option>
+                      <option value="approvedScore">امتیاز</option>
+                    </select>
+                    {sortBy && (
+                      <select
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                        className="w-16 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs"
+                      >
+                        <option value="desc">↓</option>
+                        <option value="asc">↑</option>
+                      </select>
+                    )}
+                  </div>
+                </div>
+
+                {/* دکمه پاک کردن فیلترها */}
+                <div className="md:w-32 flex items-end">
+                  <button
+                    onClick={() => {
+                      setSearchTerm("");
+                      setStatusFilter("all");
+                      setEmploymentFieldFilter("");
+                      setGenderFilter("");
+                      setSortBy("");
+                      setSortOrder("desc");
+                    }}
+                    className="w-full px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center justify-center gap-1"
+                    title="پاک کردن همه فیلترها"
+                  >
+                    <FaTimes className="h-3 w-3" />
+                    پاک کردن
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1501,8 +1708,8 @@ export default function DocumentReviewPage() {
                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       تاریخ درخواست
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      وضعیت بررسی
+                    <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      امتیاز تایید شده
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       نظر مبدا نوع انتقال
@@ -1598,19 +1805,24 @@ export default function DocumentReviewPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${getStatusColor(
-                            request.overallReviewStatus || "pending"
-                          )}`}
-                        >
-                          {getStatusIcon(
-                            request.overallReviewStatus || "pending"
-                          )}
-                          {getStatusText(
-                            request.overallReviewStatus || "pending"
-                          )}
-                        </span>
+                      {/* ستون امتیاز تایید شده */}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {request.approvedScore !== null &&
+                        request.approvedScore !== undefined ? (
+                          <div className="flex flex-col items-center">
+                            <span className="text-lg font-bold text-blue-600">
+                              {request.approvedScore}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              امتیاز
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                            <FaExclamationTriangle className="h-3 w-3" />
+                            نامشخص
+                          </span>
+                        )}
                       </td>
 
                       {/* ستون نظر مبدا نوع انتقال */}
@@ -1692,7 +1904,7 @@ export default function DocumentReviewPage() {
                                   !shouldShowSourceOpinionButtons(request)
                                 }
                                 className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="موافقت با انتقال"
+                                title="ثبت موافقت با انتقال"
                               >
                                 <FaThumbsUp className="h-3 w-3" />
                                 ثبت موافقت با انتقال
@@ -1922,70 +2134,139 @@ export default function DocumentReviewPage() {
 
               <div className="p-6">
                 {/* اطلاعات متقاضی */}
-                <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                  <h4 className="font-semibold text-gray-800 mb-3">
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                    <FaUser className="h-4 w-4 text-gray-600" />
                     اطلاعات متقاضی
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        نام و نام خانوادگی:
-                      </span>
-                      <div className="text-gray-900">
+
+                  {/* اطلاعات اساسی */}
+                  <div className="grid grid-cols-3 gap-3 text-sm mb-4">
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">
+                        نام و نام خانوادگی
+                      </div>
+                      <div className="font-medium text-gray-900">
                         {selectedRequest.fullName}
                       </div>
                     </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        کد ملی:
-                      </span>
-                      <div className="text-gray-900">
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">کد ملی</div>
+                      <div className="font-medium text-gray-900">
                         {selectedRequest.nationalId}
                       </div>
                     </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        کد پرسنلی:
-                      </span>
-                      <div className="text-gray-900">
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">کد پرسنلی</div>
+                      <div className="font-medium text-gray-900">
                         {selectedRequest.personnelCode}
                       </div>
                     </div>
-                    {selectedRequest.phone && (
-                      <div>
-                        <span className="text-sm font-medium text-gray-600">
-                          شماره تماس:
-                        </span>
-                        <div className="text-gray-900">
-                          {selectedRequest.phone}
-                        </div>
-                      </div>
-                    )}
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        رشته شغلی:
-                      </span>
-                      <div className="text-gray-900">
+                  </div>
+
+                  {/* ردیف دوم */}
+                  <div className="grid grid-cols-3 gap-3 text-sm mb-4">
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">رشته شغلی</div>
+                      <div className="font-medium text-gray-900">
                         {selectedRequest?.employmentField || "نامشخص"}
                       </div>
                     </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        سنوات مؤثر:
-                      </span>
-                      <div className="text-gray-900">
-                        {selectedRequest?.effectiveYears || "نامشخص"}
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">سنوات مؤثر</div>
+                      <div className="font-medium text-gray-900">
+                        {selectedRequest?.effectiveYears || "نامشخص"} سال
                       </div>
                     </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        جمع امتیاز تایید شده :
-                      </span>
-                      <div className="text-gray-900">
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">
+                        امتیاز تایید شده
+                      </div>
+                      <div className="font-medium text-blue-600">
                         {selectedRequest?.approvedScore || "نامشخص"}
                       </div>
                     </div>
                   </div>
+
+                  {/* ردیف سوم */}
+                  <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">
+                        منطقه محل خدمت
+                      </div>
+                      <div className="font-medium text-gray-900">
+                        {selectedRequest.currentWorkPlaceCode || "نامشخص"}
+                      </div>
+                    </div>
+                    {selectedRequest.phone && (
+                      <div className="bg-white p-2 rounded border">
+                        <div className="text-xs text-gray-500">شماره تماس</div>
+                        <div className="font-medium text-gray-900">
+                          {selectedRequest.phone}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* جدول اولویت‌های مقصد */}
+                  {selectedRequest.destinationPriorities &&
+                    selectedRequest.destinationPriorities.length > 0 && (
+                      <div className="bg-white rounded border">
+                        <div className="bg-blue-50 px-3 py-2 border-b">
+                          <div className="text-sm font-medium text-blue-800 flex items-center gap-2">
+                            <FaMapMarkerAlt className="h-3 w-3" />
+                            اولویت‌های مقصد
+                          </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                {[1, 2, 3, 4, 5, 6, 7].map((priority) => (
+                                  <th
+                                    key={priority}
+                                    className="px-2 py-1 text-center font-medium text-gray-700 border-l border-gray-200"
+                                  >
+                                    اولویت {priority}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                {[1, 2, 3, 4, 5, 6, 7].map((priority) => {
+                                  const destination =
+                                    selectedRequest.destinationPriorities?.find(
+                                      (dest) => dest.priority === priority
+                                    );
+                                  return (
+                                    <td
+                                      key={priority}
+                                      className="px-2 py-1 text-center border-l border-gray-200 bg-white"
+                                    >
+                                      {destination ? (
+                                        <div className="space-y-1">
+                                          <div className="font-medium text-gray-900 text-xs">
+                                            {destination.districtCode || "-"}
+                                          </div>
+                                          <div className="text-xs text-gray-500">
+                                            {getTransferTypeText(
+                                              destination.transferType
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="text-gray-400">-</div>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
                 </div>
 
                 {/* توضیحات کاربر */}
@@ -3046,11 +3327,12 @@ export default function DocumentReviewPage() {
                     <div>
                       <h3 className="text-lg font-bold">
                         {sourceOpinionType === "approve"
-                          ? "موافقت با انتقال"
+                          ? "ثبت موافقت با انتقال"
                           : "مخالفت با انتقال"}
                       </h3>
                       <p className="text-sm opacity-90">
-                        اعلام نظر مبدا برای {selectedPersonnel.fullName}
+                        فرم ثبت نظر کمیته توسعه مدیریت اداره مبنی بر موافقت با
+                        انتقال متقاضی {selectedPersonnel.fullName}
                       </p>
                     </div>
                   </div>
@@ -3066,37 +3348,114 @@ export default function DocumentReviewPage() {
               <div className="p-6">
                 {/* اطلاعات پرسنل */}
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-800 mb-3">
-                    اطلاعات پرسنل:
+                  <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                    <FaUser className="h-4 w-4 text-gray-600" />
+                    اطلاعات پرسنل
                   </h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-600">نام و نام خانوادگی:</span>
-                      <span className="font-medium mr-2">
+
+                  {/* اطلاعات اساسی */}
+                  <div className="grid grid-cols-3 gap-3 text-sm mb-4">
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">
+                        نام و نام خانوادگی
+                      </div>
+                      <div className="font-medium text-gray-900">
                         {selectedPersonnel.fullName}
-                      </span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-600">کد ملی:</span>
-                      <span className="font-medium mr-2">
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">کد ملی</div>
+                      <div className="font-medium text-gray-900">
                         {selectedPersonnel.nationalId}
-                      </span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-600">کد پرسنلی:</span>
-                      <span className="font-medium mr-2">
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">کد پرسنلی</div>
+                      <div className="font-medium text-gray-900">
                         {selectedPersonnel.personnelCode}
-                      </span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-600">وضعیت فعلی:</span>
-                      <span className="font-medium mr-2">
+                  </div>
+
+                  {/* اطلاعات تکمیلی */}
+                  <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">وضعیت درخواست</div>
+                      <div className="font-medium text-gray-900">
                         {getStatusPersianText(
                           selectedPersonnel.currentRequestStatus
                         )}
-                      </span>
+                      </div>
+                    </div>
+                    <div className="bg-white p-2 rounded border">
+                      <div className="text-xs text-gray-500">
+                        منطقه محل خدمت
+                      </div>
+                      <div className="font-medium text-gray-900">
+                        {selectedPersonnel.currentWorkPlaceCode || "نامشخص"}
+                      </div>
                     </div>
                   </div>
+
+                  {/* جدول اولویت‌های مقصد */}
+                  {selectedPersonnel.destinationPriorities &&
+                    selectedPersonnel.destinationPriorities.length > 0 && (
+                      <div className="bg-white rounded border">
+                        <div className="bg-blue-50 px-3 py-2 border-b">
+                          <div className="text-sm font-medium text-blue-800 flex items-center gap-2">
+                            <FaMapMarkerAlt className="h-3 w-3" />
+                            اولویت‌های مقصد
+                          </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                {[1, 2, 3, 4, 5, 6, 7].map((priority) => (
+                                  <th
+                                    key={priority}
+                                    className="px-2 py-1 text-center font-medium text-gray-700 border-l border-gray-200"
+                                  >
+                                    اولویت {priority}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                {[1, 2, 3, 4, 5, 6, 7].map((priority) => {
+                                  const destination =
+                                    selectedPersonnel.destinationPriorities?.find(
+                                      (dest) => dest.priority === priority
+                                    );
+                                  return (
+                                    <td
+                                      key={priority}
+                                      className="px-2 py-1 text-center border-l border-gray-200 bg-white"
+                                    >
+                                      {destination ? (
+                                        <div className="space-y-1">
+                                          <div className="font-medium text-gray-900 text-xs">
+                                            {destination.districtCode || "-"}
+                                          </div>
+                                          <div className="text-xs text-gray-500">
+                                            {getTransferTypeText(
+                                              destination.transferType
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="text-gray-400">-</div>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
                 </div>
 
                 {/* آمار وضعیت کاربران هم‌رشته و هم‌جنس */}
@@ -3229,6 +3588,25 @@ export default function DocumentReviewPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* دکمه مشاهده لیست پرسنل */}
+                    <div className="mt-4 pt-3 border-t border-indigo-200">
+                      <button
+                        onClick={() =>
+                          fetchPersonnelList(
+                            selectedPersonnel.personnelCode,
+                            selectedPersonnel.currentWorkPlaceCode
+                          )
+                        }
+                        disabled={loadingPersonnelList}
+                        className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        <FaList className="h-4 w-4" />
+                        {loadingPersonnelList
+                          ? "در حال بارگذاری..."
+                          : "مشاهده لیست پرسنل همین گروه"}
+                      </button>
+                    </div>
                   </div>
                 ) : null}
 
@@ -3299,7 +3677,7 @@ export default function DocumentReviewPage() {
                                         {relatedConditions.map((condition) => (
                                           <label
                                             key={condition._id}
-                                            className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer border border-gray-100"
+                                            className="flex items-start gap-3 p-3 bg-yellow-50 hover:bg-yellow-100 rounded cursor-pointer border-2 border-yellow-200 shadow-sm"
                                           >
                                             <input
                                               type="checkbox"
@@ -3327,11 +3705,11 @@ export default function DocumentReviewPage() {
                                               className="mt-1 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
                                             />
                                             <div className="flex-1">
-                                              <div className="font-medium text-gray-900 text-sm">
+                                              <div className="font-bold text-red-800 text-sm">
                                                 {condition.title}
                                               </div>
                                               {condition.description && (
-                                                <div className="text-xs text-gray-600 mt-1">
+                                                <div className="text-xs text-red-700 mt-1 font-medium">
                                                   {condition.description}
                                                 </div>
                                               )}
@@ -3452,7 +3830,7 @@ export default function DocumentReviewPage() {
                                         {relatedConditions.map((condition) => (
                                           <label
                                             key={condition._id}
-                                            className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer border border-gray-100"
+                                            className="flex items-start gap-3 p-3 bg-yellow-50 hover:bg-yellow-100 rounded cursor-pointer border-2 border-yellow-200 shadow-sm"
                                           >
                                             <input
                                               type="checkbox"
@@ -3480,11 +3858,11 @@ export default function DocumentReviewPage() {
                                               className="mt-1 h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
                                             />
                                             <div className="flex-1">
-                                              <div className="font-medium text-gray-900 text-sm">
+                                              <div className="font-bold text-red-800 text-sm">
                                                 {condition.title}
                                               </div>
                                               {condition.description && (
-                                                <div className="text-xs text-gray-600 mt-1">
+                                                <div className="text-xs text-red-700 mt-1 font-medium">
                                                   {condition.description}
                                                 </div>
                                               )}
@@ -3543,41 +3921,55 @@ export default function DocumentReviewPage() {
                 {/* نظر اداره مبدا درباره نوع انتقال - فقط برای موافقت */}
                 {sourceOpinionType === "approve" && (
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      نظر اداره مبدا درباره نوع انتقال:
-                      <span className="text-red-500 text-xs ml-1">*</span>
-                    </label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="sourceOpinionTransferType"
-                          value="permanent"
-                          checked={sourceOpinionTransferType === "permanent"}
-                          onChange={(e) =>
-                            setSourceOpinionTransferType(e.target.value)
-                          }
-                          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">
-                          انتقال دائم
-                        </span>
+                    <div className="flex flex-wrap items-center gap-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <label className="text-sm font-medium text-blue-800">
+                        نظر اداره مبدا درباره نوع انتقال:
+                        <span className="text-red-500 text-xs ml-1">*</span>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="sourceOpinionTransferType"
-                          value="temporary"
-                          checked={sourceOpinionTransferType === "temporary"}
-                          onChange={(e) =>
-                            setSourceOpinionTransferType(e.target.value)
-                          }
-                          className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                        />
-                        <span className="text-sm text-gray-700">
-                          انتقال موقت
-                        </span>
-                      </label>
+                      <div className="flex gap-6">
+                        <label
+                          className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border-2 transition-all ${
+                            sourceOpinionTransferType === "permanent"
+                              ? "bg-green-100 border-green-300 text-green-800 font-medium"
+                              : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="sourceOpinionTransferType"
+                            value="permanent"
+                            checked={sourceOpinionTransferType === "permanent"}
+                            onChange={(e) =>
+                              setSourceOpinionTransferType(e.target.value)
+                            }
+                            className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500"
+                          />
+                          <span className="text-sm font-medium">
+                            انتقال دائم
+                          </span>
+                        </label>
+                        <label
+                          className={`flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border-2 transition-all ${
+                            sourceOpinionTransferType === "temporary"
+                              ? "bg-orange-100 border-orange-300 text-orange-800 font-medium"
+                              : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="sourceOpinionTransferType"
+                            value="temporary"
+                            checked={sourceOpinionTransferType === "temporary"}
+                            onChange={(e) =>
+                              setSourceOpinionTransferType(e.target.value)
+                            }
+                            className="h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="text-sm font-medium">
+                            انتقال موقت
+                          </span>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -3645,6 +4037,152 @@ export default function DocumentReviewPage() {
                         )}
                       </>
                     )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* مدال لیست پرسنل هم‌رشته */}
+        {showPersonnelListModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+              <div className="mt-3">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <FaList className="h-5 w-5 text-indigo-600" />
+                    لیست پرسنل هم‌رشته
+                    {personnelStats?.isSharedField && (
+                      <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded">
+                        (رشته مشترک)
+                      </span>
+                    )}
+                  </h3>
+                  <button
+                    onClick={() => setShowPersonnelListModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <FaTimes className="h-6 w-6" />
+                  </button>
+                </div>
+
+                {/* جدول لیست پرسنل */}
+                <div className="overflow-x-auto">
+                  <table className="min-w-full bg-white border border-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 border-b border-gray-200 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          ردیف
+                        </th>
+                        <th className="px-6 py-3 border-b border-gray-200 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          نام
+                        </th>
+                        <th className="px-6 py-3 border-b border-gray-200 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          نام خانوادگی
+                        </th>
+                        <th className="px-6 py-3 border-b border-gray-200 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          کد پرسنلی
+                        </th>
+                        <th className="px-6 py-3 border-b border-gray-200 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          وضعیت درخواست
+                        </th>
+                        <th className="px-6 py-3 border-b border-gray-200 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          امتیاز تایید شده
+                        </th>
+                        {personnelStats?.isSharedField && (
+                          <th className="px-6 py-3 border-b border-gray-200 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            جنسیت
+                          </th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200 text-right">
+                      {personnelList.map((person, index) => {
+                        const isCurrentUser =
+                          person.personnelCode ===
+                          selectedPersonnel.personnelCode;
+                        return (
+                          <tr
+                            key={person.personnelCode}
+                            className={`${
+                              isCurrentUser
+                                ? "bg-blue-50 hover:bg-blue-100 border-r-4 border-blue-500"
+                                : "hover:bg-gray-50"
+                            }`}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {index + 1}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <div className="flex items-center gap-2">
+                                {person.firstName}
+                                {isCurrentUser && (
+                                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
+                                    کاربر فعلی
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {person.lastName}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {person.personnelCode}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <span
+                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  person.currentRequestStatus ===
+                                  "user_approval"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : person.currentRequestStatus ===
+                                      "source_review"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : person.currentRequestStatus ===
+                                      "exception_eligibility_approval"
+                                    ? "bg-purple-100 text-purple-800"
+                                    : person.currentRequestStatus ===
+                                      "source_approval"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {getStatusText(person.currentRequestStatus)}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              <span className="font-bold text-indigo-600">
+                                {person.approvedScore || "نامشخص"}
+                              </span>
+                            </td>
+                            {personnelStats?.isSharedField && (
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {person.gender === "male" ? "مرد" : "زن"}
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {personnelList.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    هیچ پرسنلی در این گروه یافت نشد
+                  </div>
+                )}
+
+                <div className="mt-4 flex justify-between items-center">
+                  <div className="text-sm text-gray-600">
+                    تعداد کل: {personnelList.length} نفر
+                  </div>
+                  <button
+                    onClick={() => setShowPersonnelListModal(false)}
+                    className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                  >
+                    بستن
                   </button>
                 </div>
               </div>
