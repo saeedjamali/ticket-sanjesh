@@ -53,7 +53,7 @@ export async function GET(request) {
     // دریافت رشته‌های استخدامی فعال
     const employmentFields = await EmploymentField.find({ isActive: true })
       .select("fieldCode title")
-      .sort({ title: 1 })
+      .sort({ fieldCode: 1 })
       .lean();
 
     const formattedEmploymentFields = employmentFields.map((field) => ({

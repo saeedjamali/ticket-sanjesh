@@ -53,18 +53,18 @@ export default function DocumentReviewPage() {
   // تابع ترجمه وضعیت
   const getStatusText = (status) => {
     const statusMap = {
-      user_no_action: "عدم اقدام کاربر",
-      awaiting_user_approval: "در انتظار تایید کاربر",
-      user_approval: "تایید کاربر",
+      user_no_action: "فاقد درخواست تجدیدنظر",
+      awaiting_user_approval: "درخواست ناقص",
+      user_approval: "در انتظار بررسی",
       source_review: "در حال بررسی مبدا",
-      exception_eligibility_approval: "تایید مشمولیت استثنا",
-      exception_eligibility_rejection: "رد مشمولیت استثنا",
-      source_approval: "موافقت مبدا",
+      exception_eligibility_approval: "تایید مشمولیت",
+      exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
+      source_approval: "موافقت مبدا (موقت/دائم)",
       source_rejection: "مخالفت مبدا",
-      province_review: "در حال بررسی استان",
-      province_approval: "تایید استان",
-      province_rejection: "رد استان",
-      destination_review: "در حال بررسی مقصد",
+      province_review: "در حال بررسی توسط استان",
+      province_approval: "موافقت استان",
+      province_rejection: "مخالفت استان",
+      // destination_review: "در حال بررسی مقصد",
       destination_approval: "تایید مقصد",
       destination_rejection: "رد مقصد",
     };
@@ -165,20 +165,20 @@ export default function DocumentReviewPage() {
     },
     {
       value: "awaiting_user_approval",
-      label: "در انتظار تایید کاربر",
+      label: "درخواست ناقص",
       color: "bg-blue-500",
       icon: FaEye,
     },
     {
       value: "user_approval",
-      label: "تایید کاربر",
+      label: "در انتظار بررسی",
       color: "bg-yellow-500",
       icon: FaClock,
     },
 
     {
       value: "source_review",
-      label: "بررسی مبدا",
+      label: "درحال بررسی مبدأ",
       color: "bg-purple-500",
       icon: FaUser,
     },
@@ -190,13 +190,13 @@ export default function DocumentReviewPage() {
     },
     {
       value: "exception_eligibility_rejection",
-      label: "رد مشمولیت",
+      label: "رد مشمولیت (فاقد شرایط)",
       color: "bg-red-500",
       icon: FaTimes,
     },
     {
       value: "source_approval",
-      label: "موافقت مبدا",
+      label: "موافقت مبدا (موقت/دائم)",
       color: "bg-green-600",
       icon: FaThumbsUp,
     },
@@ -993,31 +993,31 @@ export default function DocumentReviewPage() {
       case "user_no_action":
         return "عدم اقدام کاربر";
       case "awaiting_user_approval":
-        return "در انتظار تایید کاربر";
+        return "در انتظار تصمیم کاربر";
       case "user_approval":
-        return "تایید کاربر";
+        return "در انتظار بررسی";
       case "source_review":
         return "در حال بررسی مبدا";
       case "exception_eligibility_approval":
-        return "تایید مشمولیت استثنا";
+        return "تایید مشمولیت";
       case "exception_eligibility_rejection":
-        return "رد مشمولیت استثنا";
+        return "رد مشمولیت";
       case "source_approval":
-        return "تایید مبدا";
+        return "موافقت مبدا";
       case "source_rejection":
-        return "رد مبدا";
+        return "مخالفت مبدا";
       case "province_review":
-        return "در حال بررسی استان";
+        return "در حال بررسی توسط استان";
       case "province_approval":
-        return "تایید استان";
+        return "موافقت استان";
       case "province_rejection":
-        return "رد استان";
+        return "مخالفت استان";
       case "destination_review":
-        return "در حال بررسی مقصد";
+        return "در حال بررسی توسط مقصد";
       case "destination_approval":
-        return "تایید مقصد";
+        return "موافقت مقصد";
       case "destination_rejection":
-        return "رد مقصد";
+        return "مخالفت مقصد";
       default:
         return "نامشخص";
     }
@@ -1593,11 +1593,13 @@ export default function DocumentReviewPage() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">همه رشته‌ها</option>
-                    {helpers.employmentFields?.map((field) => (
-                      <option key={field.fieldCode} value={field.fieldCode}>
-                        {field.displayName}
-                      </option>
-                    ))}
+                    {helpers.employmentFields
+                      ?.sort((a, b) => a.fieldCode.localeCompare(b.fieldCode))
+                      .map((field) => (
+                        <option key={field.fieldCode} value={field.fieldCode}>
+                          {field.displayName}
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -1700,22 +1702,22 @@ export default function DocumentReviewPage() {
                       اطلاعات متقاضی
                     </th>
                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      جنسیت
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      رشته استخدامی
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       دلایل انتخابی
                     </th>
                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       وضعیت پرسنل
                     </th>
                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      تاریخ درخواست
+                      تاریخ ها
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       امتیاز تایید شده
-                    </th>
-                    <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      نظر مبدا نوع انتقال
-                    </th>
-                    <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      آخرین بروزرسانی
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       پیام‌ها
@@ -1746,6 +1748,37 @@ export default function DocumentReviewPage() {
                           )}
                         </div>
                       </td>
+
+                      {/* ستون جنسیت */}
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            request.gender === "male"
+                              ? "bg-blue-100 text-blue-800"
+                              : request.gender === "female"
+                              ? "bg-pink-100 text-pink-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {request.gender === "male"
+                            ? "مرد"
+                            : request.gender === "female"
+                            ? "زن"
+                            : "نامشخص"}
+                        </span>
+                      </td>
+
+                      {/* ستون رشته استخدامی */}
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="text-sm text-gray-900">
+                          {request.fieldCode ? `${request.fieldCode}` : "-"}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {request.employmentField || "-"}
+                        </div>
+                      </td>
+
+                      {/* ستون دلایل انتخابی */}
                       <td className="px-6 py-4 text-right">
                         <div className="text-sm text-gray-900">
                           {request.selectedReasons?.length || 0} دلیل انتخابی
@@ -1763,45 +1796,82 @@ export default function DocumentReviewPage() {
                         </div>
                       </td>
 
-                      {/* ستون وضعیت پرسنل */}
+                      {/* ستون وضعیت پرسنل + نظر مبدا نوع انتقال */}
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        {request.currentRequestStatus ? (
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${getPersonnelStatusColor(
-                              request.currentRequestStatus
-                            )}`}
-                          >
-                            {getPersonnelStatusIcon(
-                              request.currentRequestStatus
-                            )}
-                            {getPersonnelStatusText(
-                              request.currentRequestStatus
-                            )}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
-                            <FaExclamationTriangle className="h-3 w-3" />
-                            نامشخص
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                        <div className="space-y-1">
+                        <div className="space-y-2">
+                          {/* وضعیت پرسنل */}
                           <div>
-                            {new Date(request.createdAt).toLocaleDateString(
-                              "fa-IR"
+                            {request.currentRequestStatus ? (
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${getPersonnelStatusColor(
+                                  request.currentRequestStatus
+                                )}`}
+                              >
+                                {getPersonnelStatusIcon(
+                                  request.currentRequestStatus
+                                )}
+                                {getPersonnelStatusText(
+                                  request.currentRequestStatus
+                                )}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                                <FaExclamationTriangle className="h-3 w-3" />
+                                نامشخص
+                              </span>
                             )}
                           </div>
-                          <div className="text-xs text-gray-400">
-                            {new Date(request.createdAt).toLocaleTimeString(
-                              "fa-IR",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                second: "2-digit",
-                              }
+
+                          {/* نظر مبدا نوع انتقال */}
+                          <div>
+                            {request.sourceOpinionTransferType ? (
+                              <span
+                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  request.sourceOpinionTransferType ===
+                                  "permanent"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-orange-100 text-orange-800"
+                                }`}
+                              >
+                                {request.sourceOpinionTransferType ===
+                                "permanent"
+                                  ? "انتقال دائم"
+                                  : "انتقال موقت"}
+                              </span>
+                            ) : (
+                              <span className="text-gray-400 text-xs">
+                                نظر مبدا: -
+                              </span>
                             )}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* ستون تاریخ‌ها */}
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+                        <div className="space-y-2">
+                          {/* تاریخ درخواست */}
+                          <div>
+                            <div className="text-xs text-gray-400 mb-1">
+                              درخواست:
+                            </div>
+                            <div className="text-xs">
+                              {new Date(request.createdAt).toLocaleDateString(
+                                "fa-IR"
+                              )}
+                            </div>
+                          </div>
+
+                          {/* آخرین بروزرسانی */}
+                          <div>
+                            <div className="text-xs text-gray-400 mb-1">
+                              بروزرسانی:
+                            </div>
+                            <div className="text-xs">
+                              {new Date(
+                                request.updatedAt || request.createdAt
+                              ).toLocaleDateString("fa-IR")}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -1823,46 +1893,6 @@ export default function DocumentReviewPage() {
                             نامشخص
                           </span>
                         )}
-                      </td>
-
-                      {/* ستون نظر مبدا نوع انتقال */}
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {request.sourceOpinionTransferType ? (
-                          <span
-                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              request.sourceOpinionTransferType === "permanent"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-orange-100 text-orange-800"
-                            }`}
-                          >
-                            {request.sourceOpinionTransferType === "permanent"
-                              ? "دائم"
-                              : "موقت"}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400 text-sm">-</span>
-                        )}
-                      </td>
-
-                      {/* ستون آخرین بروزرسانی */}
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                        <div className="space-y-1">
-                          <div>
-                            {new Date(request.updatedAt).toLocaleDateString(
-                              "fa-IR"
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {new Date(request.updatedAt).toLocaleTimeString(
-                              "fa-IR",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                second: "2-digit",
-                              }
-                            )}
-                          </div>
-                        </div>
                       </td>
 
                       {/* ستون پیام‌ها */}
@@ -2133,6 +2163,34 @@ export default function DocumentReviewPage() {
               </div>
 
               <div className="p-6">
+                {/* تذکر مهم */}
+                <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-300 rounded-lg shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className="flex items-center justify-center w-6 h-6 bg-red-500 rounded-full">
+                        <span className="text-white text-sm font-bold">!</span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <h5 className="text-red-700 font-bold text-sm mb-2">
+                        تذکر مهم:
+                      </h5>
+                      <p className="text-red-600 text-sm leading-relaxed">
+                        همکار گرامی، از طریق این فرم، شما باید نسبت به بررسی
+                        بندهایی که توسط متقاضی انتخاب شده، اقدام نموده و وضعیت
+                        شمولیت یا عدم شمولیت وی را درخصوص هریک از بندهای
+                        خوداظهاری شده مشخص نمائید.
+                        <span className="font-semibold">
+                          {" "}
+                          دقت کنید تایید شمولیت بندها در این صفحه به معنی موافقت
+                          با انتقال نیست
+                        </span>{" "}
+                        و ثبت نظر نهایی موافقت یا مخالفت با انتقال برای افراد
+                        مشمول باید از طریق دکمه مربوطه در لیست اصلی انجام گردد.
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 {/* اطلاعات متقاضی */}
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                   <h4 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
@@ -2192,7 +2250,7 @@ export default function DocumentReviewPage() {
                   <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                     <div className="bg-white p-2 rounded border">
                       <div className="text-xs text-gray-500">
-                        منطقه محل خدمت
+                        منطقه اصلی محل خدمت (مبدأ انتقال){" "}
                       </div>
                       <div className="font-medium text-gray-900">
                         {selectedRequest.currentWorkPlaceCode || "نامشخص"}
@@ -2622,9 +2680,126 @@ export default function DocumentReviewPage() {
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 {/* عنوان اصلی دلیل */}
-                                <h5 className="font-medium text-gray-800 mb-2">
-                                  {reasonText}
-                                </h5>
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5 className="font-medium text-gray-800 flex-1">
+                                    {reasonText}
+                                  </h5>
+
+                                  {/* دکمه راهنمای الزامات این بند */}
+                                  {populatedReason && (
+                                    <div className="relative group">
+                                      <button
+                                        type="button"
+                                        className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors ml-2"
+                                      >
+                                        📋 الزامات
+                                      </button>
+
+                                      {/* Tooltip راهنما */}
+                                      <div className="absolute top-0 left-full ml-2 w-80 p-3 bg-gray-800 text-white text-xs rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                                        <div className="font-medium mb-2 text-yellow-300">
+                                          📋 الزامات این بند:
+                                        </div>
+
+                                        <div className="space-y-2">
+                                          {/* نیاز به تایید کارشناس */}
+                                          <div className="flex items-center gap-2">
+                                            {populatedReason?.requiresAdminApproval ? (
+                                              <>
+                                                <div className="h-2 w-2 bg-orange-400 rounded-full flex-shrink-0"></div>
+                                                <span className="text-orange-300">
+                                                  نیاز به بررسی کارشناس
+                                                </span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <div className="h-2 w-2 bg-gray-400 rounded-full flex-shrink-0"></div>
+                                                <span className="text-gray-300">
+                                                  کارشناس بدون نیاز به تایید
+                                                </span>
+                                              </>
+                                            )}
+                                          </div>
+
+                                          {/* نیاز به بارگذاری مدرک */}
+                                          <div className="flex items-center gap-2">
+                                            {populatedReason?.requiresDocumentUpload ? (
+                                              <>
+                                                <div className="h-2 w-2 bg-purple-400 rounded-full flex-shrink-0"></div>
+                                                <span className="text-purple-300">
+                                                  نیاز به بارگذاری مدرک
+                                                </span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <div className="h-2 w-2 bg-teal-400 rounded-full flex-shrink-0"></div>
+                                                <span className="text-teal-300">
+                                                  بدون نیاز به مدرک
+                                                </span>
+                                              </>
+                                            )}
+                                          </div>
+
+                                          {/* نیاز به زوج فرهنگی */}
+                                          <div className="flex items-center gap-2">
+                                            {populatedReason?.isCulturalCouple ? (
+                                              <>
+                                                <div className="h-2 w-2 bg-pink-400 rounded-full flex-shrink-0"></div>
+                                                <span className="text-pink-300">
+                                                  نیاز به اطلاعات زوج فرهنگی
+                                                </span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <div className="h-2 w-2 bg-blue-400 rounded-full flex-shrink-0"></div>
+                                                <span className="text-blue-300">
+                                                  بدون نیاز به اطلاعات زوج
+                                                  فرهنگی
+                                                </span>
+                                              </>
+                                            )}
+                                          </div>
+
+                                          {/* بررسی سنوات */}
+                                          {populatedReason?.yearsLimit && (
+                                            <div className="flex items-start gap-2">
+                                              {(selectedRequest?.effectiveYears ||
+                                                0) <
+                                              populatedReason.yearsLimit ? (
+                                                <>
+                                                  <div className="h-2 w-2 bg-red-400 rounded-full flex-shrink-0 mt-1"></div>
+                                                  <span className="text-red-300">
+                                                    هشدار: سنوات ناکافی (پرسنل:{" "}
+                                                    {selectedRequest?.effectiveYears ||
+                                                      0}{" "}
+                                                    سال، مورد نیاز:{" "}
+                                                    {populatedReason.yearsLimit}{" "}
+                                                    سال)
+                                                  </span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <div className="h-2 w-2 bg-green-400 rounded-full flex-shrink-0 mt-1"></div>
+                                                  <span className="text-green-300">
+                                                    سنوات کافی (پرسنل:{" "}
+                                                    {selectedRequest?.effectiveYears ||
+                                                      0}{" "}
+                                                    سال، مورد نیاز:{" "}
+                                                    {populatedReason.yearsLimit}{" "}
+                                                    سال)
+                                                  </span>
+                                                </>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* فلش tooltip */}
+                                        <div className="absolute top-4 -left-2 w-0 h-0 border-t-4 border-b-4 border-r-4 border-t-transparent border-b-transparent border-r-gray-800"></div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
 
                                 {/* عنوان کامل دلیل */}
                                 {populatedReason?.title &&
@@ -2669,107 +2844,6 @@ export default function DocumentReviewPage() {
                                     </p>
                                   </div>
                                 )}
-
-                                {/* الزامات دلیل */}
-                                <div className="mt-2 mb-3">
-                                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                                    <h6 className="text-xs font-medium text-gray-700 mb-2">
-                                      📋 الزامات این بند:
-                                    </h6>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      {/* نیاز به تایید کارشناس */}
-                                      <div className="flex items-center gap-2">
-                                        {populatedReason?.requiresAdminApproval ? (
-                                          <>
-                                            <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
-                                            <span className="text-xs text-orange-700">
-                                              نیاز به بررسی کارشناس
-                                            </span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
-                                            <span className="text-xs text-gray-600">
-                                              کارشناس بدون نیاز به تایید
-                                            </span>
-                                          </>
-                                        )}
-                                      </div>
-
-                                      {/* نیاز به بارگذاری مدرک */}
-                                      <div className="flex items-center gap-2">
-                                        {populatedReason?.requiresDocumentUpload ? (
-                                          <>
-                                            <div className="h-2 w-2 bg-purple-500 rounded-full"></div>
-                                            <span className="text-xs text-purple-700">
-                                              نیاز به بارگذاری مدرک
-                                            </span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <div className="h-2 w-2 bg-teal-500 rounded-full"></div>
-                                            <span className="text-xs text-teal-700">
-                                              بدون نیاز به مدرک
-                                            </span>
-                                          </>
-                                        )}
-                                      </div>
-
-                                      {/* نیاز به زوج فرهنگی */}
-                                      <div className="flex items-center gap-2 col-span-2">
-                                        {populatedReason?.isCulturalCouple ? (
-                                          <>
-                                            <div className="h-2 w-2 bg-pink-500 rounded-full"></div>
-                                            <span className="text-xs text-pink-700">
-                                              نیاز به اطلاعات زوج فرهنگی
-                                            </span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <div className="h-2 w-2 bg-blue-400 rounded-full"></div>
-                                            <span className="text-xs text-blue-600">
-                                              بدون نیاز به اطلاعات زوج فرهنگی
-                                            </span>
-                                          </>
-                                        )}
-                                      </div>
-
-                                      {/* بررسی سنوات */}
-                                      {populatedReason?.yearsLimit && (
-                                        <div className="flex items-center gap-2 col-span-2">
-                                          {(selectedRequest?.effectiveYears ||
-                                            0) < populatedReason.yearsLimit ? (
-                                            <>
-                                              <div className="h-2 w-2 bg-red-500 rounded-full"></div>
-                                              <span className="text-xs text-red-700">
-                                                هشدار: سنوات ناکافی برای مشمولیت
-                                                این بند (سنوات پرسنل:{" "}
-                                                {selectedRequest?.effectiveYears ||
-                                                  0}{" "}
-                                                سال، حداقل مورد نیاز:{" "}
-                                                {populatedReason.yearsLimit}{" "}
-                                                سال)
-                                              </span>
-                                            </>
-                                          ) : (
-                                            <>
-                                              <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                                              <span className="text-xs text-green-700">
-                                                سنوات کافی برای مشمولیت این بند
-                                                (سنوات پرسنل:{" "}
-                                                {selectedRequest?.effectiveYears ||
-                                                  0}{" "}
-                                                سال، حداقل مورد نیاز:{" "}
-                                                {populatedReason.yearsLimit}{" "}
-                                                سال)
-                                              </span>
-                                            </>
-                                          )}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
                               </div>
                             </div>
                           </div>
@@ -3073,39 +3147,48 @@ export default function DocumentReviewPage() {
 
                             {/* دکمه‌های تایید/رد - بعد از توضیحات کارشناس */}
                             {populatedReason?.requiresAdminApproval && (
-                              <div className="mt-3 flex gap-3 justify-end">
-                                <button
-                                  onClick={() =>
-                                    setReviewData((prev) => ({
-                                      ...prev,
-                                      [reasonKey]: "approved",
-                                    }))
-                                  }
-                                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                                    reviewData[reasonKey] === "approved"
-                                      ? "bg-green-600 text-white shadow-lg shadow-green-200"
-                                      : "bg-green-100 text-green-700 hover:bg-green-600 hover:text-white border border-green-300"
-                                  }`}
-                                >
-                                  <FaCheck className="h-4 w-4" />
-                                  تایید
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    setReviewData((prev) => ({
-                                      ...prev,
-                                      [reasonKey]: "rejected",
-                                    }))
-                                  }
-                                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                                    reviewData[reasonKey] === "rejected"
-                                      ? "bg-red-600 text-white shadow-lg shadow-red-200"
-                                      : "bg-red-100 text-red-700 hover:bg-red-600 hover:text-white border border-red-300"
-                                  }`}
-                                >
-                                  <FaTimes className="h-4 w-4" />
-                                  رد
-                                </button>
+                              <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg shadow-sm">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                                  <p className="text-sm text-blue-800 font-semibold">
+                                    وضعیت شمولیت این متقاضی را درخصوص این بند،
+                                    مشخص کنید:
+                                  </p>
+                                </div>
+                                <div className="flex gap-3 justify-end">
+                                  <button
+                                    onClick={() =>
+                                      setReviewData((prev) => ({
+                                        ...prev,
+                                        [reasonKey]: "approved",
+                                      }))
+                                    }
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                                      reviewData[reasonKey] === "approved"
+                                        ? "bg-green-600 text-white shadow-lg shadow-green-200"
+                                        : "bg-green-100 text-green-700 hover:bg-green-600 hover:text-white border border-green-300"
+                                    }`}
+                                  >
+                                    <FaCheck className="h-4 w-4" />
+                                    تایید
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      setReviewData((prev) => ({
+                                        ...prev,
+                                        [reasonKey]: "rejected",
+                                      }))
+                                    }
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                                      reviewData[reasonKey] === "rejected"
+                                        ? "bg-red-600 text-white shadow-lg shadow-red-200"
+                                        : "bg-red-100 text-red-700 hover:bg-red-600 hover:text-white border border-red-300"
+                                    }`}
+                                  >
+                                    <FaTimes className="h-4 w-4" />
+                                    رد
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -3175,129 +3258,140 @@ export default function DocumentReviewPage() {
                   </div>
 
                   {/* نمایش وضعیت تصمیم‌گیری خودکار مشمولیت */}
-                  {canPerformDocumentReview(selectedRequest) &&
-                    (() => {
-                      // محاسبه وضعیت بندها
-                      const reasonsRequiringApproval =
-                        selectedRequest.selectedReasons.filter(
+                  {canPerformDocumentReview(selectedRequest) && (
+                    <div className="mb-6">
+                      <h4 className="font-semibold text-gray-800 mb-4">
+                        وضعیت بررسی شمولیت:
+                      </h4>
+                      {(() => {
+                        // محاسبه وضعیت بندها
+                        const reasonsRequiringApproval =
+                          selectedRequest.selectedReasons.filter(
+                            (reason) =>
+                              reason?.reasonId?.requiresAdminApproval === true
+                          );
+
+                        const reviewedReasons = reasonsRequiringApproval.filter(
                           (reason) =>
-                            reason?.reasonId?.requiresAdminApproval === true
+                            reason.review?.status &&
+                            reason.review.status !== "pending"
                         );
 
-                      const reviewedReasons = reasonsRequiringApproval.filter(
-                        (reason) =>
-                          reason.review?.status &&
-                          reason.review.status !== "pending"
-                      );
+                        const pendingReasons = reasonsRequiringApproval.filter(
+                          (reason) =>
+                            !reason.review?.status ||
+                            reason.review.status === "pending"
+                        );
 
-                      const pendingReasons = reasonsRequiringApproval.filter(
-                        (reason) =>
-                          !reason.review?.status ||
-                          reason.review.status === "pending"
-                      );
+                        const approvedReasons = reviewedReasons.filter(
+                          (reason) => reason.review?.status === "approved"
+                        );
 
-                      const approvedReasons = reviewedReasons.filter(
-                        (reason) => reason.review?.status === "approved"
-                      );
+                        const rejectedReasons = reviewedReasons.filter(
+                          (reason) => reason.review?.status === "rejected"
+                        );
 
-                      const rejectedReasons = reviewedReasons.filter(
-                        (reason) => reason.review?.status === "rejected"
-                      );
+                        // تعیین وضعیت و پیام
+                        let statusInfo = null;
 
-                      // تعیین وضعیت و پیام
-                      let statusInfo = null;
+                        if (reasonsRequiringApproval.length === 0) {
+                          statusInfo = {
+                            type: "info",
+                            icon: <FaInfoCircle className="h-5 w-5" />,
+                            title: "بدون نیاز به بررسی",
+                            message:
+                              "این درخواست شامل بندهایی که نیاز به تایید کارشناس دارند نمی‌باشد",
+                            bgColor: "bg-gray-50",
+                            borderColor: "border-gray-200",
+                            textColor: "text-gray-700",
+                            titleColor: "text-gray-800",
+                          };
+                        } else if (pendingReasons.length > 0) {
+                          statusInfo = {
+                            type: "pending",
+                            icon: <FaClock className="h-5 w-5" />,
+                            title: "در حال بررسی",
+                            message: `${pendingReasons.length} بند در انتظار تکمیل بررسی - ${reviewedReasons.length} بند بررسی شده`,
+                            bgColor: "bg-yellow-50",
+                            borderColor: "border-yellow-200",
+                            textColor: "text-yellow-700",
+                            titleColor: "text-yellow-800",
+                          };
+                        } else if (approvedReasons.length > 0) {
+                          statusInfo = {
+                            type: "approved",
+                            icon: <FaCheck className="h-5 w-5" />,
+                            title: "✅ تایید مشمولیت استثنا",
+                            message: `${approvedReasons.length} بند تایید شده از ${reasonsRequiringApproval.length} بند - وضعیت کاربر به‌روزرسانی شد`,
+                            bgColor: "bg-green-50",
+                            borderColor: "border-green-200",
+                            textColor: "text-green-700",
+                            titleColor: "text-green-800",
+                          };
+                        } else if (
+                          rejectedReasons.length ===
+                            reasonsRequiringApproval.length &&
+                          reasonsRequiringApproval.length > 0
+                        ) {
+                          statusInfo = {
+                            type: "rejected",
+                            icon: <FaTimes className="h-5 w-5" />,
+                            title: "❌ رد مشمولیت استثنا",
+                            message: `همه ${rejectedReasons.length} بند رد شده - وضعیت کاربر به‌روزرسانی شد`,
+                            bgColor: "bg-red-50",
+                            borderColor: "border-red-200",
+                            textColor: "text-red-700",
+                            titleColor: "text-red-800",
+                          };
+                        }
 
-                      if (reasonsRequiringApproval.length === 0) {
-                        statusInfo = {
-                          type: "info",
-                          icon: <FaInfoCircle className="h-5 w-5" />,
-                          title: "بدون نیاز به بررسی",
-                          message:
-                            "این درخواست شامل بندهایی که نیاز به تایید کارشناس دارند نمی‌باشد",
-                          bgColor: "bg-gray-50",
-                          borderColor: "border-gray-200",
-                          textColor: "text-gray-700",
-                          titleColor: "text-gray-800",
-                        };
-                      } else if (pendingReasons.length > 0) {
-                        statusInfo = {
-                          type: "pending",
-                          icon: <FaClock className="h-5 w-5" />,
-                          title: "در حال بررسی",
-                          message: `${pendingReasons.length} بند در انتظار تکمیل بررسی - ${reviewedReasons.length} بند بررسی شده`,
-                          bgColor: "bg-yellow-50",
-                          borderColor: "border-yellow-200",
-                          textColor: "text-yellow-700",
-                          titleColor: "text-yellow-800",
-                        };
-                      } else if (approvedReasons.length > 0) {
-                        statusInfo = {
-                          type: "approved",
-                          icon: <FaCheck className="h-5 w-5" />,
-                          title: "✅ تایید مشمولیت استثنا",
-                          message: `${approvedReasons.length} بند تایید شده از ${reasonsRequiringApproval.length} بند - وضعیت کاربر به‌روزرسانی شد`,
-                          bgColor: "bg-green-50",
-                          borderColor: "border-green-200",
-                          textColor: "text-green-700",
-                          titleColor: "text-green-800",
-                        };
-                      } else if (
-                        rejectedReasons.length ===
-                          reasonsRequiringApproval.length &&
-                        reasonsRequiringApproval.length > 0
-                      ) {
-                        statusInfo = {
-                          type: "rejected",
-                          icon: <FaTimes className="h-5 w-5" />,
-                          title: "❌ رد مشمولیت استثنا",
-                          message: `همه ${rejectedReasons.length} بند رد شده - وضعیت کاربر به‌روزرسانی شد`,
-                          bgColor: "bg-red-50",
-                          borderColor: "border-red-200",
-                          textColor: "text-red-700",
-                          titleColor: "text-red-800",
-                        };
-                      }
+                        if (!statusInfo) return null;
 
-                      if (!statusInfo) return null;
-
-                      return (
-                        <div
-                          className={`${statusInfo.bgColor} border ${statusInfo.borderColor} rounded-lg p-4`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className={`${statusInfo.titleColor} mt-0.5`}>
-                              {statusInfo.icon}
-                            </div>
-                            <div className="flex-1">
-                              <h4
-                                className={`text-sm font-medium ${statusInfo.titleColor} mb-1`}
+                        return (
+                          <div
+                            className={`${statusInfo.bgColor} border ${statusInfo.borderColor} rounded-lg p-4`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div
+                                className={`${statusInfo.titleColor} mt-0.5`}
                               >
-                                {statusInfo.title}
-                              </h4>
-                              <p className={`text-xs ${statusInfo.textColor}`}>
-                                {statusInfo.message}
-                              </p>
+                                {statusInfo.icon}
+                              </div>
+                              <div className="flex-1">
+                                <h4
+                                  className={`text-sm font-medium ${statusInfo.titleColor} mb-1`}
+                                >
+                                  {statusInfo.title}
+                                </h4>
+                                <p
+                                  className={`text-xs ${statusInfo.textColor}`}
+                                >
+                                  {statusInfo.message}
+                                </p>
 
-                              {/* نمایش جزئیات بیشتر برای حالت در حال بررسی */}
-                              {statusInfo.type === "pending" && (
-                                <div className="mt-2 space-y-1">
-                                  {approvedReasons.length > 0 && (
-                                    <div className="text-xs text-green-600">
-                                      ✅ {approvedReasons.length} بند تایید شده
-                                    </div>
-                                  )}
-                                  {rejectedReasons.length > 0 && (
-                                    <div className="text-xs text-red-600">
-                                      ❌ {rejectedReasons.length} بند رد شده
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                                {/* نمایش جزئیات بیشتر برای حالت در حال بررسی */}
+                                {statusInfo.type === "pending" && (
+                                  <div className="mt-2 space-y-1">
+                                    {approvedReasons.length > 0 && (
+                                      <div className="text-xs text-green-600">
+                                        ✅ {approvedReasons.length} بند تایید
+                                        شده
+                                      </div>
+                                    )}
+                                    {rejectedReasons.length > 0 && (
+                                      <div className="text-xs text-red-600">
+                                        ❌ {rejectedReasons.length} بند رد شده
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })()}
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -3331,8 +3425,9 @@ export default function DocumentReviewPage() {
                           : "مخالفت با انتقال"}
                       </h3>
                       <p className="text-sm opacity-90">
-                        فرم ثبت نظر کمیته توسعه مدیریت اداره مبنی بر موافقت با
-                        انتقال متقاضی {selectedPersonnel.fullName}
+                        {sourceOpinionType === "approve"
+                          ? `فرم ثبت نظر کمیته توسعه مدیریت اداره مبنی بر موافقت با انتقال متقاضی ${selectedPersonnel.fullName}`
+                          : `فرم ثبت نظر کمیته توسعه مدیریت اداره مبنی بر مخالفت با انتقال متقاضی ${selectedPersonnel.fullName}`}
                       </p>
                     </div>
                   </div>
@@ -3389,7 +3484,7 @@ export default function DocumentReviewPage() {
                     </div>
                     <div className="bg-white p-2 rounded border">
                       <div className="text-xs text-gray-500">
-                        منطقه محل خدمت
+                        منطقه اصلی محل خدمت (مبدأ انتقال){" "}
                       </div>
                       <div className="font-medium text-gray-900">
                         {selectedPersonnel.currentWorkPlaceCode || "نامشخص"}
@@ -4052,7 +4147,8 @@ export default function DocumentReviewPage() {
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                     <FaList className="h-5 w-5 text-indigo-600" />
-                    لیست پرسنل هم‌رشته
+                    لیست متقاضیان هم رشته/جنسیت متقاضی تجدیدنظر - به ترتیب نزولی
+                    امتیاز
                     {personnelStats?.isSharedField && (
                       <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded">
                         (رشته مشترک)

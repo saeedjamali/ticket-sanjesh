@@ -1011,8 +1011,8 @@ export default function TransferApplicantSpecsPage() {
         مثال: "دائم، موقت",
       },
       {
-        فیلد: "کد محل خدمت",
-        توضیحات: "کد منطقه محل خدمت فعلی",
+        فیلد: "منطقه اصلی محل خدمت (مبدأ انتقال)",
+        توضیحات: "کد منطقه اصلی محل خدمت (مبدأ انتقال)",
         نوع: "متن",
         الزامی: "بله",
         مثال: "1001",
@@ -1184,20 +1184,20 @@ export default function TransferApplicantSpecsPage() {
 
       // تبدیل وضعیت‌ها به فارسی
       const statusMap = {
-        user_no_action: "عدم اقدام کاربر",
-        awaiting_user_approval: "در انتظار تایید کاربر",
-        user_approval: "تایید کاربر",
-        source_review: "در حال بررسی مبدا",
-        exception_eligibility_approval: "تایید مشمولیت استثنا",
-        exception_eligibility_rejection: "رد مشمولیت استثنا",
-        source_approval: "موافقت مبدا",
-        source_rejection: "مخالفت مبدا",  
-        province_review: "در حال بررسی استان",
-        province_approval: "موافقت استان",
-        province_rejection: "مخالفت استان",
-        destination_review: "در حال بررسی مقصد",
-        destination_approval: "تایید مقصد",
-        destination_rejection: "رد مقصد",
+        user_no_action: "فاقد درخواست تجدیدنظر",
+      awaiting_user_approval: "درخواست ناقص",
+      user_approval: "در انتظار بررسی",
+      source_review: "در حال بررسی مبدا",
+      exception_eligibility_approval: "تایید مشمولیت",
+      exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
+      source_approval: "موافقت مبدا (موقت/دائم)",
+      source_rejection: "مخالفت مبدا",
+      province_review: "در حال بررسی توسط استان",
+      province_approval: "موافقت استان",
+      province_rejection: "مخالفت استان",
+      // destination_review: "در حال بررسی مقصد",
+      destination_approval: "تایید مقصد",
+      destination_rejection: "رد مقصد",
       };
 
       console.log("Total statuses received:", statuses.length);
@@ -1610,11 +1610,13 @@ export default function TransferApplicantSpecsPage() {
                   className="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2.5 transition-all duration-200 forced-color-text-black forced-color-bg-white"
                 >
                   <option value="">همه رشته‌ها</option>
-                  {helpers.employmentFields?.map((field) => (
-                    <option key={field.fieldCode} value={field.fieldCode}>
-                      {field.displayName}
-                    </option>
-                  ))}
+                  {helpers.employmentFields
+                    ?.sort((a, b) => a.fieldCode.localeCompare(b.fieldCode))
+                    .map((field) => (
+                      <option key={field.fieldCode} value={field.fieldCode}>
+                        {field.displayName}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -2407,14 +2409,18 @@ export default function TransferApplicantSpecsPage() {
                               required
                             >
                               <option value="">انتخاب کنید</option>
-                              {helpers.employmentFields?.map((field) => (
-                                <option
-                                  key={`${field.fieldCode}-${field.title}`}
-                                  value={`${field.fieldCode}-${field.title}`}
-                                >
-                                  {field.displayName}
-                                </option>
-                              ))}
+                              {helpers.employmentFields
+                                ?.sort((a, b) =>
+                                  a.fieldCode.localeCompare(b.fieldCode)
+                                )
+                                .map((field) => (
+                                  <option
+                                    key={`${field.fieldCode}-${field.title}`}
+                                    value={`${field.fieldCode}-${field.title}`}
+                                  >
+                                    {field.displayName}
+                                  </option>
+                                ))}
                             </select>
                           </div>
 

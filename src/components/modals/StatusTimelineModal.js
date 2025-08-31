@@ -121,28 +121,23 @@ export default function StatusTimelineModal({
   const getStatusText = (status) => {
     const statusMap = {
       // وضعیت‌های درخواست
-      user_no_action: "بدون اقدام کاربر",
-      awaiting_user_approval: "در انتظار تایید کاربر",
-      user_approval: "تایید کاربر",
-      pending: "در انتظار بررسی",
-      under_review: "در حال بررسی",
-      approved: "تایید شده",
-      rejected: "رد شده",
-      completed: "تکمیل شده",
-      cancelled: "لغو شده",
-
-      // وضعیت‌های انتقال
+      user_no_action: "فاقد درخواست تجدیدنظر",
+      awaiting_user_approval: "درخواست ناقص",
+      user_approval: "در انتظار بررسی",
       source_review: "در حال بررسی مبدا",
-      exception_eligibility_approval: "تایید مشمولیت استثنا",
-      exception_eligibility_rejection: "رد مشمولیت استثنا",
-      source_approval: "موافقت مبدا",
+      exception_eligibility_approval: "تایید مشمولیت",
+      exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
+      source_approval: "موافقت مبدا (موقت/دائم)",
       source_rejection: "مخالفت مبدا",
       province_review: "در حال بررسی توسط استان",
-      province_approval: "تایید استان",
-      province_rejection: "رد استان",
+      province_approval: "موافقت استان",
+      province_rejection: "مخالفت استان",
       // destination_review: "در حال بررسی مقصد",
       destination_approval: "تایید مقصد",
       destination_rejection: "رد مقصد",
+
+      // وضعیت‌های انتقال
+      // destination_review: "در حال بررسی مقصد",
       no_transfer: "بدون انتقال",
       temporary_transfer: "انتقال موقت",
       permanent_transfer: "انتقال دائم",

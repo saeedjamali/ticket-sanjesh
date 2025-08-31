@@ -417,13 +417,13 @@ TransferApplicantSpecSchema.methods.getCurrentTransferStatusText = function () {
 TransferApplicantSpecSchema.methods.getRequestStatusText = function (status) {
   const statusToCheck = status || this.currentRequestStatus;
   const statusMap = {
-    user_no_action: "در انتظار اقدام کاربر",
-    awaiting_user_approval: "در انتظار تایید کاربر",
-    user_approval: "تایید کاربر",
+    user_no_action: "فاقد درخواست تجدیدنظر",
+    awaiting_user_approval: "درخواست ناقص",
+    user_approval: "در انتظار بررسی",
     source_review: "در حال بررسی مبدا",
-    exception_eligibility_approval: "تایید مشمولیت استثنا",
-    exception_eligibility_rejection: "رد مشمولیت استثنا",
-    source_approval: "موافقت مبدا",
+    exception_eligibility_approval: "تایید مشمولیت",
+    exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
+    source_approval: "موافقت مبدا (موقت/دائم)",
     source_rejection: "مخالفت مبدا",
     province_review: "در حال بررسی توسط استان",
     province_approval: "موافقت استان",

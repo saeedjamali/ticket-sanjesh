@@ -51,7 +51,7 @@ export async function GET(request) {
     const employmentFields = await EmploymentField.find(query)
       .populate("createdBy", "firstName lastName ")
       .populate("updatedBy", "firstName lastName ")
-      .sort({ title: 1 })
+      .sort({ fieldCode: 1 })
       .skip(skip)
       .limit(limit);
 
