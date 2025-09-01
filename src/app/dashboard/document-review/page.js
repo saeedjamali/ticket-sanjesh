@@ -38,6 +38,11 @@ import { getFieldDisplayName } from "@/lib/fieldTranslations";
 export default function DocumentReviewPage() {
   const { user, userLoading } = useUser();
 
+  // State برای کنترل دسترسی
+  const [accessRestricted, setAccessRestricted] = useState(false);
+  const [accessCheckLoading, setAccessCheckLoading] = useState(false);
+  const [restrictionMessage, setRestrictionMessage] = useState("");
+
   // تابع ترجمه نوع انتقال
   const getTransferTypeText = (type) => {
     const typeMap = {
@@ -120,6 +125,71 @@ export default function DocumentReviewPage() {
     genders: [],
     districts: [],
   });
+
+  // تابع بررسی وضعیت تکمیل درخواست‌های زوج فرهنگی و اصلاح مشخصات
+  const checkAccessRequirements = useCallback(async () => {
+    setAccessCheckLoading(true);
+    try {
+      // بررسی وضعیت درخواست‌های زوج فرهنگی
+      const culturalResponse = await fetch(
+        "/api/cultural-couple-requests/completion-status",
+        {
+          credentials: "include",
+        }
+      );
+      const culturalData = await culturalResponse.json();
+
+      // بررسی وضعیت درخواست‌های اصلاح مشخصات
+      const correctionResponse = await fetch(
+        "/api/correction-requests/completion-status",
+        {
+          credentials: "include",
+        }
+      );
+      const correctionData = await correctionResponse.json();
+
+      if (culturalData.success && correctionData.success) {
+
+        const culturalCompleted = culturalData.data.isCompleted;
+        const correctionCompleted = correctionData.data.isCompleted;
+
+        console.log("culturalCompleted ====?", culturalData);
+        console.log("correctionCompleted ====?", correctionCompleted);
+
+        if (!culturalCompleted || !correctionCompleted) {
+          setAccessRestricted(true);
+          let message =
+            "برای دسترسی به این صفحه، ابتدا باید موارد زیر را تکمیل کنید:\n";
+
+          if (!culturalCompleted) {
+            message += `• ${culturalData.data.pendingRequests} درخواست زوج فرهنگی در انتظار بررسی\n`;
+          }
+
+          if (!correctionCompleted) {
+            message += `• ${correctionData.data.pendingRequests} درخواست اصلاح مشخصات در انتظار بررسی\n`;
+          }
+
+          setRestrictionMessage(message);
+        } else {
+          setAccessRestricted(false);
+          setRestrictionMessage("");
+        }
+      } else {
+        // در صورت خطا در API، اجازه دسترسی داده می‌شود
+        console.error("Error checking access requirements:", {
+          cultural: culturalData,
+          correction: correctionData,
+        });
+        setAccessRestricted(false);
+      }
+    } catch (error) {
+      console.error("Error checking access requirements:", error);
+      // در صورت خطا، اجازه دسترسی داده می‌شود
+      setAccessRestricted(false);
+    } finally {
+      setAccessCheckLoading(false);
+    }
+  }, []);
 
   // State برای تشخیص ذخیره شدن تغییرات
   const [isDataSaved, setIsDataSaved] = useState(false);
@@ -301,6 +371,24 @@ export default function DocumentReviewPage() {
     sortOrder,
     fetchAppealRequests,
   ]);
+
+  // بررسی دسترسی برای کاربران districtTransferExpert
+  useEffect(() => {
+    if (user && !userLoading && user.role === "districtTransferExpert") {
+      checkAccessRequirements();
+    }
+  }, [user, userLoading, checkAccessRequirements]);
+
+  // دریافت داده‌های اولیه برای کاربران با دسترسی
+  useEffect(() => {
+    if (
+      user &&
+      ["districtTransferExpert", "provinceTransferExpert"].includes(user.role)
+    ) {
+      fetchAppealRequests();
+      fetchApprovalReasons();
+    }
+  }, [user, fetchAppealRequests]);
 
   // دریافت دلایل موافقت و مخالفت
   const fetchApprovalReasons = async () => {
@@ -878,6 +966,67 @@ export default function DocumentReviewPage() {
   const goToNextPage = () =>
     setCurrentPage(Math.min(totalPages, currentPage + 1));
 
+  // بررسی وضعیت بارگذاری احراز هویت
+  if (userLoading || accessCheckLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">در حال بررسی دسترسی...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // بررسی محدودیت دسترسی برای کاربران districtTransferExpert
+  if (user?.role === "districtTransferExpert" && accessRestricted) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg border border-red-200 p-8">
+            <div className="text-center">
+              <FaExclamationTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                محدودیت دسترسی
+              </h1>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-red-800 whitespace-pre-line text-right">
+                  {restrictionMessage}
+                </p>
+              </div>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() =>
+                    (window.location.href =
+                      "/dashboard/cultural-couple-requests")
+                  }
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  بررسی درخواست‌های زوج فرهنگی
+                </button>
+                <button
+                  onClick={() =>
+                    (window.location.href =
+                      "/dashboard/district-correction-requests")
+                  }
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  بررسی درخواست‌های اصلاح مشخصات
+                </button>
+                <button
+                  onClick={() => (window.location.href = "/dashboard")}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  بازگشت به داشبورد
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // تغییر تعداد آیتم‌ها در هر صفحه
   const handleItemsPerPageChange = (newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage);
@@ -1394,16 +1543,6 @@ export default function DocumentReviewPage() {
 
     return statusMap[status] || status;
   };
-
-  useEffect(() => {
-    if (
-      user &&
-      ["districtTransferExpert", "provinceTransferExpert"].includes(user.role)
-    ) {
-      fetchAppealRequests();
-      fetchApprovalReasons();
-    }
-  }, [user, fetchAppealRequests]);
 
   if (userLoading) {
     return (
@@ -2153,9 +2292,7 @@ export default function DocumentReviewPage() {
                       <FaCheck className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold">
-                        بررسی و اظهارنظر مبدأ{" "}
-                      </h3>
+                      <h3 className="text-lg font-bold">بررسی و اظها </h3>
                       <p className="text-blue-100 text-sm">
                         {selectedRequest.fullName} -{" "}
                         {selectedRequest.nationalId}
