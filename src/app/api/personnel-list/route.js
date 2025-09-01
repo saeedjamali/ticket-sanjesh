@@ -4,6 +4,7 @@ import connectDB from "@/lib/db";
 import TransferApplicantSpec from "@/models/TransferApplicantSpec";
 import EmploymentField from "@/models/EmploymentField";
 import { authService } from "@/lib/auth/authService";
+import dbConnect from "@/lib/dbConnect";
 
 // GET /api/personnel-list - دریافت لیست کاربران هم‌رشته و هم‌جنس
 export async function GET(request) {
@@ -27,7 +28,7 @@ export async function GET(request) {
       );
     }
 
-    await connectDB();
+    await dbConnect();
 
     const url = new URL(request.url);
     const personnelCode = url.searchParams.get("personnelCode");

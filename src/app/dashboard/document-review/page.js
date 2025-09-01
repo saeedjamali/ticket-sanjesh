@@ -152,8 +152,6 @@ export default function DocumentReviewPage() {
         const culturalCompleted = culturalData.data.isCompleted;
         const correctionCompleted = correctionData.data.isCompleted;
 
-        console.log("culturalCompleted ====?", culturalData);
-        console.log("correctionCompleted ====?", correctionCompleted);
 
         if (!culturalCompleted || !correctionCompleted) {
           setAccessRestricted(true);
@@ -1266,7 +1264,7 @@ export default function DocumentReviewPage() {
         `/api/personnel-stats?personnelCode=${personnelCode}&districtCode=${districtCode}`
       );
       const data = await response.json();
-
+      console.log("data ====?", data);
       if (data.success) {
         setPersonnelStats(data.data);
       } else {

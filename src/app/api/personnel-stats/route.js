@@ -4,6 +4,7 @@ import connectDB from "@/lib/db";
 import TransferApplicantSpec from "@/models/TransferApplicantSpec";
 import EmploymentField from "@/models/EmploymentField";
 import { authService } from "@/lib/auth/authService";
+import dbConnect from "@/lib/dbConnect";
 
 // GET /api/personnel-stats - دریافت آمار وضعیت کاربران هم‌رشته و هم‌جنس
 export async function GET(request) {
@@ -27,11 +28,13 @@ export async function GET(request) {
       );
     }
 
-    await connectDB();
+    await dbConnect();
 
     const url = new URL(request.url);
     const personnelCode = url.searchParams.get("personnelCode");
     const districtCode = url.searchParams.get("districtCode");
+
+    console.log("districtCode--->", districtCode);
 
     if (!personnelCode || !districtCode) {
       return NextResponse.json(
@@ -52,7 +55,7 @@ export async function GET(request) {
       );
     }
 
-    // console.log("targetPersonnel----------->", targetPersonnel);
+    console.log("targetPersonnel----------->", targetPersonnel);
     const { fieldCode, gender, employmentField } = targetPersonnel;
 
     if (!fieldCode || !gender) {
