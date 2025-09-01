@@ -152,7 +152,6 @@ export default function DocumentReviewPage() {
         const culturalCompleted = culturalData.data.isCompleted;
         const correctionCompleted = correctionData.data.isCompleted;
 
-
         if (!culturalCompleted || !correctionCompleted) {
           setAccessRestricted(true);
           let message =
@@ -2289,7 +2288,10 @@ export default function DocumentReviewPage() {
                       <FaCheck className="h-6 w-6" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold">بررسی و اظها </h3>
+                      <h3 className="text-lg font-bold">
+                        فرم بررسی و اظهارنظر وضعیت شمولیت بندهای انتخابی توسط
+                        متقاضی
+                      </h3>
                       <p className="text-blue-100 text-sm">
                         {selectedRequest.fullName} -{" "}
                         {selectedRequest.nationalId}
