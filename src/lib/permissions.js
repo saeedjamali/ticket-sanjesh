@@ -637,7 +637,7 @@ export function getMenuItemsByRole(role, pendingFormsCount = 0) {
   // منوی بررسی مستندات و تاییدات - برای کارشناس امور اداری منطقه و استان
   if (
     // ||role === ROLES.DISTRICT_TRANSFER_EXPERT
-     role === ROLES.DISTRICT_TRANSFER_EXPERT ||
+    //  role === ROLES.DISTRICT_TRANSFER_EXPERT ||
     role === ROLES.PROVINCE_TRANSFER_EXPERT
   ) {
     activeMenuItems.push({
