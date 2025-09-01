@@ -149,7 +149,6 @@ export default function DocumentReviewPage() {
       const correctionData = await correctionResponse.json();
 
       if (culturalData.success && correctionData.success) {
-
         const culturalCompleted = culturalData.data.isCompleted;
         const correctionCompleted = correctionData.data.isCompleted;
 
