@@ -340,6 +340,7 @@ export default function TransferApplicantSpecsPage() {
     }
   }, [user?.role, user?.district?.code, showModal]);
 
+  // console.log("formData---->", formData);
   // تابع helper برای validate کردن کد منطقه
   const validateDistrictCode = (code) => {
     const district = helpers.districts.find((d) => d.code === code);
@@ -1185,19 +1186,19 @@ export default function TransferApplicantSpecsPage() {
       // تبدیل وضعیت‌ها به فارسی
       const statusMap = {
         user_no_action: "فاقد درخواست تجدیدنظر",
-      awaiting_user_approval: "درخواست ناقص",
-      user_approval: "در انتظار بررسی",
-      source_review: "در حال بررسی مبدا",
-      exception_eligibility_approval: "تایید مشمولیت",
-      exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
-      source_approval: "موافقت مبدا (موقت/دائم)",
-      source_rejection: "مخالفت مبدا",
-      province_review: "در حال بررسی توسط استان",
-      province_approval: "موافقت استان",
-      province_rejection: "مخالفت استان",
-      // destination_review: "در حال بررسی مقصد",
-      destination_approval: "تایید مقصد",
-      destination_rejection: "رد مقصد",
+        awaiting_user_approval: "درخواست ناقص",
+        user_approval: "در انتظار بررسی",
+        source_review: "در حال بررسی مبدا",
+        exception_eligibility_approval: "تایید مشمولیت",
+        exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
+        source_approval: "موافقت مبدا (موقت/دائم)",
+        source_rejection: "مخالفت مبدا",
+        province_review: "در حال بررسی توسط استان",
+        province_approval: "موافقت استان",
+        province_rejection: "مخالفت استان",
+        // destination_review: "در حال بررسی مقصد",
+        destination_approval: "تایید مقصد",
+        destination_rejection: "رد مقصد",
       };
 
       console.log("Total statuses received:", statuses.length);
@@ -2997,6 +2998,10 @@ export default function TransferApplicantSpecsPage() {
                             </label>
                             <select
                               value={formData.requestStatus}
+                              disabled={
+                                formData.requestStatus === "user_no_action" &&
+                                user.role === "districtTransferExpert"
+                              }
                               onChange={(e) =>
                                 setFormData({
                                   ...formData,
