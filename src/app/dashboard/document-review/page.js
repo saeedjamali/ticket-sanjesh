@@ -1924,6 +1924,11 @@ export default function DocumentReviewPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
+                    {user?.role === "provinceTransferExpert" && (
+                      <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        کد منطقه
+                      </th>
+                    )}
                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       اطلاعات متقاضی
                     </th>
@@ -1956,6 +1961,19 @@ export default function DocumentReviewPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedRequests.map((request) => (
                     <tr key={request._id} className="hover:bg-gray-50">
+                      {/* ستون کد منطقه - فقط برای کاربران استان - اولین ستون */}
+                      {user?.role === "provinceTransferExpert" && (
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="text-sm font-medium text-gray-900">
+                            {request.districtCode || "-"}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {getDistrictName(request.districtCode) ||
+                              "نام منطقه نامشخص"}
+                          </div>
+                        </td>
+                      )}
+
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="text-right">
                           <div className="text-sm font-medium text-gray-900">
