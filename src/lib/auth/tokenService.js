@@ -11,7 +11,7 @@ const JWT_REFRESH_EXPIRATION = process.env.JWT_REFRESH_EXPIRATION || "7d";
 // تبدیل زمان‌های انقضا به ثانیه
 const parseExpiration = (exp) => {
   const match = exp.match(/^(\d+)([mhd])$/);
-  if (!match) return 15 * 60; // default to 15 minutes in seconds
+  if (!match) return 60 * 60; // default to 15 minutes in seconds
 
   const [, value, unit] = match;
   const multipliers = {

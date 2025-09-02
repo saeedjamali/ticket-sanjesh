@@ -1,6 +1,6 @@
 export const AUTH_CONFIG = {
   JWT_SECRET: process.env.JWT_SECRET || "your-secret-key",
-  ACCESS_TOKEN_EXPIRY: "15m", // 15 minutes
+  ACCESS_TOKEN_EXPIRY: "1h", // 15 minutes
   REFRESH_TOKEN_EXPIRY: "7d", // 7 days
   COOKIE_OPTIONS: {
     httpOnly: true,

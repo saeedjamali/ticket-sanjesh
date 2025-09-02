@@ -2022,7 +2022,7 @@ export default function EmergencyTransferPage() {
         // اگر userSpecs وجود ندارد یا وضعیت awaiting_user_approval نیست
         if (
           !userSpecs ||
-          userSpecs.currentRequestStatus !== "awaiting_user_approval"
+          userSpecs.currentRequestStatus === "user_no_action"
         ) {
           setAccessRestricted(true);
           setRestrictionMessage(

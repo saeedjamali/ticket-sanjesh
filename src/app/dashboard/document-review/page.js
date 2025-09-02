@@ -88,6 +88,7 @@ export default function DocumentReviewPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [employmentFieldFilter, setEmploymentFieldFilter] = useState("");
   const [genderFilter, setGenderFilter] = useState("");
+  const [districtCodeFilter, setDistrictCodeFilter] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [sortOrder, setSortOrder] = useState("desc");
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -124,6 +125,7 @@ export default function DocumentReviewPage() {
     employmentFields: [],
     genders: [],
     districts: [],
+    districtCodes: [],
   });
 
   // تابع بررسی وضعیت تکمیل درخواست‌های زوج فرهنگی و اصلاح مشخصات
@@ -301,10 +303,26 @@ export default function DocumentReviewPage() {
       const data = await response.json();
 
       if (data.success) {
+        // استخراج مناطق منحصر به فرد با کد و نام
+        const uniqueDistricts = (data.districts || [])
+          .filter((d) => d.code && d.name)
+          .reduce((acc, district) => {
+            const exists = acc.find((item) => item.code === district.code);
+            if (!exists) {
+              acc.push({
+                code: district.code,
+                name: district.name,
+              });
+            }
+            return acc;
+          }, [])
+          .sort((a, b) => a.code.localeCompare(b.code));
+
         setHelpers({
           employmentFields: data.employmentFields || [],
           genders: data.genders || [],
           districts: data.districts || [],
+          districtCodes: uniqueDistricts,
         });
       }
     } catch (error) {
@@ -323,6 +341,9 @@ export default function DocumentReviewPage() {
       }
       if (genderFilter) {
         params.append("gender", genderFilter);
+      }
+      if (districtCodeFilter) {
+        params.append("districtCode", districtCodeFilter);
       }
       if (sortBy) {
         params.append("sortBy", sortBy);
@@ -350,7 +371,13 @@ export default function DocumentReviewPage() {
     } finally {
       setLoading(false);
     }
-  }, [employmentFieldFilter, genderFilter, sortBy, sortOrder]);
+  }, [
+    employmentFieldFilter,
+    genderFilter,
+    districtCodeFilter,
+    sortBy,
+    sortOrder,
+  ]);
 
   // دریافت اولیه داده‌ها
   useEffect(() => {
@@ -547,7 +574,12 @@ export default function DocumentReviewPage() {
           "کد ملی": request.nationalId || "-",
           "کد پرسنلی": request.personnelCode || "-",
           "شماره تماس": request.phone || "-",
-          "جنسیت": request.gender === "male" ? "مرد" : request.gender === "female" ? "زن" : "-",
+          جنسیت:
+            request.gender === "male"
+              ? "مرد"
+              : request.gender === "female"
+              ? "زن"
+              : "-",
           "کد مبدا":
             ts?.sourceDistrictCode ||
             request.districtCode ||
@@ -690,7 +722,11 @@ export default function DocumentReviewPage() {
             return approvedReasons
               .map((sr) => {
                 const reason = sr.reasonId;
-                return reason?.title || reason?.reasonTitle || `بند ${reason?.reasonCode || "نامشخص"}`;
+                return (
+                  reason?.title ||
+                  reason?.reasonTitle ||
+                  `بند ${reason?.reasonCode || "نامشخص"}`
+                );
               })
               .join(" | ");
           })(),
@@ -931,8 +967,15 @@ export default function DocumentReviewPage() {
 
     const matchesGender = !genderFilter || request.gender === genderFilter;
 
+    const matchesDistrictCode =
+      !districtCodeFilter || request.districtCode === districtCodeFilter;
+
     return (
-      matchesSearch && matchesStatus && matchesEmploymentField && matchesGender
+      matchesSearch &&
+      matchesStatus &&
+      matchesEmploymentField &&
+      matchesGender &&
+      matchesDistrictCode
     );
   });
 
@@ -964,6 +1007,7 @@ export default function DocumentReviewPage() {
     statusFilter,
     employmentFieldFilter,
     genderFilter,
+    districtCodeFilter,
     sortBy,
     sortOrder,
   ]);
@@ -1782,6 +1826,27 @@ export default function DocumentReviewPage() {
                     ))}
                   </select>
                 </div>
+
+                {/* فیلتر کد منطقه - فقط برای کاربران استان */}
+                {user?.role === "provinceTransferExpert" && (
+                  <div className="md:w-48">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      کد منطقه
+                    </label>
+                    <select
+                      value={districtCodeFilter}
+                      onChange={(e) => setDistrictCodeFilter(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">همه مناطق</option>
+                      {helpers.districtCodes?.map((district) => (
+                        <option key={district.code} value={district.code}>
+                          {district.code} - {district.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* مرتب‌سازی براساس امتیاز */}
                 <div className="md:w-48">

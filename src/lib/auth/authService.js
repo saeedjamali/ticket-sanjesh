@@ -19,7 +19,6 @@ class AuthService {
         .populate("district", "name code")
         .populate("examCenter", "name code");
 
-      console.log("user in AuthService Login---->", user);
       // Check if user exists
       if (!user) {
         throw new Error("کد ملی یا رمز عبور اشتباه است");
@@ -64,7 +63,6 @@ class AuthService {
         phone: user.phone,
       };
 
-      console.log("userData---->", userData);
       return {
         accessToken,
         refreshToken,

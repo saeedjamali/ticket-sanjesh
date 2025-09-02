@@ -39,6 +39,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const employmentField = searchParams.get("employmentField") || "";
     const gender = searchParams.get("gender") || "";
+    const districtCode = searchParams.get("districtCode") || "";
     const sortBy = searchParams.get("sortBy") || "";
     const sortOrder = searchParams.get("sortOrder") || "desc";
 
@@ -85,6 +86,11 @@ export async function GET(request) {
       }
 
       query.provinceCode = userProvinceCode;
+
+      // اگر فیلتر کد منطقه ارسال شده، اعمال کن
+      if (districtCode) {
+        query.districtCode = districtCode;
+      }
     }
 
     // دریافت سال تحصیلی فعال
