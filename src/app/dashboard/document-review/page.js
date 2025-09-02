@@ -547,6 +547,7 @@ export default function DocumentReviewPage() {
           "کد ملی": request.nationalId || "-",
           "کد پرسنلی": request.personnelCode || "-",
           "شماره تماس": request.phone || "-",
+          "جنسیت": request.gender === "male" ? "مرد" : request.gender === "female" ? "زن" : "-",
           "کد مبدا":
             ts?.sourceDistrictCode ||
             request.districtCode ||
@@ -677,6 +678,22 @@ export default function DocumentReviewPage() {
 
           // اضافه کردن ستون‌های دلایل
           ...reasonsColumns,
+
+          // بندهای تایید شده اداره
+          "بندهای تایید شده اداره": (() => {
+            const approvedReasons = request.selectedReasons?.filter(
+              (sr) => sr.review?.status === "approved"
+            );
+            if (!approvedReasons || approvedReasons.length === 0) {
+              return "-";
+            }
+            return approvedReasons
+              .map((sr) => {
+                const reason = sr.reasonId;
+                return reason?.title || reason?.reasonTitle || `بند ${reason?.reasonCode || "نامشخص"}`;
+              })
+              .join(" | ");
+          })(),
 
           // اطلاعات زوج فرهنگی
           "زوج فرهنگی": request.culturalCoupleInfo?.personnelCode
