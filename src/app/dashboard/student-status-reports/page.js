@@ -188,6 +188,7 @@ export default function StudentStatusReportsPage() {
   };
 
   const handleDistrictClick = (districtId) => {
+    console.log("districtId----->", districtId);
     const params = new URLSearchParams();
     if (filters.course) params.append("course", filters.course);
     if (filters.branch) params.append("branch", filters.branch);
@@ -252,16 +253,19 @@ export default function StudentStatusReportsPage() {
   // برای تب districts: فیلتر کردن مناطق بر اساس نقش کاربر
   const getDistrictsForTab = () => {
     if (user?.role === "districtRegistrationExpert") {
+      console.log("user---->", user);
       return filteredDistricts.filter(
         (districtData) =>
-          districtData.district._id === user?.district ||
-          districtData.district.code === user?.districtCode
+          districtData.district._id === user?.district._id ||
+          districtData.district.code === user?.district.code
       );
     }
     return filteredDistricts;
   };
 
   const districtsForTab = getDistrictsForTab();
+
+  console.log("districtsForTab---->", districtsForTab);
   const displayedDistrictsForTab = districtsForTab.slice(0, gridSize);
 
   return (
