@@ -253,7 +253,6 @@ export default function StudentStatusReportsPage() {
   // برای تب districts: فیلتر کردن مناطق بر اساس نقش کاربر
   const getDistrictsForTab = () => {
     if (user?.role === "districtRegistrationExpert") {
-      console.log("user---->", user);
       return filteredDistricts.filter(
         (districtData) =>
           districtData.district._id === user?.district._id ||
@@ -265,7 +264,6 @@ export default function StudentStatusReportsPage() {
 
   const districtsForTab = getDistrictsForTab();
 
-  console.log("districtsForTab---->", districtsForTab);
   const displayedDistrictsForTab = districtsForTab.slice(0, gridSize);
 
   return (
