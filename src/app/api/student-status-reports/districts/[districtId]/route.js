@@ -31,7 +31,7 @@ export async function GET(request, { params }) {
     // بررسی دسترسی کاربر به منطقه
     if (user.role === "provinceRegistrationExpert" && user.province) {
       const district = await District.findById(districtId).populate("province");
-
+      console.log("district---->", district);
       if (
         !district ||
         district.province._id.toString() !== user.province._id.toString()
@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
         );
       }
     } else if (user.role === "districtRegistrationExpert" && user.district) {
-      if (districtId !== user.district.toString()) {
+      if (districtId !== user.district._id.toString()) {
         return NextResponse.json(
           { success: false, message: "دسترسی به این منطقه ندارید" },
           { status: 403 }
@@ -50,7 +50,6 @@ export async function GET(request, { params }) {
       }
     }
 
-    console.log("🔍 districtIdddddddddddddddddddd:----->", districtId);
     // دریافت اطلاعات منطقه
     const district = await District.findById(districtId).populate(
       "province",

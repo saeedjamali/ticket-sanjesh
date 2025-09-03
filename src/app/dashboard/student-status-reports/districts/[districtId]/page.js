@@ -133,7 +133,7 @@ export default function DistrictDetailPage() {
         setCurrentYear(result.data.currentYear);
         setPreviousYear(result.data.previousYear);
 
-        console.log("🔍 Schools:----->", result.data);
+        // console.log("🔍 Schools:----->", result.data);
       } else {
         const errorData = await response.json();
         toast.error(errorData.message || "خطا در دریافت داده‌ها");
