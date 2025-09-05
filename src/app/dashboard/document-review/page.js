@@ -34,10 +34,11 @@ import {
 import * as XLSX from "xlsx";
 import ChatButton from "@/components/chat/ChatButton";
 import { getFieldDisplayName } from "@/lib/fieldTranslations";
+import { useSidebar } from "@/context/SidebarContext";
 
 export default function DocumentReviewPage() {
   const { user, userLoading } = useUser();
-
+  const { isOpen, toggleSidebar, openSubmenu, toggleSubmenu, isMobile,setIsOpen } =useSidebar();
   // State برای کنترل دسترسی
   const [accessRestricted, setAccessRestricted] = useState(false);
   const [accessCheckLoading, setAccessCheckLoading] = useState(false);
@@ -369,6 +370,7 @@ export default function DocumentReviewPage() {
       console.error("Error fetching appeal requests:", error);
       toast.error("خطا در دریافت درخواست‌ها");
     } finally {
+      setIsOpen(false)
       setLoading(false);
     }
   }, [
@@ -2226,8 +2228,8 @@ export default function DocumentReviewPage() {
 
                           if (!hasValidStatus) {
                             return (
-                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs wrap-text bg-red-100 text-red-700">
-                                <FaExclamationTriangle className="h-3 w-3" />
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[8px] wrap-text bg-red-100 text-red-700">
+                                <FaExclamationTriangle className="h-3 w-3 wrap-anywhere" />
                                 فاقد رتبه به دلیل نوع وضعیت{" "}
                               </span>
                             );
@@ -2312,7 +2314,7 @@ export default function DocumentReviewPage() {
 
                           {request.currentRequestStatus ===
                             "exception_eligibility_approval" && (
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 flex-col">
                               <button
                                 onClick={() =>
                                   openSourceOpinionModal(request, "approve")

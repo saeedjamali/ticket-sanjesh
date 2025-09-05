@@ -65,6 +65,7 @@ export function SidebarProvider({ children }) {
       value={{
         isOpen,
         toggleSidebar,
+        setIsOpen,
         openSubmenu,
         toggleSubmenu,
         isMobile,
