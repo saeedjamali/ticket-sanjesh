@@ -870,10 +870,29 @@ export default function DocumentReviewPage() {
           "کد رای کمیسیون پزشکی": ts?.medicalCommissionCode || "-",
           "رای کمیسیون پزشکی": ts?.medicalCommissionVerdict || "-",
           "امتیاز تایید شده": ts?.approvedScore || "-",
-          "ردیف در رشته/همجنس":
-            request.rankInGroup && request.totalInGroup
-              ? `${request.rankInGroup} از ${request.totalInGroup}`
-              : "-",
+          "ردیف در رشته/همجنس": (() => {
+            // وضعیت‌هایی که مجاز به نمایش رتبه هستند
+            const validStatuses = [
+              "user_approval",
+              "source_review",
+              "exception_eligibility_approval",
+              "source_approval",
+            ];
+
+            const hasValidStatus = validStatuses.includes(
+              request.currentRequestStatus
+            );
+
+            if (!hasValidStatus) {
+              return "فاقد شرایط";
+            }
+
+            if (request.rankInGroup && request.totalInGroup) {
+              return `${request.rankInGroup} از ${request.totalInGroup}`;
+            }
+
+            return "در حال محاسبه";
+          })(),
           "نوع گروه‌بندی": (() => {
             if (!request.groupKey) return "-";
             const isShared = !request.groupKey.includes("gender");
@@ -2189,46 +2208,77 @@ export default function DocumentReviewPage() {
                         )}
                       </td>
 
-                      {/* ستون ردیف و رتبه در رشته/همجنس */}
+                      {/* ستون رتبه در رشته/همجنس */}
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {request.rankInGroup !== null &&
-                        request.rankInGroup !== undefined &&
-                        request.totalInGroup !== null &&
-                        request.totalInGroup !== undefined ? (
-                          <div className="flex flex-col items-center">
-                            <span className="text-lg font-bold text-green-600">
-                              {request.rankInGroup}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              از {request.totalInGroup}
-                            </span>
-                            <span className="text-xs text-gray-400 mt-1">
-                              {(() => {
-                                // تعیین نوع گروه برای نمایش
-                                if (!request.groupKey) return "";
+                        {(() => {
+                          // وضعیت‌هایی که مجاز به نمایش رتبه هستند
+                          const validStatuses = [
+                            "user_approval",
+                            "source_review",
+                            "exception_eligibility_approval",
+                            "source_approval",
+                          ];
 
-                                const isShared =
-                                  !request.groupKey.includes("gender");
-                                if (isShared) {
-                                  return "رشته مشترک";
-                                } else {
-                                  const gender =
-                                    request.gender === "male"
-                                      ? "مرد"
-                                      : request.gender === "female"
-                                      ? "زن"
-                                      : "نامشخص";
-                                  return `${gender} - رشته ${request.fieldCode}`;
-                                }
-                              })()}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
-                            <FaExclamationTriangle className="h-3 w-3" />
-                            نامشخص
-                          </span>
-                        )}
+                          // بررسی اینکه آیا وضعیت فعلی در لیست مجاز است
+                          const hasValidStatus = validStatuses.includes(
+                            request.currentRequestStatus
+                          );
+
+                          if (!hasValidStatus) {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs wrap-text bg-red-100 text-red-700">
+                                <FaExclamationTriangle className="h-3 w-3" />
+                              فاقد رتبه به دلیل نوع وضعیت                           </span>
+                            );
+                          }
+
+                          // اگر وضعیت معتبر است اما رتبه محاسبه نشده
+                          if (
+                            request.rankInGroup === null ||
+                            request.rankInGroup === undefined ||
+                            request.totalInGroup === null ||
+                            request.totalInGroup === undefined
+                          ) {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">
+                                <FaSpinner className="h-3 w-3 animate-spin" />
+                                در حال محاسبه
+                              </span>
+                            );
+                          }
+
+                          // نمایش رتبه
+                          return (
+                            <div className="flex flex-col items-center">
+                              <span className="text-lg font-bold text-green-600">
+                                {request.rankInGroup}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                از {request.totalInGroup}
+                              </span>
+                              <span className="text-xs text-gray-400 mt-1">
+                                {(() => {
+                                  // تعیین نوع گروه برای نمایش
+                                  if (!request.groupKey) return "";
+
+                                  const isShared =
+                                    !request.groupKey.includes("gender");
+                                  if (isShared) {
+                                    return "رشته مشترک";
+                                  } else {
+                                    const gender =
+                                      request.gender === "male"
+                                        ? "مرد"
+                                        : request.gender === "female"
+                                        ? "زن"
+                                        : "نامشخص";
+                                    return `${gender} - رشته ${request.employmentField}`;
+                                  }
+                                })()}
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       {/* ستون پیام‌ها */}
