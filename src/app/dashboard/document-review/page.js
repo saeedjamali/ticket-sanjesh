@@ -1955,7 +1955,7 @@ export default function DocumentReviewPage() {
                     </th>
                     {/* <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       جنسیت
-                    </th>*/}
+                    </th> */}
                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       رشته استخدامی
                     </th>
@@ -2123,13 +2123,20 @@ export default function DocumentReviewPage() {
                             <div className="text-xs text-gray-400 mb-1">
                               درخواست:
                             </div>
-                            <div className="text-xs">
+                            {/* <div className="text-xs">
                               {new Date(request.createdAt).toLocaleDateString(
                                 "fa-IR",
                                 {
                                   year: "numeric",
                                   month: "long",
                                   day: "numeric",
+                                }
+                              )}
+                            </div> */}
+                            <div className="text-xs">
+                              {new Date(request.createdAt).toLocaleDateString(
+                                "fa-IR",
+                                {
                                   hour: "2-digit",
                                   minute: "2-digit",
                                 }
@@ -2142,13 +2149,19 @@ export default function DocumentReviewPage() {
                             <div className="text-xs text-gray-400 mb-1">
                               بروزرسانی:
                             </div>
-                            <div className="text-xs">
+                            {/* <div className="text-xs">
                               {new Date(
                                 request.updatedAt || request.createdAt
                               ).toLocaleDateString("fa-IR", {
                                 year: "numeric",
                                 month: "long",
                                 day: "numeric",
+                              })}
+                            </div> */}
+                            <div className="text-xs">
+                              {new Date(
+                                request.updatedAt || request.createdAt
+                              ).toLocaleDateString("fa-IR", {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })}
