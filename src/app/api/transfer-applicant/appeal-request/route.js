@@ -20,7 +20,11 @@ export async function POST(request) {
     }
 
     // بررسی دسترسی - فقط کاربران transferApplicant
-    if (userAuth.role !== "transferApplicant") {
+    if (
+      userAuth.role !== "transferApplicant" ||
+      userAuth.role !== "districtTransferExpert" ||
+      userAuth.role !== "provinceTransferExpert"
+    ) {
       return NextResponse.json(
         { success: false, error: "عدم دسترسی" },
         { status: 403 }
@@ -304,8 +308,14 @@ export async function GET(request) {
       );
     }
 
-    // بررسی دسترسی - فقط کاربران transferApplicant
-    if (userAuth.role !== "transferApplicant") {
+    // بررسی دسترسی - کاربران transferApplicant، districtTransferExpert، provinceTransferExpert
+    if (
+      ![
+        "transferApplicant",
+        "districtTransferExpert",
+        "provinceTransferExpert",
+      ].includes(userAuth.role)
+    ) {
       return NextResponse.json(
         { success: false, error: "عدم دسترسی" },
         { status: 403 }
@@ -314,10 +324,29 @@ export async function GET(request) {
 
     await connectDB();
 
-    // دریافت درخواست‌های کاربر
-    const appealRequests = await AppealRequest.find({
-      userId: userAuth.id,
-    })
+    // دریافت پارامتر nationalId از query string
+    const { searchParams } = new URL(request.url);
+    const nationalId = searchParams.get("nationalId");
+
+    // ساخت query بر اساس نقش کاربر و پارامترهای ارسالی
+    let query = {};
+
+    if (userAuth.role === "transferApplicant") {
+      // کاربران عادی فقط درخواست‌های خودشان را می‌بینند
+      query.userId = userAuth.id;
+    } else if (nationalId) {
+      // کارشناسان می‌توانند با nationalId جستجو کنند
+      query.nationalId = nationalId;
+    } else {
+      // اگر nationalId ارسال نشده، کارشناسان نمی‌توانند دسترسی داشته باشند
+      return NextResponse.json(
+        { success: false, error: "پارامتر nationalId الزامی است" },
+        { status: 400 }
+      );
+    }
+
+    // دریافت درخواست‌ها
+    const appealRequests = await AppealRequest.find(query)
       .populate("selectedReasons.reasonId", "title reasonTitle description")
       .populate("chatMessages.senderId", "firstName lastName")
       .sort({ createdAt: -1 });

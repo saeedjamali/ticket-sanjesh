@@ -24,10 +24,12 @@ import {
   FaUpload,
   FaDownload,
   FaCloudUploadAlt,
+  FaClipboardList,
   FaFileImport,
   FaHistory,
   FaCog,
   FaColumns,
+  FaInfoCircle,
 } from "react-icons/fa";
 
 export default function TransferApplicantSpecsPage() {
@@ -84,6 +86,14 @@ export default function TransferApplicantSpecsPage() {
   const [selectedSpecForTimeline, setSelectedSpecForTimeline] = useState(null);
   const [uploadResults, setUploadResults] = useState(null);
   const [showColumnSelector, setShowColumnSelector] = useState(false);
+
+  // State های مربوط به ویرایش بندهای دلیل
+  const [showEditReasonsModal, setShowEditReasonsModal] = useState(false);
+  const [selectedSpecForReasons, setSelectedSpecForReasons] = useState(null);
+  const [availableReasons, setAvailableReasons] = useState([]);
+  const [selectedReasons, setSelectedReasons] = useState([]);
+  const [loadingReasons, setLoadingReasons] = useState(false);
+  const [savingReasons, setSavingReasons] = useState(false);
 
   // تعریف ستون‌های موجود
   const availableColumns = [
@@ -670,6 +680,139 @@ export default function TransferApplicantSpecsPage() {
       nationalId: spec.nationalId,
     });
     setShowTimelineModal(true);
+  };
+
+  // تابع بررسی اینکه آیا متقاضی درخواست AppealRequest دارد یا خیر
+  const checkHasAppealRequest = async (nationalId) => {
+    try {
+      const response = await fetch(
+        `/api/transfer-applicant/appeal-request?nationalId=${nationalId}`,
+        {
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      return (
+        data.success && data.appealRequests && data.appealRequests.length > 0
+      );
+    } catch (error) {
+      console.error("Error checking appeal request:", error);
+      return false;
+    }
+  };
+
+  // تابع باز کردن مدال ویرایش بندهای دلیل
+  const handleEditReasons = async (spec) => {
+    // ابتدا بررسی کنیم که آیا این کاربر درخواست AppealRequest دارد یا خیر
+    const hasAppealRequest = await checkHasAppealRequest(spec.nationalId);
+
+    if (!hasAppealRequest) {
+      toast.error("این متقاضی درخواست تجدیدنظر ندارد");
+      return;
+    }
+
+    setSelectedSpecForReasons(spec);
+    setShowEditReasonsModal(true);
+
+    // بارگذاری دلایل موجود و انتخاب شده
+    await Promise.all([
+      loadAvailableReasons(),
+      loadCurrentReasons(spec.nationalId),
+    ]);
+  };
+
+  // تابع بارگذاری دلایل موجود از TransferReasons
+  const loadAvailableReasons = async () => {
+    try {
+      setLoadingReasons(true);
+      const response = await fetch("/api/transfer-settings/transfer-reasons", {
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setAvailableReasons(data.reasons || []);
+      } else {
+        toast.error("خطا در بارگذاری دلایل انتقال");
+      }
+    } catch (error) {
+      console.error("Error loading transfer reasons:", error);
+      toast.error("خطا در بارگذاری دلایل انتقال");
+    } finally {
+      setLoadingReasons(false);
+    }
+  };
+
+  // تابع بارگذاری دلایل انتخاب شده فعلی از AppealRequest
+  const loadCurrentReasons = async (nationalId) => {
+    try {
+      const response = await fetch(
+        `/api/transfer-applicant/appeal-request?nationalId=${nationalId}`,
+        {
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+
+      if (
+        data.success &&
+        data.appealRequests &&
+        data.appealRequests.length > 0
+      ) {
+        const appealRequest = data.appealRequests[0]; // فرض می‌کنیم یک درخواست دارد
+        const currentReasonIds =
+          appealRequest.selectedReasons?.map((reason) =>
+            typeof reason.reasonId === "string"
+              ? reason.reasonId
+              : reason.reasonId._id
+          ) || [];
+        setSelectedReasons(currentReasonIds);
+      }
+    } catch (error) {
+      console.error("Error loading current reasons:", error);
+      toast.error("خطا در بارگذاری دلایل فعلی");
+    }
+  };
+
+  // تابع ذخیره تغییرات دلایل
+  const handleSaveReasons = async () => {
+    if (!selectedSpecForReasons) return;
+
+    try {
+      setSavingReasons(true);
+
+      const response = await fetch(
+        "/api/transfer-applicant/appeal-request/update-reasons",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            nationalId: selectedSpecForReasons.nationalId,
+            selectedReasons: selectedReasons,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success(data.message || "دلایل انتقال با موفقیت به‌روزرسانی شد");
+        setShowEditReasonsModal(false);
+
+        // بروزرسانی لیست متقاضیان برای نمایش وضعیت جدید
+        fetchSpecs();
+      } else {
+        toast.error(data.error || "خطا در ذخیره دلایل");
+      }
+    } catch (error) {
+      console.error("Error saving reasons:", error);
+      toast.error("خطا در ذخیره دلایل");
+    } finally {
+      setSavingReasons(false);
+    }
   };
 
   const handleEdit = (spec) => {
@@ -1970,6 +2113,18 @@ export default function TransferApplicantSpecsPage() {
                           >
                             <FaEdit className="h-4 w-4" />
                           </button>
+
+                          {/* دکمه ویرایش بندهای دلیل - فقط برای کارشناسان */}
+                          {(user?.role === "districtTransferExpert" ||
+                            user?.role === "provinceTransferExpert") && (
+                            <button
+                              onClick={() => handleEditReasons(spec)}
+                              className="text-purple-600 hover:text-purple-800 transition-colors"
+                              title="ویرایش بندهای دلیل"
+                            >
+                              <FaClipboardList className="h-4 w-4" />
+                            </button>
+                          )}
                           {/* دکمه حذف فقط برای مدیر سیستم و کارشناس استان */}
                           {(user?.role === "systemAdmin" ||
                             user?.role === "provinceTransferExpert") && (
@@ -3417,6 +3572,154 @@ export default function TransferApplicantSpecsPage() {
         specId={selectedSpecForTimeline?.id}
         specInfo={selectedSpecForTimeline}
       />
+      {/* مدال ویرایش بندهای دلیل */}
+      {showEditReasonsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">
+                  ویرایش بندهای دلیل انتقال
+                </h2>
+                <button
+                  onClick={() => setShowEditReasonsModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <FaTimes className="h-5 w-5" />
+                </button>
+              </div>
+
+              {selectedSpecForReasons && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-medium text-gray-900 mb-2">
+                    اطلاعات متقاضی:
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">نام:</span>{" "}
+                      <span className="font-medium">
+                        {selectedSpecForReasons.firstName}{" "}
+                        {selectedSpecForReasons.lastName}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">کد ملی:</span>{" "}
+                      <span className="font-medium">
+                        {selectedSpecForReasons.nationalId}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">کد پرسنلی:</span>{" "}
+                      <span className="font-medium">
+                        {selectedSpecForReasons.personnelCode}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {loadingReasons ? (
+                <div className="flex items-center justify-center py-8">
+                  <FaSpinner className="animate-spin h-6 w-6 text-blue-600" />
+                  <span className="mr-2">در حال بارگذاری دلایل...</span>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <h3 className="font-medium text-gray-900">
+                    دلایل قابل انتخاب:
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
+                    {availableReasons.map((reason) => (
+                      <label
+                        key={reason._id}
+                        className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedReasons.includes(reason._id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedReasons([
+                                ...selectedReasons,
+                                reason._id,
+                              ]);
+                            } else {
+                              setSelectedReasons(
+                                selectedReasons.filter(
+                                  (id) => id !== reason._id
+                                )
+                              );
+                            }
+                          }}
+                          className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">
+                            {reason.title}
+                          </div>
+                          {reason.description && (
+                            <div className="text-sm text-gray-600 mt-1">
+                              {reason.description}
+                            </div>
+                          )}
+                          <div className="text-xs text-gray-500 mt-1">
+                            کد: {reason.reasonCode}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* راهنما */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <FaInfoCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">توجه مهم:</p>
+                    <p>
+                      با ذخیره تغییرات، وضعیت متقاضی به صورت خودکار به
+                      <span className="font-semibold text-purple-700">
+                        {" "}
+                        &ldquo;در حال بررسی مبدا&rdquo;{" "}
+                      </span>
+                      تغییر خواهد یافت. این کار نشان‌دهنده شروع فرآیند بررسی
+                      مستندات توسط کارشناسان منطقه است.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={() => setShowEditReasonsModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  انصراف
+                </button>
+                <button
+                  onClick={handleSaveReasons}
+                  disabled={savingReasons || loadingReasons}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {savingReasons ? (
+                    <>
+                      <FaSpinner className="animate-spin h-4 w-4" />
+                      در حال ذخیره...
+                    </>
+                  ) : (
+                    <>
+                      <FaCheck className="h-4 w-4" />
+                      ذخیره تغییرات
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

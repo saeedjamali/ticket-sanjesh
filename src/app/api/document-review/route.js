@@ -9,6 +9,7 @@ import User from "@/models/User";
 import District from "@/models/District";
 import Province from "@/models/Province";
 import ProfileCorrectionRequest from "@/models/ProfileCorrectionRequest";
+import EmploymentField from "@/models/EmploymentField";
 import { authService } from "@/lib/auth/authService";
 
 // GET /api/document-review - دریافت درخواست‌های تجدید نظر برای بررسی مستندات
@@ -254,6 +255,129 @@ export async function GET(request) {
             updatedAt: req.updatedAt.toISOString(),
           });
         }
+      }
+    }
+
+    // محاسبه رتبه‌بندی برای هر متقاضی
+    // ابتدا اطلاعات رشته‌های استخدامی را دریافت می‌کنیم
+    const employmentFields = await EmploymentField.find({
+      isActive: true,
+    }).lean();
+    const employmentFieldsMap = {};
+    employmentFields.forEach((field) => {
+      employmentFieldsMap[field.fieldCode] = field;
+    });
+
+    // وضعیت‌هایی که در محاسبه رتبه‌بندی در نظر گرفته می‌شوند (مطابق API personnel-stats)
+    const validStatuses = [
+      "user_approval",
+      "source_review",
+      "exception_eligibility_approval",
+      "source_approval",
+    ];
+
+    // برای هر گروه (رشته + جنسیت)، از دیتابیس کل افراد واجد شرایط را دریافت می‌کنیم
+    const groupedByFieldAndGender = {};
+    const groupCounts = {};
+
+    for (const request of requestsWithStatusAndFiltered) {
+      if (
+        request.fieldCode &&
+        request.approvedScore !== null &&
+        request.approvedScore !== undefined
+      ) {
+        const field = employmentFieldsMap[request.fieldCode];
+        const isShared = field?.isShared || false;
+
+        // تعیین کلید گروه‌بندی (شامل منطقه)
+        let groupKey;
+        if (isShared) {
+          // اگر رشته مشترک است، جنسیت مهم نیست
+          groupKey = `field_${request.fieldCode}_district_${request.currentWorkPlaceCode}`;
+        } else {
+          // اگر رشته مشترک نیست، جنسیت مهم است
+          groupKey = `field_${request.fieldCode}_gender_${
+            request.gender || "unknown"
+          }_district_${request.currentWorkPlaceCode}`;
+        }
+
+        if (!groupedByFieldAndGender[groupKey]) {
+          groupedByFieldAndGender[groupKey] = [];
+
+          // محاسبه تعداد کل افراد واجد شرایط در این گروه از دیتابیس TransferApplicantSpec
+          const matchQuery = {
+            fieldCode: request.fieldCode,
+            currentWorkPlaceCode: request.currentWorkPlaceCode, // فیلتر منطقه
+            currentRequestStatus: { $in: validStatuses },
+            approvedScore: { $exists: true, $ne: null },
+          };
+
+          // اگر رشته مشترک نیست، جنسیت را هم در نظر بگیر
+          if (!isShared && request.gender) {
+            matchQuery.gender = request.gender;
+          }
+
+          // محاسبه تعداد کل و ذخیره در groupCounts
+          groupCounts[groupKey] = await TransferApplicantSpec.countDocuments(
+            matchQuery
+          );
+        }
+
+        groupedByFieldAndGender[groupKey].push({
+          ...request,
+          originalIndex: requestsWithStatusAndFiltered.indexOf(request),
+        });
+      }
+    }
+
+    // محاسبه رتبه برای هر گروه بر اساس کل افراد واجد شرایط در دیتابیس
+    for (const groupKey of Object.keys(groupedByFieldAndGender)) {
+      const group = groupedByFieldAndGender[groupKey];
+
+      // استخراج اطلاعات گروه از کلید
+      const isSharedGroup = !groupKey.includes("_gender_");
+      const fieldCode = groupKey.split("_")[1];
+
+      let gender = null;
+      let districtCode = null;
+
+      if (isSharedGroup) {
+        // برای رشته مشترک: field_150_district_1601
+        districtCode = groupKey.split("_district_")[1];
+      } else {
+        // برای رشته غیر مشترک: field_150_gender_male_district_1601
+        const genderPart = groupKey.split("_gender_")[1];
+        gender = genderPart.split("_district_")[0];
+        districtCode = genderPart.split("_district_")[1];
+      }
+
+      // محاسبه رتبه دقیق بر اساس کل افراد واجد شرایط
+      for (const item of group) {
+        const matchQuery = {
+          fieldCode: fieldCode,
+          currentWorkPlaceCode: districtCode, // فیلتر منطقه
+          currentRequestStatus: { $in: validStatuses },
+          approvedScore: { $exists: true, $ne: null, $gt: item.approvedScore },
+        };
+
+        // اگر رشته مشترک نیست، جنسیت را هم در نظر بگیر
+        if (!isSharedGroup && gender && gender !== "unknown") {
+          matchQuery.gender = gender;
+        }
+
+        // تعداد افرادی که امتیاز بیشتری دارند
+        const betterScoreCount = await TransferApplicantSpec.countDocuments(
+          matchQuery
+        );
+
+        // رتبه فرد = تعداد افراد با امتیاز بهتر + 1
+        const rank = betterScoreCount + 1;
+
+        // اضافه کردن اطلاعات رتبه‌بندی به آیتم اصلی
+        requestsWithStatusAndFiltered[item.originalIndex].rankInGroup = rank;
+        requestsWithStatusAndFiltered[item.originalIndex].totalInGroup =
+          groupCounts[groupKey] || 0;
+        requestsWithStatusAndFiltered[item.originalIndex].groupKey = groupKey;
       }
     }
 

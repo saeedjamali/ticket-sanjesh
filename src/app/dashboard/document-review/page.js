@@ -870,6 +870,25 @@ export default function DocumentReviewPage() {
           "کد رای کمیسیون پزشکی": ts?.medicalCommissionCode || "-",
           "رای کمیسیون پزشکی": ts?.medicalCommissionVerdict || "-",
           "امتیاز تایید شده": ts?.approvedScore || "-",
+          "ردیف در رشته/همجنس":
+            request.rankInGroup && request.totalInGroup
+              ? `${request.rankInGroup} از ${request.totalInGroup}`
+              : "-",
+          "نوع گروه‌بندی": (() => {
+            if (!request.groupKey) return "-";
+            const isShared = !request.groupKey.includes("gender");
+            if (isShared) {
+              return "رشته مشترک";
+            } else {
+              const gender =
+                request.gender === "male"
+                  ? "مرد"
+                  : request.gender === "female"
+                  ? "زن"
+                  : "نامشخص";
+              return `${gender} - رشته ${request.fieldCode}`;
+            }
+          })(),
           "رشته استخدامی": ts?.employmentField || "-",
           "کد رشته": ts?.fieldCode || "-",
           "سال تحصیلی": request.academicYear || "-",
@@ -924,6 +943,8 @@ export default function DocumentReviewPage() {
         { wch: 15 }, // کد رای کمیسیون پزشکی
         { wch: 50 }, // رای کمیسیون پزشکی
         { wch: 15 }, // امتیاز تایید شده
+        { wch: 20 }, // ردیف در رشته/همجنس
+        { wch: 25 }, // نوع گروه‌بندی
         { wch: 25 }, // رشته استخدامی
         { wch: 12 }, // کد رشته
         { wch: 15 }, // سال تحصیلی
@@ -1611,7 +1632,7 @@ export default function DocumentReviewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-screen-2xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg border border-blue-200 overflow-hidden mb-8">
           <div className="bg-gradient-to-r from-blue-500 to-indigo-500 p-6">
@@ -1932,9 +1953,9 @@ export default function DocumentReviewPage() {
                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       اطلاعات متقاضی
                     </th>
-                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {/* <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       جنسیت
-                    </th>
+                    </th>*/}
                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       رشته استخدامی
                     </th>
@@ -1949,6 +1970,9 @@ export default function DocumentReviewPage() {
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       امتیاز تایید شده
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      رتبه در رشته/همجنس
                     </th>
                     <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       پیام‌ها
@@ -1994,7 +2018,7 @@ export default function DocumentReviewPage() {
                       </td>
 
                       {/* ستون جنسیت */}
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                      {/* <td className="px-6 py-4 whitespace-nowrap text-right">
                         <span
                           className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                             request.gender === "male"
@@ -2010,7 +2034,7 @@ export default function DocumentReviewPage() {
                             ? "زن"
                             : "نامشخص"}
                         </span>
-                      </td>
+                      </td> */}
 
                       {/* ستون رشته استخدامی */}
                       <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -2101,7 +2125,14 @@ export default function DocumentReviewPage() {
                             </div>
                             <div className="text-xs">
                               {new Date(request.createdAt).toLocaleDateString(
-                                "fa-IR"
+                                "fa-IR",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
                               )}
                             </div>
                           </div>
@@ -2114,7 +2145,13 @@ export default function DocumentReviewPage() {
                             <div className="text-xs">
                               {new Date(
                                 request.updatedAt || request.createdAt
-                              ).toLocaleDateString("fa-IR")}
+                              ).toLocaleDateString("fa-IR", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </div>
                           </div>
                         </div>
@@ -2129,6 +2166,48 @@ export default function DocumentReviewPage() {
                             </span>
                             <span className="text-xs text-gray-500">
                               امتیاز
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
+                            <FaExclamationTriangle className="h-3 w-3" />
+                            نامشخص
+                          </span>
+                        )}
+                      </td>
+
+                      {/* ستون ردیف و رتبه در رشته/همجنس */}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {request.rankInGroup !== null &&
+                        request.rankInGroup !== undefined &&
+                        request.totalInGroup !== null &&
+                        request.totalInGroup !== undefined ? (
+                          <div className="flex flex-col items-center">
+                            <span className="text-lg font-bold text-green-600">
+                              {request.rankInGroup}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              از {request.totalInGroup}
+                            </span>
+                            <span className="text-xs text-gray-400 mt-1">
+                              {(() => {
+                                // تعیین نوع گروه برای نمایش
+                                if (!request.groupKey) return "";
+
+                                const isShared =
+                                  !request.groupKey.includes("gender");
+                                if (isShared) {
+                                  return "رشته مشترک";
+                                } else {
+                                  const gender =
+                                    request.gender === "male"
+                                      ? "مرد"
+                                      : request.gender === "female"
+                                      ? "زن"
+                                      : "نامشخص";
+                                  return `${gender} - رشته ${request.fieldCode}`;
+                                }
+                              })()}
                             </span>
                           </div>
                         ) : (
