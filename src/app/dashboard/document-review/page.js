@@ -2228,7 +2228,8 @@ export default function DocumentReviewPage() {
                             return (
                               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs wrap-text bg-red-100 text-red-700">
                                 <FaExclamationTriangle className="h-3 w-3" />
-                              فاقد رتبه به دلیل نوع وضعیت                           </span>
+                                فاقد رتبه به دلیل نوع وضعیت{" "}
+                              </span>
                             );
                           }
 
@@ -2272,7 +2273,7 @@ export default function DocumentReviewPage() {
                                         : request.gender === "female"
                                         ? "زن"
                                         : "نامشخص";
-                                    return `${gender} - رشته ${request.employmentField}`;
+                                    return `${gender} - رشته ${request.fieldCode}`;
                                   }
                                 })()}
                               </span>
