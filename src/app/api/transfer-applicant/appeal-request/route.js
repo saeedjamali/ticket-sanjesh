@@ -21,9 +21,9 @@ export async function POST(request) {
 
     // بررسی دسترسی - فقط کاربران transferApplicant
     if (
-      userAuth.role !== "transferApplicant" ||
-      userAuth.role !== "districtTransferExpert" ||
-      userAuth.role !== "provinceTransferExpert"
+      userAuth.role !== "transferApplicant"
+      // userAuth.role !== "districtTransferExpert" ||
+      // userAuth.role !== "provinceTransferExpert"
     ) {
       return NextResponse.json(
         { success: false, error: "عدم دسترسی" },
