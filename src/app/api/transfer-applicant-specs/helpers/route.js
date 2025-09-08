@@ -98,10 +98,10 @@ export async function GET(request) {
       ],
      
       requestStatuses: [
-        { value: "user_no_action", label: "عدم اقدام کاربر" },
-        { value: "awaiting_user_approval", label: "درخواست ناقص" },
-        { value: "user_approval", label: "در انتظار بررسی" },
-        { value: "source_review", label: "در حال بررسی مبدا" },
+        { value: "user_no_action", label: "فاقد درخواست تجدیدنظر" },
+        { value: "awaiting_user_approval", label: "درخواست ناقص (منتظر تایید کاربر)" },
+        { value: "user_approval", label: "در انتظار بررسی مبدأ" },
+        { value: "source_review", label: " درحال بررسی مشمولیت" },
         {
           value: "exception_eligibility_approval",
           label: "تایید مشمولیت",

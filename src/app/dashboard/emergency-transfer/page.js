@@ -254,9 +254,9 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
   const getStatusDisplayName = (status) => {
     const statusMap = {
       user_no_action: "فاقد درخواست تجدیدنظر",
-      awaiting_user_approval: "درخواست ناقص",
-      user_approval: "در انتظار بررسی",
-      source_review: "در حال بررسی مبدا",
+      awaiting_user_approval: "درخواست ناقص (منتظر تایید کاربر)",
+      user_approval: "در انتظار بررسی مبدأ",
+      source_review: "درحال بررسی مشمولیت",
       exception_eligibility_approval: "تایید مشمولیت",
       exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
       source_approval: "موافقت مبدا (موقت/دائم)",

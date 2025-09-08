@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import StatusTimelineModal from "@/components/modals/StatusTimelineModal";
+import AdvancedSearchModal from "@/components/AdvancedSearchModal";
 import { useUserContext } from "@/context/UserContext";
 import { toast } from "react-hot-toast";
 import * as XLSX from "xlsx";
@@ -30,6 +31,7 @@ import {
   FaCog,
   FaColumns,
   FaInfoCircle,
+  FaUserCog,
 } from "react-icons/fa";
 
 export default function TransferApplicantSpecsPage() {
@@ -86,6 +88,8 @@ export default function TransferApplicantSpecsPage() {
   const [selectedSpecForTimeline, setSelectedSpecForTimeline] = useState(null);
   const [uploadResults, setUploadResults] = useState(null);
   const [showColumnSelector, setShowColumnSelector] = useState(false);
+  const [showAdvancedSearchModal, setShowAdvancedSearchModal] = useState(false);
+  const [initialSearchData, setInitialSearchData] = useState(null);
 
   // State های مربوط به ویرایش بندهای دلیل
   const [showEditReasonsModal, setShowEditReasonsModal] = useState(false);
@@ -680,6 +684,15 @@ export default function TransferApplicantSpecsPage() {
       nationalId: spec.nationalId,
     });
     setShowTimelineModal(true);
+  };
+
+  const handleAdvancedSearch = (spec) => {
+    // تنظیم اطلاعات اولیه برای جستجو
+    setInitialSearchData({
+      nationalId: spec.nationalId || "",
+      personnelCode: spec.personnelCode || "",
+    });
+    setShowAdvancedSearchModal(true);
   };
 
   // تابع بررسی اینکه آیا متقاضی درخواست AppealRequest دارد یا خیر
@@ -1329,9 +1342,9 @@ export default function TransferApplicantSpecsPage() {
       // تبدیل وضعیت‌ها به فارسی
       const statusMap = {
         user_no_action: "فاقد درخواست تجدیدنظر",
-        awaiting_user_approval: "درخواست ناقص",
-        user_approval: "در انتظار بررسی",
-        source_review: "در حال بررسی مبدا",
+        awaiting_user_approval: "درخواست ناقص (منتظر تایید کاربر)",
+        user_approval: "در انتظار بررسی ",
+        source_review: "درحال بررسی مشمولیت",
         exception_eligibility_approval: "تایید مشمولیت",
         exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
         source_approval: "موافقت مبدا (موقت/دائم)",
@@ -1671,14 +1684,23 @@ export default function TransferApplicantSpecsPage() {
 
                 {/* دکمه آمار فقط برای کارشناس استان */}
                 {user?.role === "provinceTransferExpert" && (
-                  <button
-                    onClick={exportStatistics}
-                    disabled={loading}
-                    className="bg-purple-500/80 hover:bg-purple-500 disabled:bg-purple-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20 text-sm"
-                  >
-                    <FaFileExcel className="h-4 w-4" />
-                    {loading ? "در حال تولید..." : "آمار وضعیت‌ها"}
-                  </button>
+                  <>
+                    <button
+                      onClick={exportStatistics}
+                      disabled={loading}
+                      className="bg-purple-500/80 hover:bg-purple-500 disabled:bg-purple-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20 text-sm"
+                    >
+                      <FaFileExcel className="h-4 w-4" />
+                      {loading ? "در حال تولید..." : "آمار وضعیت‌ها"}
+                    </button>
+                    <button
+                      onClick={() => setShowAdvancedSearchModal(true)}
+                      className="bg-indigo-500/80 hover:bg-indigo-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20 text-sm"
+                    >
+                      <FaUserCog className="h-4 w-4" />
+                      جستجوی پیشرفته
+                    </button>
+                  </>
                 )}
               </>
             )}
@@ -2113,6 +2135,17 @@ export default function TransferApplicantSpecsPage() {
                           >
                             <FaEdit className="h-4 w-4" />
                           </button>
+
+                          {/* دکمه جستجوی پیشرفته - فقط برای کارشناس استان */}
+                          {user?.role === "provinceTransferExpert" && (
+                            <button
+                              onClick={() => handleAdvancedSearch(spec)}
+                              className="text-indigo-600 hover:text-indigo-800 transition-colors"
+                              title="جستجوی پیشرفته"
+                            >
+                              <FaUserCog className="h-4 w-4" />
+                            </button>
+                          )}
 
                           {/* دکمه ویرایش بندهای دلیل - فقط برای کارشناسان */}
                           {(user?.role === "districtTransferExpert" ||
@@ -3571,6 +3604,17 @@ export default function TransferApplicantSpecsPage() {
         }}
         specId={selectedSpecForTimeline?.id}
         specInfo={selectedSpecForTimeline}
+      />
+
+      {/* Advanced Search Modal */}
+      <AdvancedSearchModal
+        isOpen={showAdvancedSearchModal}
+        onClose={() => {
+          setShowAdvancedSearchModal(false);
+          setInitialSearchData(null);
+        }}
+        userRole={user?.role}
+        initialSearchData={initialSearchData}
       />
       {/* مدال ویرایش بندهای دلیل */}
       {showEditReasonsModal && (
