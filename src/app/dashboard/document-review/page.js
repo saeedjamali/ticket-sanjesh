@@ -249,7 +249,7 @@ export default function DocumentReviewPage() {
     },
     {
       value: "awaiting_user_approval",
-      label: "درخواست ناقص (منتظر تایید کاربر",
+      label: "درخواست ناقص (منتظر تایید کاربر)",
       color: "bg-blue-500",
       icon: FaEye,
     },

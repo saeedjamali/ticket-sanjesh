@@ -553,13 +553,44 @@ export default function AdvancedSearchModal({
                           رای کمیسیون پزشکی
                         </label>
                         <p className="font-semibold">
-                          {searchData.transferSpec.medicalCommissionVerdict || "ثبت نشده"}
+                          {searchData.transferSpec.medicalCommissionVerdict ||
+                            "ثبت نشده"}
                         </p>
                         {searchData.transferSpec.medicalCommissionCode && (
                           <p className="text-xs text-gray-500 mt-1">
                             کد: {searchData.transferSpec.medicalCommissionCode}
                           </p>
                         )}
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <label className="text-sm text-gray-600">
+                          نوع انتقال درخواستی
+                        </label>
+                        <p className="font-semibold">
+                          {searchData.transferSpec.requestedTransferType ===
+                          "permanent"
+                            ? "دائم"
+                            : searchData.transferSpec.requestedTransferType ===
+                              "temporary"
+                            ? "موقت"
+                            : searchData.transferSpec.requestedTransferType ||
+                              "نامشخص"}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <label className="text-sm text-gray-600">
+                          نظر مبدأ نوع انتقال
+                        </label>
+                        <p className="font-semibold">
+                          {searchData.transferSpec.sourceOpinionTransferType ===
+                          "permanent"
+                            ? "دائم"
+                            : searchData.transferSpec
+                                .sourceOpinionTransferType === "temporary"
+                            ? "موقت"
+                            : searchData.transferSpec
+                                .sourceOpinionTransferType || "ثبت نشده"}
+                        </p>
                       </div>
                     </div>
 
