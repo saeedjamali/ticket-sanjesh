@@ -548,6 +548,19 @@ export default function AdvancedSearchModal({
                             "نامشخص"}
                         </p>
                       </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <label className="text-sm text-gray-600">
+                          رای کمیسیون پزشکی
+                        </label>
+                        <p className="font-semibold">
+                          {searchData.transferSpec.medicalCommissionVerdict || "ثبت نشده"}
+                        </p>
+                        {searchData.transferSpec.medicalCommissionCode && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            کد: {searchData.transferSpec.medicalCommissionCode}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     {/* اولویت‌های مقصد */}
