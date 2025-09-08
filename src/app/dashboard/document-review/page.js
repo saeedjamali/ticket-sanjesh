@@ -35,6 +35,7 @@ import * as XLSX from "xlsx";
 import ChatButton from "@/components/chat/ChatButton";
 import { getFieldDisplayName } from "@/lib/fieldTranslations";
 import { useSidebar } from "@/context/SidebarContext";
+import ImportantNotice from "@/components/ImportantNotice";
 
 export default function DocumentReviewPage() {
   const { user, userLoading } = useUser();
@@ -1310,6 +1311,14 @@ export default function DocumentReviewPage() {
 
   // ذخیره بررسی
   const handleSaveReview = async () => {
+    if (
+      user.role === "districtTransferExpert" ||
+      user.role === "provinceTransferExpert" ||
+      user.role === "systemAdmin"
+    ) {
+      toast.error("شما به این دکمه دسترسی ندارید");
+      return;
+    }
     try {
       setSubmitting(true);
       const response = await fetch("/api/document-review", {
@@ -1661,6 +1670,8 @@ export default function DocumentReviewPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-dvw mx-auto">
+         {/* اطلاعیه مهم */}
+      <ImportantNotice /> 
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg border border-blue-200 overflow-hidden mb-8">
           <div className="bg-gradient-to-r from-blue-500 to-indigo-500 p-6">
@@ -2312,7 +2323,9 @@ export default function DocumentReviewPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex flex-col gap-2">
                           <button
-                            onClick={() => openReviewModal(request)}
+                            onClick={() => {
+                              openReviewModal(request);
+                            }}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs transition-colors flex items-center gap-2"
                           >
                             <FaEye className="h-3 w-3" />
@@ -2323,9 +2336,18 @@ export default function DocumentReviewPage() {
                             "exception_eligibility_approval" && (
                             <div className="flex gap-1 flex-col">
                               <button
-                                onClick={() =>
-                                  openSourceOpinionModal(request, "approve")
-                                }
+                                onClick={() => {
+                                  if (
+                                    user.role === "districtTransferExpert" ||
+                                    user.role === "provinceTransferExpert"
+                                  ) {
+                                    toast.error(
+                                      "زمان ثبت درخواست به اتمام رسیده است."
+                                    );
+                                    return;
+                                  }
+                                  openSourceOpinionModal(request, "approve");
+                                }}
                                 disabled={
                                   !shouldShowSourceOpinionButtons(request)
                                 }
@@ -2336,9 +2358,18 @@ export default function DocumentReviewPage() {
                                 ثبت موافقت با انتقال
                               </button>
                               <button
-                                onClick={() =>
-                                  openSourceOpinionModal(request, "reject")
-                                }
+                                onClick={() => {
+                                  if (
+                                    user.role === "districtTransferExpert" ||
+                                    user.role === "provinceTransferExpert"
+                                  ) {
+                                    toast.error(
+                                      "زمان ثبت درخواست به اتمام رسیده است."
+                                    );
+                                    return;
+                                  }
+                                  openSourceOpinionModal(request, "reject");
+                                }}
                                 disabled={
                                   !shouldShowSourceOpinionButtons(request)
                                 }

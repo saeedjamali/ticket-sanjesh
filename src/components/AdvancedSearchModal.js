@@ -594,6 +594,74 @@ export default function AdvancedSearchModal({
                       </div>
                     </div>
 
+                    {/* فیلدهای نتایج نهایی انتقال */}
+                    {(searchData.transferSpec.finalResultStatus ||
+                      searchData.transferSpec.finalTransferDestinationCode ||
+                      searchData.transferSpec.finalResultReason) && (
+                      <div className="mt-6">
+                        <h4 className="text-md font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                          <FaCheckCircle className="text-green-600" />
+                          نتایج نهایی انتقال
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {searchData.transferSpec.finalResultStatus && (
+                            <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                              <label className="text-sm text-yellow-800 font-medium">
+                                وضعیت نتیجه نهایی
+                              </label>
+                              <p className="font-semibold text-gray-800 mt-1 text-sm leading-relaxed">
+                                {searchData.transferSpec.finalResultStatus ===
+                                "conditions_not_met"
+                                  ? "شرایط مصوب دستورالعمل تجدیدنظر، توسط اداره مبدأ احراز نشده و لذا متقاضی فاقد شرایط انتقال تشخیص داده شد"
+                                  : searchData.transferSpec
+                                      .finalResultStatus ===
+                                    "source_disagreement"
+                                  ? "به دلیل کمبود نیروی انسانی، انتقال متقاضی مورد موافقت اداره مبدأ قرار نگرفت"
+                                  : searchData.transferSpec
+                                      .finalResultStatus ===
+                                    "temporary_transfer_approved"
+                                  ? "با انتقال متقاضی بصورت موقت یکساله موافقت شد"
+                                  : searchData.transferSpec
+                                      .finalResultStatus ===
+                                    "permanent_transfer_approved"
+                                  ? "با انتقال متقاضی بصورت دائم موافقت شد"
+                                  : searchData.transferSpec
+                                      .finalResultStatus === "under_review"
+                                  ? "پرونده متقاضی درحال بررسی است"
+                                  : searchData.transferSpec.finalResultStatus}
+                              </p>
+                            </div>
+                          )}
+
+                          {searchData.transferSpec
+                            .finalTransferDestinationCode && (
+                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                              <label className="text-sm text-blue-800 font-medium">
+                                کد منطقه مقصد نهایی
+                              </label>
+                              <p className="font-semibold text-gray-800 mt-1">
+                                {
+                                  searchData.transferSpec
+                                    .finalTransferDestinationCode
+                                }
+                              </p>
+                            </div>
+                          )}
+
+                          {searchData.transferSpec.finalResultReason && (
+                            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 md:col-span-2">
+                              <label className="text-sm text-gray-600 font-medium">
+                                علت موافقت یا مخالفت
+                              </label>
+                              <p className="text-gray-800 mt-1 leading-relaxed">
+                                {searchData.transferSpec.finalResultReason}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {/* اولویت‌های مقصد */}
                     <div className="mt-6">
                       <h4 className="text-md font-semibold text-gray-800 mb-4 flex items-center gap-2">

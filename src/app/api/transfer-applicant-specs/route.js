@@ -481,6 +481,33 @@ export async function PUT(request) {
       );
     }
 
+    // بررسی دسترسی برای فیلدهای نتایج نهایی انتقال
+    const finalResultFields = [
+      "finalResultStatus",
+      "finalTransferDestinationCode",
+      "finalResultReason",
+    ];
+
+    const hasFinalResultFields = finalResultFields.some((field) =>
+      updateData.hasOwnProperty(field)
+    );
+
+    if (
+      hasFinalResultFields &&
+      ![ROLES.SYSTEM_ADMIN, ROLES.PROVINCE_TRANSFER_EXPERT].includes(
+        userAuth.role
+      )
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "عدم دسترسی. فقط مدیر سیستم و کارشناس استان مجاز به ویرایش نتایج نهایی هستند",
+        },
+        { status: 403 }
+      );
+    }
+
     await connectDB();
 
     const spec = await TransferApplicantSpec.findById(id);
@@ -539,6 +566,26 @@ export async function PUT(request) {
       if (!currentDistrict) {
         return NextResponse.json(
           { success: false, error: "کد محل خدمت نامعتبر است" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // اعتبارسنجی کد منطقه مقصد نهایی
+    if (updateData.finalTransferDestinationCode) {
+      if (!/^\d{4}$/.test(updateData.finalTransferDestinationCode)) {
+        return NextResponse.json(
+          { success: false, error: "کد منطقه مقصد نهایی باید 4 رقم باشد" },
+          { status: 400 }
+        );
+      }
+
+      const finalDestinationDistrict = await District.findOne({
+        code: updateData.finalTransferDestinationCode,
+      });
+      if (!finalDestinationDistrict) {
+        return NextResponse.json(
+          { success: false, error: "کد منطقه مقصد نهایی نامعتبر است" },
           { status: 400 }
         );
       }

@@ -352,6 +352,43 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
   // مقصد نهایی
   finalDestination: finalDestinationSchema,
 
+  // فیلدهای اعلام نتایج انتقال
+  // 1- وضعیت نتیجه نهایی
+  finalResultStatus: {
+    type: String,
+    enum: [
+      "conditions_not_met", // حالت1: شرایط مصوب دستورالعمل تجدیدنظر، توسط اداره مبدأ احراز نشده و لذا متقاضی فاقد شرایط انتقال تشخیص داده شد
+      "source_disagreement", // حالت2: به دلیل کمبود نیروی انسانی، انتقال متقاضی مورد موافقت اداره مبدأ قرار نگرفت
+      "temporary_transfer_approved", // حالت3: با انتقال متقاضی بصورت موقت یکساله موافقت شد
+      "permanent_transfer_approved", // حالت4: با انتقال متقاضی بصورت دائم موافقت شد
+      "under_review", // حالت5: پرونده متقاضی درحال بررسی است
+      null, // حالت6: هیچ یک
+    ],
+    required: false,
+    default: null,
+  },
+
+  // 2- کد منطقه مقصد انتقال (نهایی)
+  finalTransferDestinationCode: {
+    type: String,
+    required: false,
+    trim: true,
+    validate: {
+      validator: function (v) {
+        return !v || /^\d{4}$/.test(v); // دقیقاً 4 رقم یا خالی
+      },
+      message: "کد منطقه مقصد انتقال باید دقیقاً 4 رقم باشد",
+    },
+  },
+
+  // 3- علت موافقت یا مخالفت
+  finalResultReason: {
+    type: String,
+    required: false,
+    trim: true,
+    maxlength: 1000, // حداکثر 1000 کاراکتر
+  },
+
   // امکان ویرایش مقصد
   canEditDestination: {
     type: Boolean,
@@ -450,6 +487,20 @@ TransferApplicantSpecSchema.methods.getMedicalCommissionVerdictText =
     };
     return verdictMap[this.medicalCommissionCode] || "تعیین نشده";
   };
+
+// تابع helper برای دریافت متن فارسی وضعیت نتیجه نهایی
+TransferApplicantSpecSchema.methods.getFinalResultStatusText = function () {
+  const statusMap = {
+    conditions_not_met:
+      "شرایط مصوب دستورالعمل تجدیدنظر، توسط اداره مبدأ احراز نشده و لذا متقاضی فاقد شرایط انتقال تشخیص داده شد",
+    source_disagreement:
+      "به دلیل کمبود نیروی انسانی، انتقال متقاضی مورد موافقت اداره مبدأ قرار نگرفت",
+    temporary_transfer_approved: "با انتقال متقاضی بصورت موقت یکساله موافقت شد",
+    permanent_transfer_approved: "با انتقال متقاضی بصورت دائم موافقت شد",
+    under_review: "پرونده متقاضی درحال بررسی است",
+  };
+  return statusMap[this.finalResultStatus] || "تعیین نشده";
+};
 
 // تابع برای اضافه کردن log entry
 TransferApplicantSpecSchema.methods.addStatusLog = function (logData) {

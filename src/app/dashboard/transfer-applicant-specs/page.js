@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import StatusTimelineModal from "@/components/modals/StatusTimelineModal";
 import AdvancedSearchModal from "@/components/AdvancedSearchModal";
+import ExcelUploadModal from "@/components/ExcelUploadModal";
 import { useUserContext } from "@/context/UserContext";
 import { toast } from "react-hot-toast";
 import * as XLSX from "xlsx";
@@ -90,6 +91,7 @@ export default function TransferApplicantSpecsPage() {
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [showAdvancedSearchModal, setShowAdvancedSearchModal] = useState(false);
   const [initialSearchData, setInitialSearchData] = useState(null);
+  const [showExcelUploadModal, setShowExcelUploadModal] = useState(false);
 
   // State های مربوط به ویرایش بندهای دلیل
   const [showEditReasonsModal, setShowEditReasonsModal] = useState(false);
@@ -130,6 +132,13 @@ export default function TransferApplicantSpecsPage() {
     { key: "requestStatus", label: "وضعیت درخواست", default: true },
     { key: "medicalCommissionCode", label: "کد کمیسیون پزشکی", default: false },
     { key: "finalDestination", label: "مقصد نهایی", default: false },
+    { key: "finalResultStatus", label: "نتیجه نهایی انتقال", default: false },
+    {
+      key: "finalTransferDestinationCode",
+      label: "کد مقصد نهایی",
+      default: false,
+    },
+    { key: "finalResultReason", label: "علت نتیجه", default: false },
     { key: "isActive", label: "وضعیت فعال بودن", default: true },
     { key: "createdAt", label: "تاریخ ایجاد", default: false },
   ];
@@ -164,6 +173,10 @@ export default function TransferApplicantSpecsPage() {
     requestedTransferType: "permanent",
     currentWorkPlaceCode: "",
     sourceDistrictCode: "",
+    // فیلدهای نتایج نهایی انتقال
+    finalResultStatus: "",
+    finalTransferDestinationCode: "",
+    finalResultReason: "",
     destinationPriority1: {
       districtCode: "",
       transferType: "permanent_preferred",
@@ -455,14 +468,15 @@ export default function TransferApplicantSpecsPage() {
       case "destinationPriority3":
         return spec.destinationPriority3?.districtCode || "-";
       case "currentTransferStatus":
-        const statusMap = {
+        const transferStatusMap = {
           1: "منتقل نشده در پردازش",
           2: "منتقل شده پردازشی",
           3: "ثبت نام ناقص",
           4: "رد درخواست توسط منطقه مبدا",
         };
         const statusText =
-          statusMap[spec.currentTransferStatus] || spec.currentTransferStatus;
+          transferStatusMap[spec.currentTransferStatus] ||
+          spec.currentTransferStatus;
         const statusColor =
           spec.currentTransferStatus === 2
             ? "bg-green-100 text-green-800"
@@ -507,6 +521,62 @@ export default function TransferApplicantSpecsPage() {
         return spec.medicalCommissionCode || "-";
       case "finalDestination":
         return spec.finalDestination?.districtCode || "-";
+      case "finalResultStatus":
+        if (!spec.finalResultStatus) return "-";
+        const finalResultStatusMap = {
+          conditions_not_met: {
+            text: "فاقد شرایط انتقال",
+            color: "bg-red-100 text-red-800",
+          },
+          source_disagreement: {
+            text: "مخالفت مبدا (کمبود نیرو)",
+            color: "bg-orange-100 text-orange-800",
+          },
+          temporary_transfer_approved: {
+            text: "موافقت انتقال موقت",
+            color: "bg-blue-100 text-blue-800",
+          },
+          permanent_transfer_approved: {
+            text: "موافقت انتقال دائم",
+            color: "bg-green-100 text-green-800",
+          },
+          under_review: {
+            text: "در حال بررسی",
+            color: "bg-yellow-100 text-yellow-800",
+          },
+        };
+        const finalStatus = finalResultStatusMap[spec.finalResultStatus] || {
+          text: spec.finalResultStatus,
+          color: "bg-gray-100 text-gray-800",
+        };
+        return (
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${finalStatus.color}`}
+          >
+            {finalStatus.text}
+          </span>
+        );
+      case "finalTransferDestinationCode":
+        if (!spec.finalTransferDestinationCode) return "-";
+        const district = helpers.districts?.find(
+          (d) => d.code === spec.finalTransferDestinationCode
+        );
+        return district
+          ? `${district.code} - ${district.name}`
+          : spec.finalTransferDestinationCode;
+      case "finalResultReason":
+        return spec.finalResultReason ? (
+          <div className="max-w-xs">
+            <span
+              title={spec.finalResultReason}
+              className="block truncate text-sm text-gray-700"
+            >
+              {spec.finalResultReason}
+            </span>
+          </div>
+        ) : (
+          "-"
+        );
       case "isActive":
         return (
           <span
@@ -597,6 +667,14 @@ export default function TransferApplicantSpecsPage() {
   };
 
   const handleSubmit = async (e) => {
+    if (
+      user?.role === "districtTransferExpert" ||
+      user?.role === "provinceTransferExpert" ||
+      user?.role === "systemAdmin"
+    ) {
+      toast.error("شما به این دکمه دسترسی ندارید");
+      return;
+    }
     e.preventDefault();
 
     if (
@@ -829,6 +907,10 @@ export default function TransferApplicantSpecsPage() {
   };
 
   const handleEdit = (spec) => {
+    // if (user?.role === "districtTransferExpert" || user?.role === "provinceTransferExpert" || user?.role === "systemAdmin") {
+    //   toast.error("شما به این دکمه دسترسی ندارید");
+    //   return;
+    // }
     setEditingSpec(spec);
     setFormData({
       firstName: spec.firstName,
@@ -922,6 +1004,10 @@ export default function TransferApplicantSpecsPage() {
       requestStatus: spec.currentRequestStatus || spec.requestStatus, // استفاده از فیلد جدید
       medicalCommissionCode: spec.medicalCommissionCode || "",
       medicalCommissionVerdict: spec.medicalCommissionVerdict || "",
+      // فیلدهای نتایج نهایی انتقال
+      finalResultStatus: spec.finalResultStatus || "",
+      finalTransferDestinationCode: spec.finalTransferDestinationCode || "",
+      finalResultReason: spec.finalResultReason || "",
       finalDestination: spec.finalDestination
         ? {
             districtCode: spec.finalDestination.districtCode,
@@ -1432,6 +1518,10 @@ export default function TransferApplicantSpecsPage() {
       requestedTransferType: "permanent",
       currentWorkPlaceCode: "",
       sourceDistrictCode: "",
+      // فیلدهای نتایج نهایی انتقال
+      finalResultStatus: "",
+      finalTransferDestinationCode: "",
+      finalResultReason: "",
       destinationPriority1: {
         districtCode: "",
         transferType: "permanent_preferred",
@@ -1646,14 +1736,34 @@ export default function TransferApplicantSpecsPage() {
                 user?.role === "provinceTransferExpert") && (
                 <>
                   <button
-                    onClick={() => setShowModal(true)}
+                    onClick={() => {
+                      if (
+                        user?.role === "districtTransferExpert" ||
+                        user?.role === "provinceTransferExpert" ||
+                        user?.role === "systemAdmin"
+                      ) {
+                        toast.error("شما به این دکمه دسترسی ندارید");
+                        return;
+                      }
+                      setShowModal(true);
+                    }}
                     className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20"
                   >
                     <FaPlus className="h-5 w-5" />
                     پرسنل جدید
                   </button>
                   <button
-                    onClick={() => setShowUploadModal(true)}
+                    onClick={() => {
+                      if (
+                        user?.role === "districtTransferExpert" ||
+                        user?.role === "provinceTransferExpert" ||
+                        user?.role === "systemAdmin"
+                      ) {
+                        toast.error("شما به این دکمه دسترسی ندارید");
+                        return;
+                      }
+                      setShowUploadModal(true);
+                    }}
                     className="bg-green-500/80 hover:bg-green-500 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20"
                   >
                     <FaFileImport className="h-5 w-5" />
@@ -1663,7 +1773,17 @@ export default function TransferApplicantSpecsPage() {
               )}
               {user?.role === "districtTransferExpert" && (
                 <button
-                  onClick={() => setShowModal(true)}
+                  onClick={() => {
+                    if (
+                      user?.role === "districtTransferExpert" ||
+                      user?.role === "provinceTransferExpert" ||
+                      user?.role === "systemAdmin"
+                    ) {
+                      toast.error("شما به این دکمه دسترسی ندارید");
+                      return;
+                    }
+                    setShowModal(true);
+                  }}
                   className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20"
                 >
                   <FaPlus className="h-5 w-5" />
@@ -1701,6 +1821,17 @@ export default function TransferApplicantSpecsPage() {
                       جستجوی پیشرفته
                     </button>
                   </>
+                )}
+
+                {/* دکمه بارگذاری اکسل - فقط برای مدیر سیستم */}
+                {user?.role === "systemAdmin" && (
+                  <button
+                    onClick={() => setShowExcelUploadModal(true)}
+                    className="bg-green-500/80 hover:bg-green-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20 text-sm"
+                  >
+                    <FaFileExcel className="h-4 w-4" />
+                    بارگذاری نتایج اکسل
+                  </button>
                 )}
               </>
             )}
@@ -3255,6 +3386,121 @@ export default function TransferApplicantSpecsPage() {
                         </div>
                       </div>
 
+                      {/* فیلدهای نتایج نهایی انتقال */}
+                      {(user?.role === "systemAdmin" ||
+                        user?.role === "provinceTransferExpert") && (
+                        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-100">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="bg-yellow-100 p-2 rounded-lg">
+                              <FaCheck className="h-5 w-5 text-yellow-600" />
+                            </div>
+                            <h4 className="text-lg font-semibold text-gray-800 forced-color-text-black">
+                              نتایج نهایی انتقال
+                              <span className="text-xs text-blue-600 mr-2 font-medium">
+                                (ویژه مدیر سیستم و کارشناس استان)
+                              </span>
+                            </h4>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* وضعیت نتیجه نهایی */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1 forced-color-text-black">
+                                وضعیت نتیجه نهایی
+                              </label>
+                              <select
+                                value={formData.finalResultStatus || ""}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    finalResultStatus: e.target.value,
+                                  })
+                                }
+                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
+                              >
+                                <option value="">انتخاب کنید...</option>
+                                <option value="conditions_not_met">
+                                  شرایط مصوب دستورالعمل تجدیدنظر، توسط اداره
+                                  مبدأ احراز نشده و لذا متقاضی فاقد شرایط انتقال
+                                  تشخیص داده شد
+                                </option>
+                                <option value="source_disagreement">
+                                  به دلیل کمبود نیروی انسانی، انتقال متقاضی مورد
+                                  موافقت اداره مبدأ قرار نگرفت
+                                </option>
+                                <option value="temporary_transfer_approved">
+                                  با انتقال متقاضی بصورت موقت یکساله موافقت شد
+                                </option>
+                                <option value="permanent_transfer_approved">
+                                  با انتقال متقاضی بصورت دائم موافقت شد
+                                </option>
+                                <option value="under_review">
+                                  پرونده متقاضی درحال بررسی است
+                                </option>
+                              </select>
+                            </div>
+
+                            {/* کد منطقه مقصد نهایی */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1 forced-color-text-black">
+                                منطقه مقصد نهایی
+                              </label>
+                              <select
+                                value={
+                                  formData.finalTransferDestinationCode || ""
+                                }
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    finalTransferDestinationCode:
+                                      e.target.value,
+                                  })
+                                }
+                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
+                              >
+                                <option value="">انتخاب منطقه...</option>
+                                {helpers.districts
+                                  ?.sort((a, b) =>
+                                    a.name.localeCompare(b.name, "fa")
+                                  )
+                                  .map((district) => (
+                                    <option
+                                      key={district.code}
+                                      value={district.code}
+                                    >
+                                      {district.code} - {district.name}
+                                    </option>
+                                  ))}
+                              </select>
+                            </div>
+
+                            {/* علت موافقت یا مخالفت */}
+                            <div className="md:col-span-2">
+                              <label className="block text-sm font-medium text-gray-700 mb-1 forced-color-text-black">
+                                علت موافقت یا مخالفت
+                              </label>
+                              <textarea
+                                value={formData.finalResultReason || ""}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    finalResultReason: e.target.value,
+                                  })
+                                }
+                                rows="3"
+                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 forced-color-text-black forced-color-bg-white"
+                                placeholder="توضیح علت موافقت یا مخالفت..."
+                                maxLength="1000"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                حداکثر 1000 کاراکتر (
+                                {(formData.finalResultReason || "").length}
+                                /1000)
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* مقصد نهایی */}
                       <div
                         className={`bg-gradient-to-r from-teal-50 to-cyan-50 p-6 rounded-xl border border-teal-100 ${
@@ -3615,6 +3861,19 @@ export default function TransferApplicantSpecsPage() {
         }}
         userRole={user?.role}
         initialSearchData={initialSearchData}
+      />
+
+      {/* Excel Upload Modal */}
+      <ExcelUploadModal
+        isOpen={showExcelUploadModal}
+        onClose={() => setShowExcelUploadModal(false)}
+        onSuccess={(result) => {
+          // بعد از بارگذاری موفق، داده‌ها را مجدداً بارگذاری کن
+          fetchSpecs();
+          toast.success(
+            `${result.summary.successCount} رکورد با موفقیت بروزرسانی شد`
+          );
+        }}
       />
       {/* مدال ویرایش بندهای دلیل */}
       {showEditReasonsModal && (
