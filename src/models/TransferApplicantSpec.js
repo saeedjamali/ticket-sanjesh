@@ -418,7 +418,7 @@ TransferApplicantSpecSchema.methods.getRequestStatusText = function (status) {
   const statusToCheck = status || this.currentRequestStatus;
   const statusMap = {
     user_no_action: "فاقد درخواست تجدیدنظر",
-    awaiting_user_approval: "درخواست ناقص (منتظر تایید کاربر)",
+    awaiting_user_approval: "درخواست ناقص (منتظر تایید کاربر) ",
     user_approval: "در انتظار بررسی مبدأ",
     source_review: "درحال بررسی مشمولیت",
     exception_eligibility_approval: "تایید مشمولیت",
