@@ -597,6 +597,14 @@ export default function TransferApplicantSpecsPage() {
   };
 
   const handleSubmitDistrictEdit = async () => {
+    if (
+      user?.role === "districtTransferExpert" ||
+      user?.role === "provinceTransferExpert" ||
+      user?.role === "systemAdmin"
+    ) {
+      toast.error("شما به این دکمه دسترسی ندارید");
+      return;
+    }
     try {
       const accessToken = localStorage.getItem("accessToken");
 
