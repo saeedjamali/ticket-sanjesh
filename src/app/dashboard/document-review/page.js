@@ -38,7 +38,14 @@ import { useSidebar } from "@/context/SidebarContext";
 
 export default function DocumentReviewPage() {
   const { user, userLoading } = useUser();
-  const { isOpen, toggleSidebar, openSubmenu, toggleSubmenu, isMobile,setIsOpen } =useSidebar();
+  const {
+    isOpen,
+    toggleSidebar,
+    openSubmenu,
+    toggleSubmenu,
+    isMobile,
+    setIsOpen,
+  } = useSidebar();
   // State برای کنترل دسترسی
   const [accessRestricted, setAccessRestricted] = useState(false);
   const [accessCheckLoading, setAccessCheckLoading] = useState(false);
@@ -242,20 +249,20 @@ export default function DocumentReviewPage() {
     },
     {
       value: "awaiting_user_approval",
-      label: "درخواست ناقص",
+      label: "درخواست ناقص (منتظر تایید کاربر",
       color: "bg-blue-500",
       icon: FaEye,
     },
     {
       value: "user_approval",
-      label: "در انتظار بررسی",
+      label: "در انتظار بررسی مبدأ",
       color: "bg-yellow-500",
       icon: FaClock,
     },
 
     {
       value: "source_review",
-      label: "درحال بررسی مبدأ",
+      label: "درحال بررسی مشمولیت",
       color: "bg-purple-500",
       icon: FaUser,
     },
@@ -370,7 +377,7 @@ export default function DocumentReviewPage() {
       console.error("Error fetching appeal requests:", error);
       toast.error("خطا در دریافت درخواست‌ها");
     } finally {
-      setIsOpen(false)
+      setIsOpen(false);
       setLoading(false);
     }
   }, [
