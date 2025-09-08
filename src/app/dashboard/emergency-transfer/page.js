@@ -55,17 +55,17 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
       },
       {
         status: "awaiting_user_approval",
-        title: "درخواست ناقص",
+        title: "درخواست ناقص (منتظر تایید کاربر)",
         description: "در انتظار تکمیل توسط کاربر",
       },
       {
         status: "user_approval",
-        title: "در انتظار بررسی",
+        title: "در انتظار بررسی مبدأ",
         description: "درخواست توسط کاربر تایید شد",
       },
       {
         status: "source_review",
-        title: "در حال بررسی مبدا",
+        title: "درحال بررسی مشمولیت",
         description: "در حال بررسی توسط منطقه مبدا",
       },
     ];
@@ -2020,10 +2020,7 @@ export default function EmergencyTransferPage() {
       if (currentDate >= restrictionDate) {
         // اگر تاریخ محدودیت رسیده، بررسی وضعیت کاربر
         // اگر userSpecs وجود ندارد یا وضعیت awaiting_user_approval نیست
-        if (
-          !userSpecs ||
-          userSpecs.currentRequestStatus === "user_no_action"
-        ) {
+        if (!userSpecs || userSpecs.currentRequestStatus === "user_no_action") {
           setAccessRestricted(true);
           setRestrictionMessage(
             "مهلت ثبت درخواست تجدیدنظر به پایان رسیده است."
@@ -2198,9 +2195,9 @@ export default function EmergencyTransferPage() {
   const getStatusDisplayName = (status) => {
     const statusMap = {
       user_no_action: "فاقد درخواست تجدیدنظر",
-      awaiting_user_approval: "درخواست ناقص",
-      user_approval: "در انتظار بررسی",
-      source_review: "در حال بررسی مبدا",
+      awaiting_user_approval: "درخواست ناقص (منتظر تایید کاربر)",
+      user_approval: "در انتظار بررسی مبدأ",
+      source_review: "درحال بررسی مشمولیت",
       exception_eligibility_approval: "تایید مشمولیت",
       exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
       source_approval: "موافقت مبدا (موقت/دائم)",
