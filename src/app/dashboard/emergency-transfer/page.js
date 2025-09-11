@@ -40,17 +40,19 @@ import {
 import ChatBox from "@/components/chat/ChatBox";
 
 // کامپوننت نمایش فقط خواندنی درخواست
-function ReadOnlyRequestView({ userSpecs, onBack }) {
+function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
   const [requestDetails, setRequestDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(true);
   const [showWorkflowHistory, setShowWorkflowHistory] = useState(false);
+  const [localDistricts, setLocalDistricts] = useState(districts);
 
   // تابع تعیین مراحل workflow بر اساس وضعیت فعلی
   const getWorkflowSteps = (currentStatus) => {
+    console.log("currentStatus", currentStatus);
     const baseSteps = [
       {
         status: "user_no_action",
-        title: "ثبت اولیه",
+        title: "فاقد درخواست تجدیدنظر",
         description: "درخواست ایجاد شده",
       },
       {
@@ -80,7 +82,7 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
     } else if (currentStatus === "source_rejection") {
       baseSteps.push({
         status: "source_rejection",
-        title: "مخالفت مبدا",
+        title: "مخالفت مبدا (عدم موافقت)",
         description: "درخواست توسط منطقه مبدا رد شد",
       });
     } else {
@@ -89,61 +91,45 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
         currentStatus === "exception_eligibility_approval" ||
         currentStatus === "source_approval" ||
         currentStatus === "province_review" ||
-        currentStatus === "province_approval" ||
-        currentStatus === "province_rejection" ||
-        currentStatus === "destination_review" ||
-        currentStatus === "destination_approval" ||
-        currentStatus === "destination_rejection"
+        currentStatus === "temporary_transfer_approved" ||
+        currentStatus === "permanent_transfer_approved" ||
+        currentStatus === "invalid_request"
       ) {
         baseSteps.push({
           status: "exception_eligibility_approval",
           title: "تایید مشمولیت استثنا",
           description: "مشمولیت استثنا تایید شد",
         });
-      }
-
-      baseSteps.push(
-        {
+        baseSteps.push({
           status: "source_approval",
           title: "موافقت مبدا",
           description: "توسط منطقه مبدا تایید شد",
-        },
-        {
-          status: "province_review",
-          title: "بررسی استان",
-          description: "در حال بررسی توسط استان",
-        }
-      );
-
-      if (currentStatus === "province_rejection") {
+        });
         baseSteps.push({
-          status: "province_rejection",
-          title: "مخالفت استان",
+          status: "province_review",
+          title: "در حال بررسی توسط استان",
+          description: "در حال بررسی توسط استان",
+        });
+      }
+
+      if (currentStatus === "temporary_transfer_approved") {
+        baseSteps.push({
+          status: "temporary_transfer_approved",
+          title: "موافقت با انتقال موقت",
           description: "درخواست توسط استان رد شد",
         });
-      } else {
-        baseSteps.push(
-          {
-            status: "province_approval",
-            title: "موافقت استان",
-            description: "توسط استان تایید شد",
-          },
-          // {
-          //   status: "destination_review",
-          //   title: "بررسی مقصد",
-          //   description: "در حال بررسی توسط منطقه مقصد",
-          // },
-          {
-            status: "approved",
-            title: "تایید نهایی",
-            description: "درخواست به طور کامل تایید شد",
-          },
-          {
-            status: "completed",
-            title: "تکمیل",
-            description: "فرایند انتقال تکمیل شد",
-          }
-        );
+      } else if (currentStatus === "permanent_transfer_approved") {
+        baseSteps.push({
+          status: "permanent_transfer_approved",
+          title: "موافقت با انتقال دائم",
+          description: "توسط استان تایید شد",
+        });
+      } else if (currentStatus === "invalid_request") {
+        baseSteps.push({
+          status: "invalid_request",
+          title: "درخواست نامعتبر است",
+          description: "درخواست توسط استان رد شد",
+        });
       }
     }
 
@@ -152,12 +138,35 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
 
   // تابع تعیین رنگ بر اساس نوع وضعیت
   const getStatusColorScheme = (status) => {
+    // بررسی وضعیت‌های خاص ابتدا
+    if (status === "province_review") {
+      return {
+        bg: "bg-blue-100",
+        border: "border-blue-300",
+        text: "text-blue-800",
+        icon: "text-blue-600",
+        dot: "bg-blue-500",
+      };
+    }
+    if (status === "invalid_request") {
+      return {
+        bg: "bg-red-100",
+        border: "border-red-300",
+        text: "text-red-800",
+        icon: "text-red-600",
+        dot: "bg-red-500",
+      };
+    }
+
+    // وضعیت‌های تایید شده (سبز)
     if (
       status.includes("approval") ||
       status === "approved" ||
       status === "completed" ||
       status === "user_approval" ||
-      status === "exception_eligibility_approval"
+      status === "exception_eligibility_approval" ||
+      status === "temporary_transfer_approved" ||
+      status === "permanent_transfer_approved"
     ) {
       return {
         bg: "bg-green-100",
@@ -167,6 +176,8 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
         dot: "bg-green-500",
       };
     }
+
+    // وضعیت‌های رد شده (قرمز)
     if (
       status.includes("rejection") ||
       status === "rejected" ||
@@ -180,6 +191,8 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
         dot: "bg-red-500",
       };
     }
+
+    // وضعیت‌های در حال بررسی (زرد)
     if (
       status.includes("review") ||
       status.includes("awaiting") ||
@@ -194,6 +207,8 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
         dot: "bg-yellow-500",
       };
     }
+
+    // پیش‌فرض (آبی)
     return {
       bg: "bg-blue-100",
       border: "border-blue-300",
@@ -254,19 +269,17 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
   const getStatusDisplayName = (status) => {
     const statusMap = {
       user_no_action: "فاقد درخواست تجدیدنظر",
-      awaiting_user_approval: "درخواست ناقص (منتظر تایید کاربر)",
+      awaiting_user_approval: "درخواست ناقص است",
       user_approval: "در انتظار بررسی مبدأ",
       source_review: "درحال بررسی مشمولیت",
-      exception_eligibility_approval: "تایید مشمولیت",
-      exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
+      exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
+      exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
+      source_rejection: "مخالفت مبدا (عدم موافقت)",
       source_approval: "موافقت مبدا (موقت/دائم)",
-      source_rejection: "مخالفت مبدا",
-      province_review: "در حال بررسی توسط استان",
-      province_approval: "موافقت استان",
-      province_rejection: "مخالفت استان",
-      // destination_review: "در حال بررسی مقصد",
-      destination_approval: "تایید مقصد",
-      destination_rejection: "رد مقصد",
+      temporary_transfer_approved: "موافقت با انتقال موقت",
+      permanent_transfer_approved: "موافقت با انتقال دائم",
+      province_review: "درحال بررسی توسط اداره کل",
+      invalid_request: "درخواست نامعتبر است",
     };
     return statusMap[status] || status;
   };
@@ -326,6 +339,11 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
           appealData,
           districtsData,
         });
+
+        // Update local districts if fetched successfully
+        if (districtsData.success) {
+          setLocalDistricts(districtsData.districts);
+        }
 
         setRequestDetails({
           userSpecs: specsData.success ? specsData.specs : userSpecs,
@@ -482,57 +500,38 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
         textColorSecondary: "text-blue-700",
         icon: "FaClock",
         title: "درخواست شما در حال بررسی توسط استان است",
-        message: "لطفاً منتظر نتیجه بررسی باشید.",
+        message: "پرونده متقاضی درحال بررسی است....",
       },
-      province_approval: {
+      temporary_transfer_approved: {
         bg: "bg-green-50 border-green-200",
         iconBg: "bg-green-100",
         iconColor: "text-green-600",
         textColor: "text-green-800",
         textColorSecondary: "text-green-700",
         icon: "FaCheckCircle",
-        title: "درخواست شما توسط استان تایید شده است",
-        message: "درخواست شما به منطقه مقصد برای بررسی نهایی ارسال شده است.",
+        title: "موافقت با انتقال موقت",
+        message: "با انتقال متقاضی بصورت موقت یکساله موافقت شد.",
       },
-      province_rejection: {
-        bg: "bg-red-50 border-red-200",
-        iconBg: "bg-red-100",
-        iconColor: "text-red-600",
-        textColor: "text-red-800",
-        textColorSecondary: "text-red-700",
-        icon: "FaTimesCircle",
-        title: "درخواست شما توسط استان رد شده است",
-        message: "متأسفانه درخواست شما مورد تایید قرار نگرفت.",
-      },
-      destination_review: {
-        bg: "bg-blue-50 border-blue-200",
-        iconBg: "bg-blue-100",
-        iconColor: "text-blue-600",
-        textColor: "text-blue-800",
-        textColorSecondary: "text-blue-700",
-        icon: "FaClock",
-        title: "درخواست شما در حال بررسی نهایی توسط منطقه مقصد است",
-        message: "شما در آخرین مرحله بررسی قرار دارید.",
-      },
-      destination_approval: {
-        bg: "bg-purple-50 border-purple-200",
-        iconBg: "bg-purple-100",
-        iconColor: "text-purple-600",
-        textColor: "text-purple-800",
-        textColorSecondary: "text-purple-700",
+      permanent_transfer_approved: {
+        bg: "bg-green-50 border-green-200",
+        iconBg: "bg-green-100",
+        iconColor: "text-green-600",
+        textColor: "text-green-800",
+        textColorSecondary: "text-green-700",
         icon: "FaCheckCircle",
-        title: "تبریک! درخواست شما تایید نهایی شده است",
-        message: "درخواست تجدیدنظر در نتیجه انتقال شما با موفقیت تایید شد.",
+        title: "موافقت با انتقال دائم",
+        // message: "",
+        message: "با انتقال متقاضی بصورت دائم موافقت شد.",
       },
-      destination_rejection: {
+      invalid_request: {
         bg: "bg-red-50 border-red-200",
         iconBg: "bg-red-100",
         iconColor: "text-red-600",
         textColor: "text-red-800",
         textColorSecondary: "text-red-700",
         icon: "FaTimesCircle",
-        title: "درخواست شما توسط منطقه مقصد رد شده است",
-        message: "متأسفانه درخواست شما در مرحله نهایی رد شد.",
+        title: "درخواست شما نامعتبر است",
+        message: "درخواست متقاضی نامعتبر است (به توضیحات رجوع شود.)",
       },
     };
 
@@ -743,22 +742,48 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                           <div
                             className={`w-6 h-6 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
                               isCompleted
-                                ? step.status.includes("rejection")
+                                ? step.status.includes("rejection") ||
+                                  step.status ===
+                                    "exception_eligibility_rejection" ||
+                                  step.status === "invalid_request"
                                   ? "bg-red-500 border-red-500"
-                                  : "bg-green-500 border-green-500"
+                                  : step.status.includes("approval") ||
+                                    step.status === "approved" ||
+                                    step.status === "completed" ||
+                                    step.status === "user_approval" ||
+                                    step.status ===
+                                      "exception_eligibility_approval" ||
+                                    step.status ===
+                                      "temporary_transfer_approved" ||
+                                    step.status ===
+                                      "permanent_transfer_approved"
+                                  ? "bg-green-500 border-green-500"
+                                  : "bg-blue-500 border-blue-500"
                                 : isCurrent
-                                ? "bg-blue-500 border-blue-500 animate-pulse"
+                                ? step.status === "province_review" ||
+                                  step.status.includes("review") ||
+                                  step.status.includes("awaiting") ||
+                                  step.status === "under_review" ||
+                                  step.status === "pending"
+                                  ? "bg-blue-500 border-blue-500 animate-pulse"
+                                  : step.status.includes("rejection") ||
+                                    step.status ===
+                                      "exception_eligibility_rejection" ||
+                                    step.status === "invalid_request"
+                                  ? "bg-red-500 border-red-500 animate-pulse"
+                                  : "bg-green-500 border-green-500 animate-pulse"
                                 : "bg-gray-200 border-gray-300"
                             }`}
                           >
                             {isCompleted &&
-                              step.status.includes("rejection") && (
+                              (step.status.includes("rejection") ||
+                              step.status ===
+                                "exception_eligibility_rejection" ||
+                              step.status === "invalid_request" ? (
                                 <FaTimes className="w-2 h-2 md:w-3 md:h-3 text-white" />
-                              )}
-                            {isCompleted &&
-                              !step.status.includes("rejection") && (
+                              ) : (
                                 <FaCheck className="w-2 h-2 md:w-3 md:h-3 text-white" />
-                              )}
+                              ))}
                             {isCurrent && (
                               <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full"></div>
                             )}
@@ -889,6 +914,132 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
             </div>
           )}
 
+        {/* نتایج نهایی انتقال برای کاربران تایید شده */}
+        {(userSpecs?.currentRequestStatus === "permanent_transfer_approved" ||
+          userSpecs?.currentRequestStatus ===
+            "temporary_transfer_approved") && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="bg-green-100 p-2 rounded-lg">
+                <FaCheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-green-800 mb-3">
+                  🎉 نتایج نهایی انتقال
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <label className="font-medium text-green-700">
+                      وضعیت نتیجه نهایی:
+                    </label>
+                    <p className="text-green-800 mt-1">
+                      {userSpecs?.finalResultStatus ===
+                      "temporary_transfer_approved"
+                        ? "با انتقال متقاضی بصورت موقت یکساله موافقت شد"
+                        : userSpecs?.finalResultStatus ===
+                          "permanent_transfer_approved"
+                        ? "با انتقال متقاضی بصورت دائم موافقت شد"
+                        : userSpecs?.finalResultStatus || "-"}
+                    </p>
+                  </div>
+
+                  {userSpecs?.finalTransferDestinationCode && (
+                    <div>
+                      <label className="font-medium text-green-700">
+                        منطقه مقصد انتقال:
+                      </label>
+                      <div className="text-green-800 mt-1">
+                        <p className="font-mono text-lg">
+                          کد: {userSpecs?.finalTransferDestinationCode}
+                        </p>
+                        {(() => {
+                          // پیدا کردن اطلاعات منطقه از لیست
+                          const userPriorityDistrict = userSpecs
+                            ? Array.from({ length: 7 }, (_, i) => {
+                                const priority = i + 1;
+                                const destination =
+                                  userSpecs[`destinationPriority${priority}`];
+                                return destination
+                                  ? {
+                                      priority,
+                                      districtCode: destination.districtCode,
+                                      transferType: destination.transferType,
+                                    }
+                                  : null;
+                              })
+                                .filter(Boolean)
+                                .find(
+                                  (d) =>
+                                    d.districtCode ===
+                                    userSpecs.finalTransferDestinationCode
+                                )
+                            : null;
+
+                          const districtInfo = localDistricts?.find(
+                            (d) =>
+                              d.code === userSpecs.finalTransferDestinationCode
+                          );
+
+                          return (
+                            <>
+                              {districtInfo && (
+                                <p className="font-medium">
+                                  نام: {districtInfo.name} (
+                                  {districtInfo.province?.name || "نامشخص"})
+                                </p>
+                              )}
+                              {userPriorityDistrict && (
+                                <p className="text-sm bg-green-100 rounded px-2 py-1 inline-block mt-1">
+                                  اولویت {userPriorityDistrict.priority} از
+                                  گزینه‌های شما
+                                </p>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
+
+                  {userSpecs?.finalResultReason && (
+                    <div className="md:col-span-2">
+                      <label className="font-medium text-green-700">
+                        علت موافقت:
+                      </label>
+                      <p className="text-green-800 mt-1">
+                        {userSpecs?.finalResultReason}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* توضیحات برای درخواست نامعتبر */}
+        {userSpecs?.currentRequestStatus === "invalid_request" &&
+          userSpecs?.finalResultReason && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <div className="bg-red-100 p-2 rounded-lg">
+                  <FaTimesCircle className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-red-800 mb-3">
+                    توضیحات درخواست نامعتبر
+                  </h3>
+                  <div className="text-sm">
+                    <label className="font-medium text-red-700">توضیحات:</label>
+                    <p className="text-red-800 mt-1">
+                      {userSpecs?.finalResultReason}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* اطلاعات کلی درخواست */}
           <div className="lg:col-span-2">
@@ -950,6 +1101,126 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                       </span>
                     </div>
                   </div>
+
+                  {/* نتایج نهایی انتقال - فقط برای وضعیت‌های تایید شده */}
+                  {(requestDetails?.userSpecs?.currentRequestStatus ===
+                    "permanent_transfer_approved" ||
+                    requestDetails?.userSpecs?.currentRequestStatus ===
+                      "temporary_transfer_approved") && (
+                    <>
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium text-gray-600">
+                          وضعیت نتیجه نهایی:
+                        </label>
+                        <p className="text-gray-800 font-medium">
+                          {requestDetails?.userSpecs?.finalResultStatus ===
+                          "temporary_transfer_approved"
+                            ? "با انتقال متقاضی بصورت موقت یکساله موافقت شد"
+                            : requestDetails?.userSpecs?.finalResultStatus ===
+                              "permanent_transfer_approved"
+                            ? "با انتقال متقاضی بصورت دائم موافقت شد"
+                            : requestDetails?.userSpecs?.finalResultStatus ||
+                              "-"}
+                        </p>
+                      </div>
+
+                      {requestDetails?.userSpecs
+                        ?.finalTransferDestinationCode && (
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-medium text-gray-600">
+                            منطقه مقصد انتقال:
+                          </label>
+                          <div className="text-gray-800 font-medium mt-1">
+                            <p className="font-mono">
+                              کد:{" "}
+                              {
+                                requestDetails?.userSpecs
+                                  ?.finalTransferDestinationCode
+                              }
+                            </p>
+                            {(() => {
+                              // پیدا کردن اطلاعات منطقه از لیست
+                              const district = requestDetails?.userSpecs
+                                ? Array.from({ length: 7 }, (_, i) => {
+                                    const priority = i + 1;
+                                    const destination =
+                                      requestDetails.userSpecs[
+                                        `destinationPriority${priority}`
+                                      ];
+                                    return destination
+                                      ? {
+                                          priority,
+                                          districtCode:
+                                            destination.districtCode,
+                                          transferType:
+                                            destination.transferType,
+                                        }
+                                      : null;
+                                  })
+                                    .filter(Boolean)
+                                    .find(
+                                      (d) =>
+                                        d.districtCode ===
+                                        requestDetails.userSpecs
+                                          .finalTransferDestinationCode
+                                    )
+                                : null;
+
+                              const districtInfo =
+                                requestDetails?.destinationPriorities?.find(
+                                  (d) =>
+                                    d.districtCode ===
+                                    requestDetails.userSpecs
+                                      .finalTransferDestinationCode
+                                );
+
+                              return (
+                                <>
+                                  {districtInfo && (
+                                    <p>
+                                      نام: {districtInfo.districtName} (
+                                      {districtInfo.provinceName})
+                                    </p>
+                                  )}
+                                  {district && (
+                                    <p className="text-sm bg-blue-50 text-blue-700 rounded px-2 py-1 inline-block mt-1">
+                                      اولویت {district.priority} از گزینه‌های
+                                      شما
+                                    </p>
+                                  )}
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      )}
+
+                      {requestDetails?.userSpecs?.finalResultReason && (
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-medium text-gray-600">
+                            علت موافقت:
+                          </label>
+                          <p className="text-gray-800 font-medium">
+                            {requestDetails?.userSpecs?.finalResultReason}
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* توضیحات برای درخواست نامعتبر */}
+                  {requestDetails?.userSpecs?.currentRequestStatus ===
+                    "invalid_request" &&
+                    requestDetails?.userSpecs?.finalResultReason && (
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium text-gray-600">
+                          توضیحات:
+                        </label>
+                        <p className="text-gray-800 font-medium">
+                          {requestDetails?.userSpecs?.finalResultReason}
+                        </p>
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
@@ -1745,21 +2016,35 @@ function ReadOnlyRequestView({ userSpecs, onBack }) {
                         <div
                           className={`w-8 h-8 rounded-full border-4 flex items-center justify-center ${
                             isCompleted
-                              ? step.status.includes("rejection")
+                              ? step.status.includes("rejection") ||
+                                step.status ===
+                                  "exception_eligibility_rejection" ||
+                                step.status === "invalid_request"
                                 ? "bg-red-500 border-red-300"
-                                : "bg-green-500 border-green-300"
+                                : step.status.includes("approval") ||
+                                  step.status === "approved" ||
+                                  step.status === "completed" ||
+                                  step.status === "user_approval" ||
+                                  step.status ===
+                                    "exception_eligibility_approval" ||
+                                  step.status ===
+                                    "temporary_transfer_approved" ||
+                                  step.status === "permanent_transfer_approved"
+                                ? "bg-green-500 border-green-300"
+                                : "bg-blue-500 border-blue-300"
                               : isCurrent
                               ? `${colors.dot} border-white shadow-lg animate-pulse`
                               : "bg-gray-300 border-gray-200"
                           }`}
                         >
-                          {isCompleted && step.status.includes("rejection") && (
-                            <FaTimes className="w-3 h-3 text-white" />
-                          )}
                           {isCompleted &&
-                            !step.status.includes("rejection") && (
+                            (step.status.includes("rejection") ||
+                            step.status === "exception_eligibility_rejection" ||
+                            step.status === "invalid_request" ? (
+                              <FaTimes className="w-3 h-3 text-white" />
+                            ) : (
                               <FaCheck className="w-3 h-3 text-white" />
-                            )}
+                            ))}
                           {isCurrent && (
                             <div className="w-2 h-2 bg-white rounded-full"></div>
                           )}
@@ -2203,12 +2488,15 @@ export default function EmergencyTransferPage() {
       source_approval: "موافقت مبدا (موقت/دائم)",
       source_rejection: "مخالفت مبدا",
       province_review: "در حال بررسی توسط استان",
-      province_approval: "موافقت استان",
-      province_rejection: "مخالفت استان",
+      // province_approval: "موافقت استان",
+      // province_rejection: "مخالفت استان",
+      // // destination_review: "در حال بررسی مقصد",
+      // destination_approval: "تایید مقصد",
+      // destination_rejection: "رد مقصد",
       // destination_review: "در حال بررسی مقصد",
-      destination_approval: "تایید مقصد",
-      destination_rejection: "رد مقصد",
-      // destination_review: "در حال بررسی مقصد",
+      temporary_transfer_approved: "موافقت با انتقال موقت",
+      permanent_transfer_approved: "موافقت با انتقال دائم",
+      invalid_request: "درخواست نامعتبر است",
     };
     return statusMap[status] || status;
   };
@@ -2265,6 +2553,18 @@ export default function EmergencyTransferPage() {
       fetchDistricts();
     }
   }, [user?.phoneVerified, currentStep, showReadOnlyView]);
+
+  // Fetch districts when showing read-only view for final results display
+  useEffect(() => {
+    if (
+      user?.phoneVerified &&
+      showReadOnlyView &&
+      (userSpecs?.currentRequestStatus === "permanent_transfer_approved" ||
+        userSpecs?.currentRequestStatus === "temporary_transfer_approved")
+    ) {
+      fetchDistricts();
+    }
+  }, [user?.phoneVerified, showReadOnlyView, userSpecs?.currentRequestStatus]);
 
   // Fetch destination priorities when step 4 is active
   useEffect(() => {
@@ -3902,6 +4202,7 @@ export default function EmergencyTransferPage() {
       <ReadOnlyRequestView
         userSpecs={userSpecs}
         onBack={() => setShowReadOnlyView(false)}
+        districts={districts}
       />
     );
   }

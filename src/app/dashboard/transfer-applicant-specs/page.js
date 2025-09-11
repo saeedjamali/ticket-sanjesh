@@ -1444,11 +1444,14 @@ export default function TransferApplicantSpecsPage() {
         source_approval: "موافقت مبدا (موقت/دائم)",
         source_rejection: "مخالفت مبدا",
         province_review: "در حال بررسی توسط استان",
-        province_approval: "موافقت استان",
-        province_rejection: "مخالفت استان",
-        // destination_review: "در حال بررسی مقصد",
-        destination_approval: "تایید مقصد",
-        destination_rejection: "رد مقصد",
+        // province_approval: "موافقت استان",
+        // province_rejection: "مخالفت استان",
+        // // destination_review: "در حال بررسی مقصد",
+        // destination_approval: "تایید مقصد",
+        // destination_rejection: "رد مقصد",
+        temporary_transfer_approved: "موافقت با انتقال موقت",
+        permanent_transfer_approved: "موافقت با انتقال دائم",
+        invalid_request: "درخواست نامعتبر است",
       };
 
       console.log("Total statuses received:", statuses.length);

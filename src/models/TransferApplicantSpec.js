@@ -259,6 +259,9 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
           "destination_review", // در حال بررسی مقصد
           "destination_approval", // تایید مقصد
           "destination_rejection", // رد مقصد
+          "temporary_transfer_approved", // موافقت با انتقال موقت
+          "permanent_transfer_approved", // موافقت با انتقال دائم
+          "invalid_request", // درخواست نامعتبر است
         ],
         required: true,
       },
@@ -289,6 +292,9 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
           "destination_review",
           "destination_approval",
           "destination_rejection",
+          "temporary_transfer_approved",
+          "permanent_transfer_approved",
+          "invalid_request",
         ],
         default: null,
       },
@@ -332,6 +338,9 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
       "destination_review",
       "destination_approval",
       "destination_rejection",
+      "temporary_transfer_approved",
+      "permanent_transfer_approved",
+      "invalid_request",
     ],
     required: true,
     default: "user_no_action",
@@ -455,19 +464,16 @@ TransferApplicantSpecSchema.methods.getRequestStatusText = function (status) {
   const statusToCheck = status || this.currentRequestStatus;
   const statusMap = {
     user_no_action: "فاقد درخواست تجدیدنظر",
-    awaiting_user_approval: "درخواست ناقص (منتظر تایید کاربر) ",
+    awaiting_user_approval: "درخواست ناقص است",
     user_approval: "در انتظار بررسی مبدأ",
     source_review: "درحال بررسی مشمولیت",
-    exception_eligibility_approval: "تایید مشمولیت",
-    exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
-    source_approval: "موافقت مبدا (موقت/دائم)",
-    source_rejection: "مخالفت مبدا",
-    province_review: "در حال بررسی توسط استان",
-    province_approval: "موافقت استان",
-    province_rejection: "مخالفت استان",
-    // destination_review: "در حال بررسی مقصد",
-    destination_approval: "تایید مقصد",
-    destination_rejection: "رد مقصد",
+    exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
+    exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
+    source_rejection: "مخالفت مبدا (عدم موافقت)",
+    temporary_transfer_approved: "موافقت با انتقال موقت",
+    permanent_transfer_approved: "موافقت با انتقال دائم",
+    province_review: "درحال بررسی توسط اداره کل",
+    invalid_request: "درخواست نامعتبر است",
   };
   return statusMap[statusToCheck] || "نامشخص";
 };

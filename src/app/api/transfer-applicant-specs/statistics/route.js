@@ -88,11 +88,17 @@ export async function GET(request) {
       "source_approval",
       "source_rejection",
       "province_review",
+      "temporary_transfer_approved",
+      "permanent_transfer_approved",
+      "invalid_request",
       "province_approval",
       "province_rejection",
       "destination_review",
       "destination_approval",
       "destination_rejection",
+      "temporary_transfer_approved",
+      "permanent_transfer_approved",
+      "invalid_request",
     ];
 
     // گرفتن وضعیت‌هایی که واقعاً در داده‌ها موجود هستند

@@ -78,16 +78,19 @@ export default function DocumentReviewPage() {
       awaiting_user_approval: "درخواست ناقص (منتظر تایید کاربر)",
       user_approval: "در انتظار بررسی مبدأ",
       source_review: "درحال بررسی مشمولیت",
-      exception_eligibility_approval: "تایید مشمولیت",
-      exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
+      exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
+      exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
       source_approval: "موافقت مبدا (موقت/دائم)",
       source_rejection: "مخالفت مبدا",
       province_review: "در حال بررسی توسط استان",
-      province_approval: "موافقت استان",
-      province_rejection: "مخالفت استان",
-      // destination_review: "در حال بررسی مقصد",
-      destination_approval: "تایید مقصد",
-      destination_rejection: "رد مقصد",
+      temporary_transfer_approved: "موافقت با انتقال موقت",
+      permanent_transfer_approved: "موافقت با انتقال دائم",
+      invalid_request: "درخواست نامعتبر است",
+      // province_approval: "موافقت استان",
+      // province_rejection: "مخالفت استان",
+      // // destination_review: "در حال بررسی مقصد",
+      // destination_approval: "تایید مقصد",
+      // destination_rejection: "رد مقصد",
     };
     return statusMap[status] || status || "-";
   };
@@ -224,6 +227,9 @@ export default function DocumentReviewPage() {
       exception_eligibility_rejection: 0,
       source_approval: 0,
       source_rejection: 0,
+      temporary_transfer_approved: 0,
+      permanent_transfer_approved: 0,
+      invalid_request: 0,
       province_approval: 0,
       province_rejection: 0,
     };
@@ -1273,16 +1279,22 @@ export default function DocumentReviewPage() {
         return "مخالفت مبدا";
       case "province_review":
         return "در حال بررسی توسط استان";
-      case "province_approval":
-        return "موافقت استان";
-      case "province_rejection":
-        return "مخالفت استان";
-      case "destination_review":
-        return "در حال بررسی توسط مقصد";
-      case "destination_approval":
-        return "موافقت مقصد";
-      case "destination_rejection":
-        return "مخالفت مقصد";
+      case "temporary_transfer_approved":
+        return "موافقت با انتقال موقت";
+      case "permanent_transfer_approved":
+        return "موافقت با انتقال دائم";
+      case "invalid_request":
+        return "درخواست نامعتبر است";
+      // case "province_approval":
+      //   return "موافقت استان";
+      // case "province_rejection":
+      //   return "مخالفت استان";
+      // case "destination_review":
+      //   return "در حال بررسی توسط مقصد";
+      // case "destination_approval":
+      //   return "موافقت مقصد";
+      // case "destination_rejection":
+      //   return "مخالفت مقصد";
       default:
         return "نامشخص";
     }
@@ -1626,27 +1638,22 @@ export default function DocumentReviewPage() {
 
       // وضعیت‌های کاربر
       user_no_action: "فاقد درخواست تجدیدنظر",
-      awaiting_user_approval: "درخواست ناقص (منتظر تایید کاربر)",
+      awaiting_user_approval: "درخواست ناقص است",
       user_approval: "در انتظار بررسی مبدأ",
 
       // وضعیت‌های بررسی مستندات
       source_review: "درحال بررسی مشمولیت",
-      exception_eligibility_approval: "تایید مشمولیت",
-      exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
+      exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
+      exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
 
       // وضعیت‌های نظر مبدا
-      source_approval: "موافقت مبدا (موقت/دائم)",
-      source_rejection: "مخالفت مبدا",
+      source_rejection: "مخالفت مبدا (عدم موافقت)",
+      temporary_transfer_approved: "موافقت با انتقال موقت",
+      permanent_transfer_approved: "موافقت با انتقال دائم",
 
       // وضعیت‌های استان
-      province_review: "در حال بررسی توسط استان",
-      province_approval: "موافقت استان",
-      province_rejection: "مخالفت استان",
-
-      // وضعیت‌های مقصد
-      // destination_review: "در حال بررسی مقصد",
-      destination_approval: "موافقت مقصد",
-      destination_rejection: "مخالفت مقصد",
+      province_review: "درحال بررسی توسط اداره کل",
+      invalid_request: "درخواست نامعتبر است",
 
       // وضعیت‌های نهایی
       final_approval: "موافقت نهایی",
@@ -1670,8 +1677,6 @@ export default function DocumentReviewPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-dvw mx-auto">
-         {/* اطلاعیه مهم */}
-      <ImportantNotice /> 
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg border border-blue-200 overflow-hidden mb-8">
           <div className="bg-gradient-to-r from-blue-500 to-indigo-500 p-6">

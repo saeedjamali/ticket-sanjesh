@@ -9,7 +9,7 @@ export default function LoginPage() {
   return (
     <>
       {/* اطلاعیه مهم */}
-      {/* <ImportantNotice /> */}
+      <ImportantNotice />
 
       <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-blue-50 to-indigo-50">
         {/* Left side: Login form */}

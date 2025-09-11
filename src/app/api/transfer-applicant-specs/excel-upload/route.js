@@ -202,6 +202,9 @@ export async function POST(req) {
             "destination_review",
             "destination_approval",
             "destination_rejection",
+            "temporary_transfer_approved",
+            "permanent_transfer_approved",
+            "invalid_request",
           ];
 
           if (validCurrentStatuses.includes(currentRequestStatus)) {
