@@ -112,7 +112,7 @@ export async function GET(request) {
           label: "فاقد شرایط (عدم احراز مشمولیت)",
         },
         { value: "source_approval", label: "موافقت مبدا (موقت/دائم)" },
-        { value: "source_rejection", label: "مخالفت مبدا" },
+        { value: "source_rejection", label: "مخالفت مبدا (علیرغم مشمولیت)" },
         { value: "province_review", label: "در حال بررسی توسط استان" },
         // { value: "province_approval", label: "موافقت استان" },
         // { value: "province_rejection", label: "مخالفت استان" },
@@ -121,6 +121,8 @@ export async function GET(request) {
         // { value: "destination_rejection", label: "مخالفت مقصد" },
         { value: "temporary_transfer_approved", label: "موافقت با انتقال موقت" },
         { value: "permanent_transfer_approved", label: "موافقت با انتقال دائم" },
+        { value: "destination_correction_approved", label: "موافقت با اصلاح مقصد" },
+        { value: "processing_stage_results", label: "مطابق نتایج مرحله پردازشی" },
         { value: "invalid_request", label: "درخواست نامعتبر است" },
       ],
       medicalCommissionCodes: [

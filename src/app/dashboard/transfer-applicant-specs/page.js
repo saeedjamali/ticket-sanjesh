@@ -1442,7 +1442,7 @@ export default function TransferApplicantSpecsPage() {
         exception_eligibility_approval: "تایید مشمولیت",
         exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
         source_approval: "موافقت مبدا (موقت/دائم)",
-        source_rejection: "مخالفت مبدا",
+        source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
         province_review: "در حال بررسی توسط استان",
         // province_approval: "موافقت استان",
         // province_rejection: "مخالفت استان",
@@ -1451,6 +1451,8 @@ export default function TransferApplicantSpecsPage() {
         // destination_rejection: "رد مقصد",
         temporary_transfer_approved: "موافقت با انتقال موقت",
         permanent_transfer_approved: "موافقت با انتقال دائم",
+        destination_correction_approved: "موافقت با اصلاح مقصد",
+        processing_stage_results: "مطابق نتایج مرحله پردازشی",
         invalid_request: "درخواست نامعتبر است",
       };
 

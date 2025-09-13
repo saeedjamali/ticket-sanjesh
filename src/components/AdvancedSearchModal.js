@@ -162,11 +162,13 @@ export default function AdvancedSearchModal({
       source_review: "درحال بررسی مشمولیت",
       exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
       exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
-      source_rejection: "مخالفت مبدا (عدم موافقت)",
+      source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
       temporary_transfer_approved: "موافقت با انتقال موقت",
       permanent_transfer_approved: "موافقت با انتقال دائم",
       province_review: "درحال بررسی توسط اداره کل",
       invalid_request: "درخواست نامعتبر است",
+      destination_correction_approved: "موافقت با اصلاح مقصد",
+      processing_stage_results: "مطابق نتایج مرحله پردازشی",
       pending: "در انتظار",
       approved: "تایید شده",
       rejected: "رد شده",
@@ -262,7 +264,7 @@ export default function AdvancedSearchModal({
       label: "رد مشمولیت (فاقد شرایط)",
     },
     { key: "source_approval", label: "موافقت مبدا (موقت/دائم)" },
-    { key: "source_rejection", label: "مخالفت مبدا" },
+    { key: "source_rejection", label: "مخالفت مبدا (علیرغم مشمولیت)" },
     { key: "province_review", label: "در حال بررسی توسط استان" },
     // { key: "province_approval", label: "موافقت استان" },
     // { key: "province_rejection", label: "مخالفت استان" },
@@ -272,6 +274,8 @@ export default function AdvancedSearchModal({
     { key: "temporary_transfer_approved", label: "موافقت با انتقال موقت" },
     { key: "permanent_transfer_approved", label: "موافقت با انتقال دائم" },
     { key: "invalid_request", label: "درخواست نامعتبر است" },
+    { key: "destination_correction_approved", label: "موافقت با اصلاح مقصد" },
+    { key: "processing_stage_results", label: "مطابق نتایج مرحله پردازشی" },
   ];
 
   return (

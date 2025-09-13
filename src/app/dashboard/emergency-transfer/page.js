@@ -38,6 +38,7 @@ import {
 } from "react-icons/fa";
 
 import ChatBox from "@/components/chat/ChatBox";
+import ApprovedClausesDisplay from "@/components/ApprovedClausesDisplay";
 
 // کامپوننت نمایش فقط خواندنی درخواست
 function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
@@ -82,7 +83,7 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
     } else if (currentStatus === "source_rejection") {
       baseSteps.push({
         status: "source_rejection",
-        title: "مخالفت مبدا (عدم موافقت)",
+        title: "مخالفت مبدا (علیرغم مشمولیت)",
         description: "درخواست توسط منطقه مبدا رد شد",
       });
     } else {
@@ -139,7 +140,7 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
   // تابع تعیین رنگ بر اساس نوع وضعیت
   const getStatusColorScheme = (status) => {
     // بررسی وضعیت‌های خاص ابتدا
-    if (status === "province_review") {
+    if (status === "province_review" || status === "processing_stage_results") {
       return {
         bg: "bg-blue-100",
         border: "border-blue-300",
@@ -157,6 +158,15 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
         dot: "bg-red-500",
       };
     }
+    if (status === "destination_correction_approved") {
+      return {
+        bg: "bg-green-100",
+        border: "border-green-300",
+        text: "text-green-800",
+        icon: "text-green-600",
+        dot: "bg-green-500",
+      };
+    }
 
     // وضعیت‌های تایید شده (سبز)
     if (
@@ -166,7 +176,8 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
       status === "user_approval" ||
       status === "exception_eligibility_approval" ||
       status === "temporary_transfer_approved" ||
-      status === "permanent_transfer_approved"
+      status === "permanent_transfer_approved" ||
+      status === "destination_correction_approved"
     ) {
       return {
         bg: "bg-green-100",
@@ -274,12 +285,14 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
       source_review: "درحال بررسی مشمولیت",
       exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
       exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
-      source_rejection: "مخالفت مبدا (عدم موافقت)",
+      source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
       source_approval: "موافقت مبدا (موقت/دائم)",
       temporary_transfer_approved: "موافقت با انتقال موقت",
       permanent_transfer_approved: "موافقت با انتقال دائم",
       province_review: "درحال بررسی توسط اداره کل",
       invalid_request: "درخواست نامعتبر است",
+      destination_correction_approved: "موافقت با اصلاح مقصد",
+      processing_stage_results: "مطابق نتایج مرحله پردازشی",
     };
     return statusMap[status] || status;
   };
@@ -533,6 +546,28 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
         title: "درخواست شما نامعتبر است",
         message: "درخواست متقاضی نامعتبر است (به توضیحات رجوع شود.)",
       },
+      destination_correction_approved: {
+        bg: "bg-green-50 border-green-200",
+        iconBg: "bg-green-100",
+        iconColor: "text-green-600",
+        textColor: "text-green-800",
+        textColorSecondary: "text-green-700",
+        icon: "FaCheckCircle",
+        title: "موافقت با اصلاح مقصد",
+        message:
+          "با درخواست اصلاح مقصد انتقال انجام شده در مرحله پردازشی موافقت شد.",
+      },
+      processing_stage_results: {
+        bg: "bg-blue-50 border-blue-200",
+        iconBg: "bg-blue-100",
+        iconColor: "text-blue-600",
+        textColor: "text-blue-800",
+        textColorSecondary: "text-blue-700",
+        icon: "FaInfoCircle",
+        title: "مطابق نتایج مرحله پردازشی",
+        message:
+          "درخواست متقاضی منجر به تغییر در نتیجه قبلی اعلام شده در مرحله پردازشی نشد. (تایید مقصد قبلی)",
+      },
     };
 
     return (
@@ -686,178 +721,6 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
           </div>
         </div>
 
-        {/* Progress Bar خلاصه */}
-        {userSpecs?.currentRequestStatus &&
-          userSpecs.currentRequestStatus !== "user_no_action" &&
-          userSpecs.currentRequestStatus !== "awaiting_user_approval" && (
-            <div className="bg-white rounded-xl shadow-lg border border-blue-200 p-4 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-gray-800">پیشرفت درخواست</h3>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600">
-                    وضعیت:{" "}
-                    {getStatusDisplayName(userSpecs.currentRequestStatus)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress Steps */}
-              <div className="overflow-x-auto pb-2">
-                <div className="flex items-center justify-between relative min-w-max px-4 md:px-0 md:min-w-0">
-                  {/* خط پس‌زمینه */}
-                  <div className="absolute top-4 left-4 right-4 md:left-0 md:right-0 h-1 bg-gray-200 rounded-full"></div>
-
-                  {getWorkflowSteps(userSpecs.currentRequestStatus).map(
-                    (step, index) => {
-                      const timelineStatus = getTimelineStatus(
-                        step.status,
-                        userSpecs.currentRequestStatus,
-                        userSpecs.requestStatusWorkflow,
-                        getWorkflowSteps(userSpecs.currentRequestStatus)
-                      );
-
-                      const isCompleted = timelineStatus === "completed";
-                      const isCurrent = timelineStatus === "current";
-                      const totalSteps = getWorkflowSteps(
-                        userSpecs.currentRequestStatus
-                      ).length;
-                      const completedCount = getWorkflowSteps(
-                        userSpecs.currentRequestStatus
-                      ).filter(
-                        (s, i) =>
-                          getTimelineStatus(
-                            s.status,
-                            userSpecs.currentRequestStatus,
-                            userSpecs.requestStatusWorkflow,
-                            getWorkflowSteps(userSpecs.currentRequestStatus)
-                          ) === "completed"
-                      ).length;
-
-                      return (
-                        <div
-                          key={step.status}
-                          className="relative z-10 flex flex-col items-center mx-1 md:mx-0"
-                        >
-                          {/* نقطه */}
-                          <div
-                            className={`w-6 h-6 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
-                              isCompleted
-                                ? step.status.includes("rejection") ||
-                                  step.status ===
-                                    "exception_eligibility_rejection" ||
-                                  step.status === "invalid_request"
-                                  ? "bg-red-500 border-red-500"
-                                  : step.status.includes("approval") ||
-                                    step.status === "approved" ||
-                                    step.status === "completed" ||
-                                    step.status === "user_approval" ||
-                                    step.status ===
-                                      "exception_eligibility_approval" ||
-                                    step.status ===
-                                      "temporary_transfer_approved" ||
-                                    step.status ===
-                                      "permanent_transfer_approved"
-                                  ? "bg-green-500 border-green-500"
-                                  : "bg-blue-500 border-blue-500"
-                                : isCurrent
-                                ? step.status === "province_review" ||
-                                  step.status.includes("review") ||
-                                  step.status.includes("awaiting") ||
-                                  step.status === "under_review" ||
-                                  step.status === "pending"
-                                  ? "bg-blue-500 border-blue-500 animate-pulse"
-                                  : step.status.includes("rejection") ||
-                                    step.status ===
-                                      "exception_eligibility_rejection" ||
-                                    step.status === "invalid_request"
-                                  ? "bg-red-500 border-red-500 animate-pulse"
-                                  : "bg-green-500 border-green-500 animate-pulse"
-                                : "bg-gray-200 border-gray-300"
-                            }`}
-                          >
-                            {isCompleted &&
-                              (step.status.includes("rejection") ||
-                              step.status ===
-                                "exception_eligibility_rejection" ||
-                              step.status === "invalid_request" ? (
-                                <FaTimes className="w-2 h-2 md:w-3 md:h-3 text-white" />
-                              ) : (
-                                <FaCheck className="w-2 h-2 md:w-3 md:h-3 text-white" />
-                              ))}
-                            {isCurrent && (
-                              <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full"></div>
-                            )}
-                            {!isCompleted && !isCurrent && (
-                              <span className="text-xs font-bold text-gray-400">
-                                {index + 1}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* عنوان */}
-                          <span
-                            className={`text-xs mt-1 md:mt-2 text-center max-w-12 md:max-w-16 leading-tight ${
-                              isCompleted
-                                ? step.status.includes("rejection")
-                                  ? "text-red-700 font-medium"
-                                  : "text-green-700 font-medium"
-                                : isCurrent
-                                ? "text-blue-700 font-medium"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            {step.title}
-                          </span>
-                        </div>
-                      );
-                    }
-                  )}
-
-                  {/* خط پیشرفت */}
-                  <div
-                    className="absolute top-3 md:top-4 right-4 md:right-0 h-1 bg-gradient-to-l from-green-500 to-blue-500 rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.max(
-                        0,
-                        Math.min(
-                          100,
-                          ((getWorkflowSteps(
-                            userSpecs.currentRequestStatus
-                          ).findIndex(
-                            (s) => s.status === userSpecs.currentRequestStatus
-                          ) +
-                            1) /
-                            getWorkflowSteps(userSpecs.currentRequestStatus)
-                              .length) *
-                            100
-                        )
-                      )}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* خلاصه وضعیت */}
-              <div className="flex justify-center mt-4 text-sm text-gray-600">
-                <span>
-                  {
-                    getWorkflowSteps(userSpecs.currentRequestStatus).filter(
-                      (s, i) =>
-                        getTimelineStatus(
-                          s.status,
-                          userSpecs.currentRequestStatus,
-                          userSpecs.requestStatusWorkflow,
-                          getWorkflowSteps(userSpecs.currentRequestStatus)
-                        ) === "completed"
-                    ).length
-                  }{" "}
-                  از {getWorkflowSteps(userSpecs.currentRequestStatus).length}{" "}
-                  مرحله تکمیل شده
-                </span>
-              </div>
-            </div>
-          )}
-
         {/* اعلان وضعیت درخواست */}
         {userSpecs?.currentRequestStatus &&
           userSpecs.currentRequestStatus !== "user_no_action" &&
@@ -914,34 +777,28 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
             </div>
           )}
 
-        {/* نتایج نهایی انتقال برای کاربران تایید شده */}
-        {(userSpecs?.currentRequestStatus === "permanent_transfer_approved" ||
-          userSpecs?.currentRequestStatus ===
-            "temporary_transfer_approved") && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+        {/* نتایج نهایی انتقال */}
+        {userSpecs?.currentRequestStatus && (
+          <div className="bg-white border border-blue-200 rounded-xl p-4 mb-6">
             <div className="flex items-start gap-3">
-              <div className="bg-green-100 p-2 rounded-lg">
-                <FaCheckCircle className="h-6 w-6 text-green-600" />
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <FaCheckCircle className="h-6 w-6 text-blue-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-green-800 mb-3">
-                  🎉 نتایج نهایی انتقال
+                <h3 className="font-semibold text-blue-800 mb-3">
+                  نتایج نهایی انتقال
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <label className="font-medium text-green-700">
-                      وضعیت نتیجه نهایی:
-                    </label>
-                    <p className="text-green-800 mt-1">
-                      {userSpecs?.finalResultStatus ===
-                      "temporary_transfer_approved"
-                        ? "با انتقال متقاضی بصورت موقت یکساله موافقت شد"
-                        : userSpecs?.finalResultStatus ===
-                          "permanent_transfer_approved"
-                        ? "با انتقال متقاضی بصورت دائم موافقت شد"
-                        : userSpecs?.finalResultStatus || "-"}
-                    </p>
-                  </div>
+                  {userSpecs?.currentRequestStatus && (
+                    <div>
+                      <label className="font-medium text-blue-700">
+                        وضعیت جاری درخواست:
+                      </label>
+                      <p className="text-blue-800 mt-1">
+                        {getStatusDisplayName(userSpecs.currentRequestStatus)}
+                      </p>
+                    </div>
+                  )}
 
                   {userSpecs?.finalTransferDestinationCode && (
                     <div>
@@ -991,7 +848,7 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
                               {userPriorityDistrict && (
                                 <p className="text-sm bg-green-100 rounded px-2 py-1 inline-block mt-1">
                                   اولویت {userPriorityDistrict.priority} از
-                                  گزینه‌های شما
+                                  اولویت های شما
                                 </p>
                               )}
                             </>
@@ -1004,11 +861,21 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
                   {userSpecs?.finalResultReason && (
                     <div className="md:col-span-2">
                       <label className="font-medium text-green-700">
-                        علت موافقت:
+                        توضیحات:
                       </label>
                       <p className="text-green-800 mt-1">
                         {userSpecs?.finalResultReason}
                       </p>
+                    </div>
+                  )}
+
+                  {userSpecs?.approvedClauses && (
+                    <div className="md:col-span-2">
+                      <ApprovedClausesDisplay
+                        approvedClauses={userSpecs?.approvedClauses}
+                        variant="detailed"
+                        className="bg-green-50 border border-green-200 rounded-lg p-4"
+                      />
                     </div>
                   )}
                 </div>
@@ -1102,25 +969,17 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
                     </div>
                   </div>
 
-                  {/* نتایج نهایی انتقال - فقط برای وضعیت‌های تایید شده */}
-                  {(requestDetails?.userSpecs?.currentRequestStatus ===
-                    "permanent_transfer_approved" ||
-                    requestDetails?.userSpecs?.currentRequestStatus ===
-                      "temporary_transfer_approved") && (
+                  {/* نتایج نهایی انتقال */}
+                  {requestDetails?.userSpecs?.currentRequestStatus && (
                     <>
                       <div className="md:col-span-2">
                         <label className="text-sm font-medium text-gray-600">
-                          وضعیت نتیجه نهایی:
+                          وضعیت جاری درخواست:
                         </label>
                         <p className="text-gray-800 font-medium">
-                          {requestDetails?.userSpecs?.finalResultStatus ===
-                          "temporary_transfer_approved"
-                            ? "با انتقال متقاضی بصورت موقت یکساله موافقت شد"
-                            : requestDetails?.userSpecs?.finalResultStatus ===
-                              "permanent_transfer_approved"
-                            ? "با انتقال متقاضی بصورت دائم موافقت شد"
-                            : requestDetails?.userSpecs?.finalResultStatus ||
-                              "-"}
+                          {getStatusDisplayName(
+                            requestDetails.userSpecs.currentRequestStatus
+                          )}
                         </p>
                       </div>
 
@@ -1198,11 +1057,23 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
                       {requestDetails?.userSpecs?.finalResultReason && (
                         <div className="md:col-span-2">
                           <label className="text-sm font-medium text-gray-600">
-                            علت موافقت:
+                            توضیحات :
                           </label>
                           <p className="text-gray-800 font-medium">
                             {requestDetails?.userSpecs?.finalResultReason}
                           </p>
+                        </div>
+                      )}
+
+                      {requestDetails?.userSpecs?.approvedClauses && (
+                        <div className="md:col-span-2">
+                          <ApprovedClausesDisplay
+                            approvedClauses={
+                              requestDetails?.userSpecs?.approvedClauses
+                            }
+                            variant="detailed"
+                            className="bg-blue-50 border border-blue-200 rounded-lg p-4"
+                          />
                         </div>
                       )}
                     </>
@@ -1927,275 +1798,289 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
         )}
 
         {/* گردش کار و تاریخچه تغییرات */}
-        <div className="bg-white rounded-xl shadow-lg border border-blue-200 overflow-hidden">
-          <div className="bg-blue-50 p-4 border-b border-blue-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-blue-800 flex items-center gap-2">
-                <FaClock className="h-5 w-5" />
-                تاریخچه گردش کار درخواست
-              </h2>
-              <button
-                onClick={() => setShowWorkflowHistory(!showWorkflowHistory)}
-                className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-lg transition-colors text-sm font-medium"
-              >
-                {showWorkflowHistory ? (
-                  <>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 15l7-7 7 7"
-                      />
-                    </svg>
-                    مخفی کردن
-                  </>
-                ) : (
-                  <>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                    نمایش جزئیات
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-          {showWorkflowHistory && (
-            <div className="p-6 border-t border-blue-100">
-              {/* Timeline خطی */}
-              <div className="relative">
-                {/* خط اصلی timeline */}
-                <div className="absolute right-4 top-0 bottom-0 w-0.5 bg-gray-300"></div>
-
-                {getWorkflowSteps(
-                  requestDetails?.userSpecs?.currentRequestStatus
-                ).map((step, index) => {
-                  const currentWorkflowSteps = getWorkflowSteps(
-                    requestDetails?.userSpecs?.currentRequestStatus
-                  );
-                  const timelineStatus = getTimelineStatus(
-                    step.status,
-                    requestDetails?.userSpecs?.currentRequestStatus,
-                    requestDetails?.userSpecs?.requestStatusWorkflow,
-                    currentWorkflowSteps
-                  );
-
-                  const colors = getStatusColorScheme(step.status);
-                  const workflowItem =
-                    requestDetails?.userSpecs?.requestStatusWorkflow?.find(
-                      (item) => item.status === step.status
-                    );
-
-                  const isCompleted = timelineStatus === "completed";
-                  const isCurrent = timelineStatus === "current";
-                  const isPending = timelineStatus === "pending";
-
-                  return (
-                    <div
-                      key={step.status}
-                      className="relative flex items-start mb-8 last:mb-0"
-                    >
-                      {/* نقطه timeline */}
-                      <div className="relative z-10 flex items-center justify-center">
-                        <div
-                          className={`w-8 h-8 rounded-full border-4 flex items-center justify-center ${
-                            isCompleted
-                              ? step.status.includes("rejection") ||
-                                step.status ===
-                                  "exception_eligibility_rejection" ||
-                                step.status === "invalid_request"
-                                ? "bg-red-500 border-red-300"
-                                : step.status.includes("approval") ||
-                                  step.status === "approved" ||
-                                  step.status === "completed" ||
-                                  step.status === "user_approval" ||
-                                  step.status ===
-                                    "exception_eligibility_approval" ||
-                                  step.status ===
-                                    "temporary_transfer_approved" ||
-                                  step.status === "permanent_transfer_approved"
-                                ? "bg-green-500 border-green-300"
-                                : "bg-blue-500 border-blue-300"
-                              : isCurrent
-                              ? `${colors.dot} border-white shadow-lg animate-pulse`
-                              : "bg-gray-300 border-gray-200"
-                          }`}
+        {requestDetails?.userSpecs?.currentRequestStatus &&
+          requestDetails.userSpecs.currentRequestStatus !==
+            "processing_stage_results" &&
+          requestDetails.userSpecs.currentRequestStatus !==
+            "destination_correction_approved" &&
+          requestDetails.userSpecs.currentRequestStatus !==
+            "permanent_transfer_approved" &&
+          requestDetails.userSpecs.currentRequestStatus !==
+            "temporary_transfer_approved" && (
+            <div className="bg-white rounded-xl shadow-lg border border-blue-200 overflow-hidden">
+              <div className="bg-blue-50 p-4 border-b border-blue-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-blue-800 flex items-center gap-2">
+                    <FaClock className="h-5 w-5" />
+                    تاریخچه گردش کار درخواست
+                  </h2>
+                  <button
+                    onClick={() => setShowWorkflowHistory(!showWorkflowHistory)}
+                    className="flex items-center gap-2 bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1 rounded-lg transition-colors text-sm font-medium"
+                  >
+                    {showWorkflowHistory ? (
+                      <>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          {isCompleted &&
-                            (step.status.includes("rejection") ||
-                            step.status === "exception_eligibility_rejection" ||
-                            step.status === "invalid_request" ? (
-                              <FaTimes className="w-3 h-3 text-white" />
-                            ) : (
-                              <FaCheck className="w-3 h-3 text-white" />
-                            ))}
-                          {isCurrent && (
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* محتوای مرحله */}
-                      <div className="mr-6 flex-1">
-                        <div
-                          className={`p-4 rounded-lg border-2 ${
-                            isCompleted
-                              ? step.status.includes("rejection")
-                                ? "bg-red-50 border-red-200"
-                                : "bg-green-50 border-green-200"
-                              : isCurrent
-                              ? `${colors.bg} ${colors.border}`
-                              : "bg-gray-50 border-gray-200"
-                          }`}
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 15l7-7 7 7"
+                          />
+                        </svg>
+                        مخفی کردن
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          {/* عنوان مرحله */}
-                          <div className="flex items-center justify-between mb-2">
-                            <h3
-                              className={`font-bold text-lg ${
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                        نمایش جزئیات
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+              {showWorkflowHistory && (
+                <div className="p-6 border-t border-blue-100">
+                  {/* Timeline خطی */}
+                  <div className="relative">
+                    {/* خط اصلی timeline */}
+                    <div className="absolute right-4 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+
+                    {getWorkflowSteps(
+                      requestDetails?.userSpecs?.currentRequestStatus
+                    ).map((step, index) => {
+                      const currentWorkflowSteps = getWorkflowSteps(
+                        requestDetails?.userSpecs?.currentRequestStatus
+                      );
+                      const timelineStatus = getTimelineStatus(
+                        step.status,
+                        requestDetails?.userSpecs?.currentRequestStatus,
+                        requestDetails?.userSpecs?.requestStatusWorkflow,
+                        currentWorkflowSteps
+                      );
+
+                      const colors = getStatusColorScheme(step.status);
+                      const workflowItem =
+                        requestDetails?.userSpecs?.requestStatusWorkflow?.find(
+                          (item) => item.status === step.status
+                        );
+
+                      const isCompleted = timelineStatus === "completed";
+                      const isCurrent = timelineStatus === "current";
+                      const isPending = timelineStatus === "pending";
+
+                      return (
+                        <div
+                          key={step.status}
+                          className="relative flex items-start mb-8 last:mb-0"
+                        >
+                          {/* نقطه timeline */}
+                          <div className="relative z-10 flex items-center justify-center">
+                            <div
+                              className={`w-8 h-8 rounded-full border-4 flex items-center justify-center ${
                                 isCompleted
-                                  ? step.status.includes("rejection")
-                                    ? "text-red-800"
-                                    : "text-green-800"
+                                  ? step.status.includes("rejection") ||
+                                    step.status ===
+                                      "exception_eligibility_rejection" ||
+                                    step.status === "invalid_request"
+                                    ? "bg-red-500 border-red-300"
+                                    : step.status.includes("approval") ||
+                                      step.status === "approved" ||
+                                      step.status === "completed" ||
+                                      step.status === "user_approval" ||
+                                      step.status ===
+                                        "exception_eligibility_approval" ||
+                                      step.status ===
+                                        "temporary_transfer_approved" ||
+                                      step.status ===
+                                        "permanent_transfer_approved" ||
+                                      step.status ===
+                                        "destination_correction_approved"
+                                    ? "bg-green-500 border-green-300"
+                                    : "bg-blue-500 border-blue-300"
                                   : isCurrent
-                                  ? colors.text
-                                  : "text-gray-600"
+                                  ? `${colors.dot} border-white shadow-lg animate-pulse`
+                                  : "bg-gray-300 border-gray-200"
                               }`}
                             >
-                              {step.title}
-                            </h3>
-
-                            {/* نشان وضعیت */}
-                            <div className="flex items-center gap-2">
-                              {isCompleted && (
-                                <span
-                                  className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                    step.status.includes("rejection")
-                                      ? "bg-red-100 text-red-800"
-                                      : "bg-green-100 text-green-800"
-                                  }`}
-                                >
-                                  {step.status.includes("rejection")
-                                    ? "رد شده"
-                                    : "تکمیل شده"}
-                                </span>
-                              )}
+                              {isCompleted &&
+                                (step.status.includes("rejection") ||
+                                step.status ===
+                                  "exception_eligibility_rejection" ||
+                                step.status === "invalid_request" ? (
+                                  <FaTimes className="w-3 h-3 text-white" />
+                                ) : (
+                                  <FaCheck className="w-3 h-3 text-white" />
+                                ))}
                               {isCurrent && (
-                                <span
-                                  className={`text-xs ${colors.bg} ${colors.text} px-2 py-1 rounded-full font-medium`}
-                                >
-                                  در حال انجام
-                                </span>
-                              )}
-                              {isPending && (
-                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">
-                                  در انتظار
-                                </span>
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
                               )}
                             </div>
                           </div>
 
-                          {/* توضیحات مرحله */}
-                          <p
-                            className={`text-sm mb-3 ${
-                              isCompleted
-                                ? step.status.includes("rejection")
-                                  ? "text-red-700"
-                                  : "text-green-700"
-                                : isCurrent
-                                ? colors.text.replace("800", "700")
-                                : "text-gray-500"
-                            }`}
-                          >
-                            {step.description}
-                          </p>
-
-                          {/* جزئیات اگر انجام شده */}
-                          {workflowItem && (
-                            <div className="bg-white bg-opacity-60 rounded-md p-3 border border-white border-opacity-50">
+                          {/* محتوای مرحله */}
+                          <div className="mr-6 flex-1">
+                            <div
+                              className={`p-4 rounded-lg border-2 ${
+                                isCompleted
+                                  ? step.status.includes("rejection")
+                                    ? "bg-red-50 border-red-200"
+                                    : "bg-green-50 border-green-200"
+                                  : isCurrent
+                                  ? `${colors.bg} ${colors.border}`
+                                  : "bg-gray-50 border-gray-200"
+                              }`}
+                            >
+                              {/* عنوان مرحله */}
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-medium text-gray-600">
-                                  تاریخ انجام:
-                                </span>
-                                <span className="text-xs text-gray-800">
-                                  {formatDate(workflowItem.changedAt)}
-                                </span>
+                                <h3
+                                  className={`font-bold text-lg ${
+                                    isCompleted
+                                      ? step.status.includes("rejection")
+                                        ? "text-red-800"
+                                        : "text-green-800"
+                                      : isCurrent
+                                      ? colors.text
+                                      : "text-gray-600"
+                                  }`}
+                                >
+                                  {step.title}
+                                </h3>
+
+                                {/* نشان وضعیت */}
+                                <div className="flex items-center gap-2">
+                                  {isCompleted && (
+                                    <span
+                                      className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                        step.status.includes("rejection")
+                                          ? "bg-red-100 text-red-800"
+                                          : "bg-green-100 text-green-800"
+                                      }`}
+                                    >
+                                      {step.status.includes("rejection")
+                                        ? "رد شده"
+                                        : "تکمیل شده"}
+                                    </span>
+                                  )}
+                                  {isCurrent && (
+                                    <span
+                                      className={`text-xs ${colors.bg} ${colors.text} px-2 py-1 rounded-full font-medium`}
+                                    >
+                                      در حال انجام
+                                    </span>
+                                  )}
+                                  {isPending && (
+                                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">
+                                      در انتظار
+                                    </span>
+                                  )}
+                                </div>
                               </div>
 
-                              {workflowItem.reason && (
-                                <div className="mb-2">
-                                  <span className="text-xs font-medium text-gray-600 block mb-1">
-                                    دلیل:
-                                  </span>
-                                  <p className="text-xs text-gray-800 leading-relaxed">
-                                    {workflowItem.reason}
-                                  </p>
-                                </div>
-                              )}
+                              {/* توضیحات مرحله */}
+                              <p
+                                className={`text-sm mb-3 ${
+                                  isCompleted
+                                    ? step.status.includes("rejection")
+                                      ? "text-red-700"
+                                      : "text-green-700"
+                                    : isCurrent
+                                    ? colors.text.replace("800", "700")
+                                    : "text-gray-500"
+                                }`}
+                              >
+                                {step.description}
+                              </p>
 
-                              {workflowItem.metadata?.actionType && (
-                                <div className="text-xs text-gray-600">
-                                  <span className="font-medium">
-                                    نوع عملیات:
-                                  </span>{" "}
-                                  {getActionTypeDisplayName(
-                                    workflowItem.metadata.actionType
+                              {/* جزئیات اگر انجام شده */}
+                              {workflowItem && (
+                                <div className="bg-white bg-opacity-60 rounded-md p-3 border border-white border-opacity-50">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs font-medium text-gray-600">
+                                      تاریخ انجام:
+                                    </span>
+                                    <span className="text-xs text-gray-800">
+                                      {formatDate(workflowItem.changedAt)}
+                                    </span>
+                                  </div>
+
+                                  {workflowItem.reason && (
+                                    <div className="mb-2">
+                                      <span className="text-xs font-medium text-gray-600 block mb-1">
+                                        دلیل:
+                                      </span>
+                                      <p className="text-xs text-gray-800 leading-relaxed">
+                                        {workflowItem.reason}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {workflowItem.metadata?.actionType && (
+                                    <div className="text-xs text-gray-600">
+                                      <span className="font-medium">
+                                        نوع عملیات:
+                                      </span>{" "}
+                                      {getActionTypeDisplayName(
+                                        workflowItem.metadata.actionType
+                                      )}
+                                    </div>
                                   )}
                                 </div>
                               )}
                             </div>
-                          )}
+                          </div>
                         </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* پیام وضعیت فعلی */}
+                  <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <FaClock className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <h4 className="font-medium text-blue-800">
+                          وضعیت فعلی درخواست
+                        </h4>
+                        <p className="text-sm text-blue-700">
+                          {getStatusDisplayName(
+                            requestDetails?.userSpecs?.currentRequestStatus ||
+                              "نامشخص"
+                          )}
+                        </p>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* پیام وضعیت فعلی */}
-              <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <FaClock className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <h4 className="font-medium text-blue-800">
-                      وضعیت فعلی درخواست
-                    </h4>
-                    <p className="text-sm text-blue-700">
-                      {getStatusDisplayName(
-                        requestDetails?.userSpecs?.currentRequestStatus ||
-                          "نامشخص"
-                      )}
-                    </p>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {!showWorkflowHistory && (
-            <div className="p-4 text-center border-t border-blue-100">
-              <p className="text-gray-500 text-sm">
-                برای مشاهده جزئیات تاریخچه گردش کار، روی &ldquo;نمایش
-                جزئیات&rdquo; کلیک کنید
-              </p>
+              {!showWorkflowHistory && (
+                <div className="p-4 text-center border-t border-blue-100">
+                  <p className="text-gray-500 text-sm">
+                    برای مشاهده جزئیات تاریخچه گردش کار، روی &ldquo;نمایش
+                    جزئیات&rdquo; کلیک کنید
+                  </p>
+                </div>
+              )}
             </div>
           )}
-        </div>
       </div>
 
       {/* چت‌باکس شناور */}
@@ -2376,7 +2261,7 @@ export default function EmergencyTransferPage() {
     } else if (currentStatus === "source_rejection") {
       baseSteps.push({
         status: "source_rejection",
-        title: "رد مبدا",
+        title: "مخالفت مبدا (علیرغم مشمولیت)",
         description: "درخواست توسط منطقه مبدا رد شد",
       });
     } else {
@@ -2486,7 +2371,7 @@ export default function EmergencyTransferPage() {
       exception_eligibility_approval: "تایید مشمولیت",
       exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
       source_approval: "موافقت مبدا (موقت/دائم)",
-      source_rejection: "مخالفت مبدا",
+      source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
       province_review: "در حال بررسی توسط استان",
       // province_approval: "موافقت استان",
       // province_rejection: "مخالفت استان",
@@ -2560,7 +2445,8 @@ export default function EmergencyTransferPage() {
       user?.phoneVerified &&
       showReadOnlyView &&
       (userSpecs?.currentRequestStatus === "permanent_transfer_approved" ||
-        userSpecs?.currentRequestStatus === "temporary_transfer_approved")
+        userSpecs?.currentRequestStatus === "temporary_transfer_approved" ||
+        userSpecs?.currentRequestStatus === "destination_correction_approved")
     ) {
       fetchDistricts();
     }

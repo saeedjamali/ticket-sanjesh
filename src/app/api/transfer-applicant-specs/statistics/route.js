@@ -98,6 +98,8 @@ export async function GET(request) {
       "destination_rejection",
       "temporary_transfer_approved",
       "permanent_transfer_approved",
+      "destination_correction_approved",
+      "processing_stage_results",
       "invalid_request",
     ];
 

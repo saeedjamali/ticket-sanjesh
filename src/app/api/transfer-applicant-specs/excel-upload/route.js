@@ -104,6 +104,7 @@ export async function POST(req) {
         const finalResultReason = row["علت موافقت یا مخالفت"]
           ?.toString()
           .trim();
+        const approvedClauses = row["بندهای موافقت شده"]?.toString().trim();
         const currentRequestStatus = row["وضعیت درخواست فعلی"]
           ?.toString()
           .trim();
@@ -185,6 +186,19 @@ export async function POST(req) {
           updateData.finalResultReason = finalResultReason;
         }
 
+        // بندهای موافقت شده
+        if (approvedClauses) {
+          // اعتبارسنجی فرمت: باید اعداد جدا شده با + باشد
+          if (!/^(\d+)(\+\d+)*$/.test(approvedClauses)) {
+            errors.push(
+              `ردیف ${rowNumber}: بندهای موافقت شده باید به فرمت '1+2+9+11' باشد`
+            );
+            errorCount++;
+            continue;
+          }
+          updateData.approvedClauses = approvedClauses;
+        }
+
         // اعتبارسنجی وضعیت درخواست فعلی
         if (currentRequestStatus) {
           const validCurrentStatuses = [
@@ -205,6 +219,8 @@ export async function POST(req) {
             "temporary_transfer_approved",
             "permanent_transfer_approved",
             "invalid_request",
+            "destination_correction_approved",
+            "processing_stage_results",
           ];
 
           if (validCurrentStatuses.includes(currentRequestStatus)) {
@@ -374,6 +390,7 @@ export async function GET(req) {
         "وضعیت نتیجه نهایی": "permanent_transfer_approved",
         "کد منطقه مقصد": "1234",
         "علت موافقت یا مخالفت": "نمونه علت...",
+        "بندهای موافقت شده": "1+2+9+11",
         "وضعیت درخواست فعلی": "province_approval",
       },
     ];
@@ -391,6 +408,7 @@ export async function GET(req) {
       { wch: 25 }, // وضعیت نتیجه نهایی
       { wch: 15 }, // کد منطقه مقصد
       { wch: 40 }, // علت موافقت یا مخالفت
+      { wch: 20 }, // بندهای موافقت شده
       { wch: 20 }, // وضعیت درخواست فعلی
     ];
     worksheet["!cols"] = columnWidths;
@@ -466,7 +484,7 @@ export async function GET(req) {
       {
         "نوع فیلد": "",
         "کد برای اکسل": "source_rejection",
-        "توضیحات فارسی": "عدم تایید مبدا",
+        "توضیحات فارسی": "مخالفت مبدا (علیرغم مشمولیت)",
       },
       {
         "نوع فیلد": "",
@@ -512,6 +530,22 @@ export async function GET(req) {
       {
         "نوع فیلد": "",
         "کد برای اکسل": "• علت موافقت یا مخالفت حداکثر 1000 کاراکتر",
+        "توضیحات فارسی": "",
+      },
+      { "نوع فیلد": "", "کد برای اکسل": "", "توضیحات فارسی": "" },
+      {
+        "نوع فیلد": "بندهای موافقت شده",
+        "کد برای اکسل": "1+2+9+11",
+        "توضیحات فارسی": "کدهای بند جدا شده با علامت + (مثال: 1+2+9+11)",
+      },
+      {
+        "نوع فیلد": "",
+        "کد برای اکسل": "• کدها باید با + از هم جدا شوند",
+        "توضیحات فارسی": "",
+      },
+      {
+        "نوع فیلد": "",
+        "کد برای اکسل": "• کدها به جدول TransferReason اشاره می‌کنند",
         "توضیحات فارسی": "",
       },
       {

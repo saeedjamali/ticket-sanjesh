@@ -262,6 +262,8 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
           "temporary_transfer_approved", // موافقت با انتقال موقت
           "permanent_transfer_approved", // موافقت با انتقال دائم
           "invalid_request", // درخواست نامعتبر است
+          "destination_correction_approved", // موافقت با اصلاح مقصد
+          "processing_stage_results", // مطابق نتایج مرحله پردازشی
         ],
         required: true,
       },
@@ -295,6 +297,8 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
           "temporary_transfer_approved",
           "permanent_transfer_approved",
           "invalid_request",
+          "destination_correction_approved",
+          "processing_stage_results",
         ],
         default: null,
       },
@@ -341,6 +345,8 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
       "temporary_transfer_approved",
       "permanent_transfer_approved",
       "invalid_request",
+      "destination_correction_approved",
+      "processing_stage_results",
     ],
     required: true,
     default: "user_no_action",
@@ -396,6 +402,21 @@ const TransferApplicantSpecSchema = new mongoose.Schema({
     required: false,
     trim: true,
     maxlength: 1000, // حداکثر 1000 کاراکتر
+  },
+
+  // 4- بندهای موافقت شده (کدهای بند جدا شده با +)
+  approvedClauses: {
+    type: String,
+    required: false,
+    trim: true,
+    validate: {
+      validator: function (v) {
+        if (!v) return true; // اختیاری است
+        // بررسی فرمت: باید اعداد جدا شده با + باشد (مثل: 1+2+9+11)
+        return /^(\d+)(\+\d+)*$/.test(v);
+      },
+      message: "بندهای موافقت شده باید به فرمت '1+2+9+11' باشد",
+    },
   },
 
   // امکان ویرایش مقصد
@@ -469,11 +490,13 @@ TransferApplicantSpecSchema.methods.getRequestStatusText = function (status) {
     source_review: "درحال بررسی مشمولیت",
     exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
     exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
-    source_rejection: "مخالفت مبدا (عدم موافقت)",
+    source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
     temporary_transfer_approved: "موافقت با انتقال موقت",
     permanent_transfer_approved: "موافقت با انتقال دائم",
     province_review: "درحال بررسی توسط اداره کل",
     invalid_request: "درخواست نامعتبر است",
+    destination_correction_approved: "موافقت با اصلاح مقصد",
+    processing_stage_results: "مطابق نتایج مرحله پردازشی",
   };
   return statusMap[statusToCheck] || "نامشخص";
 };

@@ -81,7 +81,7 @@ export default function DocumentReviewPage() {
       exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
       exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
       source_approval: "موافقت مبدا (موقت/دائم)",
-      source_rejection: "مخالفت مبدا",
+      source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
       province_review: "در حال بررسی توسط استان",
       temporary_transfer_approved: "موافقت با انتقال موقت",
       permanent_transfer_approved: "موافقت با انتقال دائم",
@@ -230,6 +230,8 @@ export default function DocumentReviewPage() {
       temporary_transfer_approved: 0,
       permanent_transfer_approved: 0,
       invalid_request: 0,
+      destination_correction_approved: 0,
+      processing_stage_results: 0,
       province_approval: 0,
       province_rejection: 0,
     };
@@ -293,7 +295,7 @@ export default function DocumentReviewPage() {
     },
     {
       value: "source_rejection",
-      label: "مخالفت مبدا",
+      label: "مخالفت مبدا (علیرغم مشمولیت)",
       color: "bg-red-600",
       icon: FaThumbsDown,
     },
@@ -1285,6 +1287,10 @@ export default function DocumentReviewPage() {
         return "موافقت با انتقال دائم";
       case "invalid_request":
         return "درخواست نامعتبر است";
+      case "destination_correction_approved":
+        return "موافقت با اصلاح مقصد";
+      case "processing_stage_results":
+        return "مطابق نتایج مرحله پردازشی";
       // case "province_approval":
       //   return "موافقت استان";
       // case "province_rejection":
@@ -1647,13 +1653,15 @@ export default function DocumentReviewPage() {
       exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
 
       // وضعیت‌های نظر مبدا
-      source_rejection: "مخالفت مبدا (عدم موافقت)",
+      source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
       temporary_transfer_approved: "موافقت با انتقال موقت",
       permanent_transfer_approved: "موافقت با انتقال دائم",
 
       // وضعیت‌های استان
       province_review: "درحال بررسی توسط اداره کل",
       invalid_request: "درخواست نامعتبر است",
+      destination_correction_approved: "موافقت با اصلاح مقصد",
+      processing_stage_results: "مطابق نتایج مرحله پردازشی",
 
       // وضعیت‌های نهایی
       final_approval: "موافقت نهایی",
