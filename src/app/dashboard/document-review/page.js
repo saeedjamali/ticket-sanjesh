@@ -300,14 +300,14 @@ export default function DocumentReviewPage() {
       icon: FaThumbsDown,
     },
     {
-      value: "province_approval",
-      label: "تایید استان",
+      value: "temporary_transfer_approved",
+      label: "موافقت با انتقال موقت",
       color: "bg-emerald-500",
       icon: FaThumbsUp,
     },
     {
-      value: "province_rejection",
-      label: "رد استان",
+      value: "permanent_transfer_approved",
+      label: "موافقت با انتقال دائم",
       color: "bg-rose-500",
       icon: FaThumbsDown,
     },
@@ -710,21 +710,9 @@ export default function DocumentReviewPage() {
             return "-";
           })(),
 
-          // مقصد نهایی
-          "مقصد نهایی": (() => {
-            const finalDest = ts?.finalDestination;
-            if (finalDest && typeof finalDest === "object") {
-              return finalDest.districtCode || "-";
-            }
-            return "-";
-          })(),
-          "نوع انتقال نهایی": (() => {
-            const finalDest = ts?.finalDestination;
-            if (finalDest && typeof finalDest === "object") {
-              return getTransferTypeText(finalDest.transferType);
-            }
-            return "-";
-          })(),
+          // نتایج نهایی انتقال
+          "کد منطقه مقصد نهایی": ts?.finalTransferDestinationCode || "-",
+          "علت/توضیحات نتیجه": ts?.finalResultReason || "-",
 
           // اضافه کردن ستون‌های دلایل
           ...reasonsColumns,
@@ -951,13 +939,13 @@ export default function DocumentReviewPage() {
         { wch: 15 }, // شماره تماس
         { wch: 12 }, // کد مبدا
 
-        // اولویت‌های مقصد (14 ستون) + مقصد نهایی (2 ستون)
+        // اولویت‌های مقصد (14 ستون) + نتایج نهایی (2 ستون)
         ...Array(7)
           .fill()
           .map(() => [{ wch: 15 }, { wch: 20 }])
           .flat(),
-        { wch: 15 }, // مقصد نهایی
-        { wch: 20 }, // نوع انتقال نهایی
+        { wch: 20 }, // کد منطقه مقصد نهایی
+        { wch: 40 }, // علت/توضیحات نتیجه
 
         // ستون‌های دلایل (متغیر بر اساس تعداد دلایل)
         ...allTransferReasons.map(() => ({ wch: 12 })),

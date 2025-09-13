@@ -43,13 +43,23 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const nationalId = searchParams.get("nationalId") || "";
     const personnelCode = searchParams.get("personnelCode") || "";
+    const finalTransferDestinationCode =
+      searchParams.get("finalTransferDestinationCode") || "";
+    const finalResultReason = searchParams.get("finalResultReason") || "";
+    const approvedClauses = searchParams.get("approvedClauses") || "";
 
     // اعتبارسنجی ورودی
-    if (!nationalId && !personnelCode) {
+    if (
+      !nationalId &&
+      !personnelCode &&
+      !finalTransferDestinationCode &&
+      !finalResultReason &&
+      !approvedClauses
+    ) {
       return NextResponse.json(
         {
           success: false,
-          error: "حداقل یکی از کد ملی یا کد پرسنلی باید وارد شود",
+          error: "حداقل یکی از فیلدهای جستجو باید وارد شود",
         },
         { status: 400 }
       );
@@ -57,10 +67,32 @@ export async function GET(request) {
 
     // ساخت query برای جستجو
     let searchQuery = {};
+
+    // جستجو براساس فیلدهای اصلی
     if (personnelCode) {
       searchQuery.personnelCode = personnelCode.trim();
     } else if (nationalId) {
       searchQuery.nationalId = nationalId.trim();
+    }
+
+    // جستجو براساس فیلدهای نتیجه نهایی
+    if (finalTransferDestinationCode) {
+      searchQuery.finalTransferDestinationCode =
+        finalTransferDestinationCode.trim();
+    }
+
+    if (finalResultReason) {
+      searchQuery.finalResultReason = {
+        $regex: finalResultReason.trim(),
+        $options: "i",
+      };
+    }
+
+    if (approvedClauses) {
+      searchQuery.approvedClauses = {
+        $regex: approvedClauses.trim(),
+        $options: "i",
+      };
     }
 
     // دریافت اطلاعات پایه از TransferApplicantSpec

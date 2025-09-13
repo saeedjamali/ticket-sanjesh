@@ -151,7 +151,8 @@ const ApprovedClausesDisplay = ({
                       عنوان بند
                     </label>
                     <p className="text-sm text-gray-800">
-                      {clause.title} - { clause.reasonTitle || "عنوان دلیل ثبت نشده"}
+                      {clause.title} -{" "}
+                      {clause.reasonTitle || "عنوان دلیل ثبت نشده"}
                     </p>
                   </div>
 

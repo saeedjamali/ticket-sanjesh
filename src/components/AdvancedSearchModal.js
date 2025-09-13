@@ -23,6 +23,7 @@ import {
   FaTimesCircle,
   FaCalendarAlt,
 } from "react-icons/fa";
+import ApprovedClausesDisplay from "@/components/ApprovedClausesDisplay";
 
 export default function AdvancedSearchModal({
   isOpen,
@@ -35,6 +36,9 @@ export default function AdvancedSearchModal({
   const [searchForm, setSearchForm] = useState({
     nationalId: "",
     personnelCode: "",
+    finalTransferDestinationCode: "",
+    finalResultReason: "",
+    approvedClauses: "",
   });
   const [expandedSections, setExpandedSections] = useState({
     basicInfo: true,
@@ -110,8 +114,14 @@ export default function AdvancedSearchModal({
   };
 
   const handleSearch = async () => {
-    if (!searchForm.nationalId && !searchForm.personnelCode) {
-      toast.error("لطفاً حداقل یکی از کد ملی یا کد پرسنلی را وارد کنید");
+    if (
+      !searchForm.nationalId &&
+      !searchForm.personnelCode &&
+      !searchForm.finalTransferDestinationCode &&
+      !searchForm.finalResultReason &&
+      !searchForm.approvedClauses
+    ) {
+      toast.error("لطفاً حداقل یکی از فیلدهای جستجو را وارد کنید");
       return;
     }
 
@@ -122,6 +132,15 @@ export default function AdvancedSearchModal({
         params.append("nationalId", searchForm.nationalId);
       if (searchForm.personnelCode)
         params.append("personnelCode", searchForm.personnelCode);
+      if (searchForm.finalTransferDestinationCode)
+        params.append(
+          "finalTransferDestinationCode",
+          searchForm.finalTransferDestinationCode
+        );
+      if (searchForm.finalResultReason)
+        params.append("finalResultReason", searchForm.finalResultReason);
+      if (searchForm.approvedClauses)
+        params.append("approvedClauses", searchForm.approvedClauses);
       if (selectedStatuses.length > 0)
         params.append("statuses", selectedStatuses.join(","));
 
@@ -210,7 +229,13 @@ export default function AdvancedSearchModal({
   };
 
   const resetSearch = () => {
-    setSearchForm({ nationalId: "", personnelCode: "" });
+    setSearchForm({
+      nationalId: "",
+      personnelCode: "",
+      finalTransferDestinationCode: "",
+      finalResultReason: "",
+      approvedClauses: "",
+    });
     setSearchData(null);
     setExpandedSections({
       basicInfo: true,
@@ -298,7 +323,7 @@ export default function AdvancedSearchModal({
         <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
           {/* Search Form */}
           <div className="p-6 border-b bg-gray-50">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   کد ملی
@@ -333,31 +358,84 @@ export default function AdvancedSearchModal({
                   placeholder="کد پرسنلی را وارد کنید"
                 />
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSearch}
-                  disabled={searchLoading}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {searchLoading ? (
-                    <>
-                      <FaSpinner className="animate-spin" />
-                      در حال جستجو...
-                    </>
-                  ) : (
-                    <>
-                      <FaSearch />
-                      جستجو
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={resetSearch}
-                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  پاک کردن
-                </button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  کد منطقه مقصد نهایی
+                </label>
+                <input
+                  type="text"
+                  value={searchForm.finalTransferDestinationCode}
+                  onChange={(e) =>
+                    setSearchForm((prev) => ({
+                      ...prev,
+                      finalTransferDestinationCode: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="کد منطقه مقصد (مثل: 1234)"
+                />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  علت/توضیحات نتیجه
+                </label>
+                <input
+                  type="text"
+                  value={searchForm.finalResultReason}
+                  onChange={(e) =>
+                    setSearchForm((prev) => ({
+                      ...prev,
+                      finalResultReason: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="جستجو در توضیحات..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  بندهای موافقت شده
+                </label>
+                <input
+                  type="text"
+                  value={searchForm.approvedClauses}
+                  onChange={(e) =>
+                    setSearchForm((prev) => ({
+                      ...prev,
+                      approvedClauses: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="کدهای بند (مثل: 1+2+9)"
+                />
+              </div>
+            </div>
+
+            {/* دکمه‌های عملیات */}
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={resetSearch}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                پاک کردن
+              </button>
+              <button
+                onClick={handleSearch}
+                disabled={searchLoading}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {searchLoading ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    در حال جستجو...
+                  </>
+                ) : (
+                  <>
+                    <FaSearch />
+                    جستجو
+                  </>
+                )}
+              </button>
             </div>
           </div>
 
@@ -486,6 +564,47 @@ export default function AdvancedSearchModal({
                           {searchData.transferSpec.currentRequestStatus}
                         </p>
                       </div>
+
+                      {/* فیلدهای نتایج نهایی انتقال */}
+                      {searchData.transferSpec.finalTransferDestinationCode && (
+                        <div className="bg-gray-50 p-3 rounded-lg">
+                          <label className="text-sm text-gray-600">
+                            کد منطقه مقصد نهایی
+                          </label>
+                          <p className="font-semibold">
+                            {
+                              searchData.transferSpec
+                                .finalTransferDestinationCode
+                            }
+                          </p>
+                        </div>
+                      )}
+
+                      {searchData.transferSpec.finalResultReason && (
+                        <div className="bg-gray-50 p-3 rounded-lg">
+                          <label className="text-sm text-gray-600">
+                            علت/توضیحات نتیجه
+                          </label>
+                          <p className="font-semibold text-sm">
+                            {searchData.transferSpec.finalResultReason}
+                          </p>
+                        </div>
+                      )}
+
+                      {searchData.transferSpec.approvedClauses && (
+                        <div className="bg-gray-50 p-3 rounded-lg md:col-span-2">
+                          <label className="text-sm text-gray-600 block mb-2">
+                            بندهای موافقت شده
+                          </label>
+                          <ApprovedClausesDisplay
+                            approvedClauses={
+                              searchData.transferSpec.approvedClauses
+                            }
+                            variant="compact"
+                            showTitle={false}
+                          />
+                        </div>
+                      )}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <label className="text-sm text-gray-600">
                           نوع استخدام
