@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import StatusTimelineModal from "@/components/modals/StatusTimelineModal";
 import AdvancedSearchModal from "@/components/AdvancedSearchModal";
 import ExcelUploadModal from "@/components/ExcelUploadModal";
+import BulkUpdateModal from "@/components/modals/BulkUpdateModal";
 import { useUserContext } from "@/context/UserContext";
 import { toast } from "react-hot-toast";
 import * as XLSX from "xlsx";
@@ -92,6 +93,7 @@ export default function TransferApplicantSpecsPage() {
   const [showAdvancedSearchModal, setShowAdvancedSearchModal] = useState(false);
   const [initialSearchData, setInitialSearchData] = useState(null);
   const [showExcelUploadModal, setShowExcelUploadModal] = useState(false);
+  const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
 
   // State های مربوط به ویرایش بندهای دلیل
   const [showEditReasonsModal, setShowEditReasonsModal] = useState(false);
@@ -1836,15 +1838,25 @@ export default function TransferApplicantSpecsPage() {
                   </>
                 )}
 
-                {/* دکمه بارگذاری اکسل - فقط برای مدیر سیستم */}
+                {/* دکمه‌های مدیر سیستم */}
                 {user?.role === "systemAdmin" && (
-                  <button
-                    onClick={() => setShowExcelUploadModal(true)}
-                    className="bg-green-500/80 hover:bg-green-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20 text-sm"
-                  >
-                    <FaFileExcel className="h-4 w-4" />
-                    بارگذاری نتایج اکسل
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setShowExcelUploadModal(true)}
+                      className="bg-green-500/80 hover:bg-green-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20 text-sm"
+                    >
+                      <FaFileExcel className="h-4 w-4" />
+                      بارگذاری نتایج اکسل
+                    </button>
+
+                    <button
+                      onClick={() => setShowBulkUpdateModal(true)}
+                      className="bg-purple-500/80 hover:bg-purple-500 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 backdrop-blur-sm border border-white/20 text-sm"
+                    >
+                      <FaUpload className="h-4 w-4" />
+                      بروزرسانی دسته‌ای
+                    </button>
+                  </div>
                 )}
               </>
             )}
@@ -3888,6 +3900,17 @@ export default function TransferApplicantSpecsPage() {
           );
         }}
       />
+
+      {/* Bulk Update Modal */}
+      <BulkUpdateModal
+        isOpen={showBulkUpdateModal}
+        onClose={() => setShowBulkUpdateModal(false)}
+        onUpdate={() => {
+          // بعد از بروزرسانی موفق، داده‌ها را مجدداً بارگذاری کن
+          fetchSpecs();
+        }}
+      />
+
       {/* مدال ویرایش بندهای دلیل */}
       {showEditReasonsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
