@@ -1104,6 +1104,21 @@ export default function DocumentReviewPage() {
         console.log("Sample employment field:", employmentFields[0]);
       }
 
+      // دریافت اطلاعات مناطق
+      console.log("Fetching districts...");
+      const districtsResponse = await fetch("/api/districts?limit=1000");
+      console.log("Districts API status:", districtsResponse.status);
+
+      const districtsData = await districtsResponse.json();
+      console.log("Districts API response:", districtsData);
+
+      const districts = districtsData.success ? districtsData.districts : [];
+      console.log("Districts array length:", districts.length);
+
+      if (districts.length > 0) {
+        console.log("Sample district:", districts[0]);
+      }
+
       // تابع کمکی برای دریافت عنوان رشته شغلی
       const getFieldTitle = (fieldCode) => {
         console.log("Getting field title for code:", fieldCode);
@@ -1146,6 +1161,47 @@ export default function DocumentReviewPage() {
         }
       };
 
+      // تابع کمکی برای دریافت نام منطقه
+      const getDistrictName = (districtCode) => {
+        console.log("Getting district name for code:", districtCode);
+
+        if (!districtCode) {
+          console.log("No district code provided");
+          return "-";
+        }
+
+        if (!districts || districts.length === 0) {
+          console.log("Districts array is empty or null");
+          return "-";
+        }
+
+        const district = districts.find(
+          (d) =>
+            String(d.code) === String(districtCode) || d.code === districtCode
+        );
+        console.log("Found district for code", districtCode, ":", district);
+
+        if (!district) {
+          // اگر پیدا نشد، لیست کدهای موجود را نمایش بده
+          const availableCodes = districts.map((d) => d.code);
+          console.log("Available district codes:", availableCodes);
+          console.log(
+            "Searching for district code type:",
+            typeof districtCode,
+            "value:",
+            districtCode
+          );
+        }
+
+        if (district) {
+          console.log("District name:", district.name);
+          return district.name;
+        } else {
+          console.log("No district found for code:", districtCode);
+          return "-";
+        }
+      };
+
       // تابع کمکی برای ترجمه وضعیت
       const getStatusText = (status) => {
         const statusMap = {
@@ -1182,7 +1238,9 @@ export default function DocumentReviewPage() {
               ? "زن"
               : "-",
           "کد مبدا": spec.currentWorkPlaceCode || "-",
+          "نام مبدا": getDistrictName(spec.currentWorkPlaceCode),
           "کد مقصد": spec.finalTransferDestinationCode || "-",
+          "نام مقصد": getDistrictName(spec.finalTransferDestinationCode),
           "نتیجه انتقال": spec.finalResultReason || "-",
           "وضعیت جاری": getStatusText(spec.currentRequestStatus),
           "رشته شغلی": spec.fieldCode || "-",
@@ -1213,7 +1271,9 @@ export default function DocumentReviewPage() {
         { wch: 15 }, // شماره تماس
         { wch: 10 }, // جنسیت
         { wch: 12 }, // کد مبدا
+        { wch: 25 }, // نام مبدا
         { wch: 12 }, // کد مقصد
+        { wch: 25 }, // نام مقصد
         { wch: 30 }, // نتیجه انتقال
         { wch: 25 }, // وضعیت جاری
         { wch: 12 }, // رشته شغلی

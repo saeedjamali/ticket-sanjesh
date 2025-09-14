@@ -25,7 +25,11 @@ export async function GET(request) {
     }
 
     // بررسی دسترسی - فقط provinceTransferExpert
-    if (userAuth.role !== ROLES.PROVINCE_TRANSFER_EXPERT && userAuth.role !== ROLES.SYSTEM_ADMIN && userAuth.role !== ROLES.DISTRICT_TRANSFER_EXPERT) {
+    if (
+      userAuth.role !== ROLES.PROVINCE_TRANSFER_EXPERT &&
+      userAuth.role !== ROLES.SYSTEM_ADMIN &&
+      userAuth.role !== ROLES.DISTRICT_TRANSFER_EXPERT
+    ) {
       return NextResponse.json(
         { success: false, error: "عدم دسترسی - فقط کارشناسان استان" },
         { status: 403 }
