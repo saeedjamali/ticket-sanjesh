@@ -67,6 +67,35 @@ export default function AdvancedSearchModal({
     "invalid_request",
   ]);
   const [rankingNeedsUpdate, setRankingNeedsUpdate] = useState(false);
+  const [districts, setDistricts] = useState([]);
+
+  // Effect برای دریافت اطلاعات مناطق
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      try {
+        const response = await fetch("/api/districts?limit=1000");
+        const data = await response.json();
+        if (data.success && data.districts) {
+          setDistricts(data.districts);
+        }
+      } catch (error) {
+        console.error("Error fetching districts:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchDistricts();
+    }
+  }, [isOpen]);
+
+  // تابع کمکی برای دریافت نام منطقه
+  const getDistrictName = (districtCode) => {
+    if (!districtCode || !districts || districts.length === 0) return null;
+    const district = districts.find(
+      (d) => String(d.code) === String(districtCode) || d.code === districtCode
+    );
+    return district ? district.name : null;
+  };
 
   // Effect برای پر کردن خودکار فرم و انجام جستجو
   useEffect(() => {
@@ -576,21 +605,30 @@ export default function AdvancedSearchModal({
                       </div> */}
 
                       {/* فیلدهای نتایج نهایی انتقال */}
-                      {/* {searchData.transferSpec.finalTransferDestinationCode && (
+                      {searchData.transferSpec.finalTransferDestinationCode && (
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <label className="text-sm text-gray-600">
-                            کد منطقه مقصد نهایی
+                            منطقه مقصد نهایی
                           </label>
                           <p className="font-semibold">
+                            {getDistrictName(
+                              searchData.transferSpec
+                                .finalTransferDestinationCode
+                            ) ||
+                              searchData.transferSpec
+                                .finalTransferDestinationCode}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            کد:{" "}
                             {
                               searchData.transferSpec
                                 .finalTransferDestinationCode
                             }
                           </p>
                         </div>
-                      )} */}
+                      )}
 
-                      {/* {searchData.transferSpec.finalResultReason && (
+                      {searchData.transferSpec.finalResultReason && (
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <label className="text-sm text-gray-600">
                             علت/توضیحات نتیجه
@@ -599,7 +637,7 @@ export default function AdvancedSearchModal({
                             {searchData.transferSpec.finalResultReason}
                           </p>
                         </div>
-                      )} */}
+                      )}
 
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <label className="text-sm text-gray-600">
@@ -756,9 +794,18 @@ export default function AdvancedSearchModal({
                             .finalTransferDestinationCode && (
                             <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                               <label className="text-sm text-blue-800 font-medium">
-                                کد منطقه مقصد نهایی
+                                منطقه مقصد نهایی
                               </label>
                               <p className="font-semibold text-gray-800 mt-1">
+                                {getDistrictName(
+                                  searchData.transferSpec
+                                    .finalTransferDestinationCode
+                                ) ||
+                                  searchData.transferSpec
+                                    .finalTransferDestinationCode}
+                              </p>
+                              <p className="text-xs text-gray-600 mt-1">
+                                کد:{" "}
                                 {
                                   searchData.transferSpec
                                     .finalTransferDestinationCode
@@ -811,67 +858,82 @@ export default function AdvancedSearchModal({
                           if (!destination || !destination.districtCode)
                             return null;
 
+                          // بررسی اینکه آیا این اولویت همان مقصد نهایی انتخاب شده است
+                          const isFinalDestination =
+                            String(destination.districtCode) ===
+                            String(
+                              searchData.transferSpec
+                                .finalTransferDestinationCode
+                            );
+
                           return (
                             <div
                               key={priority}
-                              className="bg-blue-50 p-3 rounded-lg border border-blue-200"
+                              className={`p-3 rounded-lg border ${
+                                isFinalDestination
+                                  ? "bg-green-50 border-green-200 ring-2 ring-green-300"
+                                  : "bg-blue-50 border-blue-200"
+                              }`}
                             >
-                              <label className="text-sm text-blue-800 font-medium">
+                              <label
+                                className={`text-sm font-medium ${
+                                  isFinalDestination
+                                    ? "text-green-800"
+                                    : "text-blue-800"
+                                }`}
+                              >
                                 اولویت {priority}
+                                {isFinalDestination && (
+                                  <span className="mr-2 text-xs bg-green-600 text-white px-2 py-1 rounded-full">
+                                    مقصد نهایی
+                                  </span>
+                                )}
                               </label>
-                              <p className="font-semibold text-gray-800">
+                              <p
+                                className={`font-bold ${
+                                  isFinalDestination
+                                    ? "text-green-900"
+                                    : "text-gray-800"
+                                }`}
+                              >
                                 {destination.districtName ||
                                   destination.districtCode}
                               </p>
-                              <p className="text-xs text-gray-600">
+                              <p
+                                className={`text-xs ${
+                                  isFinalDestination
+                                    ? "text-green-700"
+                                    : "text-gray-600"
+                                }`}
+                              >
                                 کد: {destination.districtCode}
                               </p>
-                              <p className="text-xs text-blue-600 mt-1">
+                              <p
+                                className={`text-xs mt-1 ${
+                                  isFinalDestination
+                                    ? "text-green-600"
+                                    : "text-blue-600"
+                                }`}
+                              >
                                 نوع:{" "}
                                 {destination.transferType === "permanent"
                                   ? "دائم"
                                   : destination.transferType === "temporary"
                                   ? "موقت"
+                                  : destination.transferType ===
+                                    "permanent_preferred"
+                                  ? "دائم (ترجیحی)"
+                                  : destination.transferType ===
+                                    "permanent_only"
+                                  ? "فقط دائم"
+                                  : destination.transferType ===
+                                    "temporary_only"
+                                  ? "فقط موقت"
                                   : destination.transferType || "نامشخص"}
                               </p>
                             </div>
                           );
                         })}
-
-                        {/* مقصد نهایی */}
-                        {searchData.transferSpec.finalDestination &&
-                          searchData.transferSpec.finalDestination
-                            .districtCode && (
-                            <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-                              <label className="text-sm text-green-800 font-medium">
-                                مقصد نهایی
-                              </label>
-                              <p className="font-semibold text-gray-800">
-                                {searchData.transferSpec.finalDestination
-                                  .districtName ||
-                                  searchData.transferSpec.finalDestination
-                                    .districtCode}
-                              </p>
-                              <p className="text-xs text-gray-600">
-                                کد:{" "}
-                                {
-                                  searchData.transferSpec.finalDestination
-                                    .districtCode
-                                }
-                              </p>
-                              <p className="text-xs text-green-600 mt-1">
-                                نوع:{" "}
-                                {searchData.transferSpec.finalDestination
-                                  .transferType === "permanent"
-                                  ? "دائم"
-                                  : searchData.transferSpec.finalDestination
-                                      .transferType === "temporary"
-                                  ? "موقت"
-                                  : searchData.transferSpec.finalDestination
-                                      .transferType || "نامشخص"}
-                              </p>
-                            </div>
-                          )}
                       </div>
 
                       {/* نمایش پیام در صورت عدم وجود اولویت */}
