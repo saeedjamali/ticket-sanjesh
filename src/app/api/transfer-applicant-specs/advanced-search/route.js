@@ -25,7 +25,7 @@ export async function GET(request) {
     }
 
     // بررسی دسترسی - فقط provinceTransferExpert
-    if (userAuth.role !== ROLES.PROVINCE_TRANSFER_EXPERT) {
+    if (userAuth.role !== ROLES.PROVINCE_TRANSFER_EXPERT && userAuth.role !== ROLES.SYSTEM_ADMIN && userAuth.role !== ROLES.DISTRICT_TRANSFER_EXPERT) {
       return NextResponse.json(
         { success: false, error: "عدم دسترسی - فقط کارشناسان استان" },
         { status: 403 }
@@ -77,6 +77,11 @@ export async function GET(request) {
 
     // جستجو براساس فیلدهای نتیجه نهایی
     if (finalTransferDestinationCode) {
+      console.log("=== Advanced Search API Debug ===");
+      console.log(
+        "Searching for finalTransferDestinationCode:",
+        finalTransferDestinationCode.trim()
+      );
       searchQuery.finalTransferDestinationCode =
         finalTransferDestinationCode.trim();
     }
@@ -95,7 +100,59 @@ export async function GET(request) {
       };
     }
 
+    console.log("Final search query:", JSON.stringify(searchQuery, null, 2));
+
     // دریافت اطلاعات پایه از TransferApplicantSpec
+    console.log("Executing MongoDB query...");
+
+    // اگر فقط finalTransferDestinationCode جستجو می‌شود، همه رکوردها را برگردان
+    if (
+      finalTransferDestinationCode &&
+      !nationalId &&
+      !personnelCode &&
+      !finalResultReason &&
+      !approvedClauses
+    ) {
+      console.log(
+        "Searching for multiple records with finalTransferDestinationCode"
+      );
+      const transferSpecs = await TransferApplicantSpec.find(searchQuery)
+        .populate("createdBy", "firstName lastName fullName")
+        .populate("currentWorkPlaceCode", "name province")
+        .populate({
+          path: "currentWorkPlaceCode",
+          populate: {
+            path: "province",
+            model: "Province",
+            select: "name",
+          },
+        })
+        .lean();
+
+      console.log(
+        "MongoDB query result: Found",
+        transferSpecs.length,
+        "records"
+      );
+
+      if (transferSpecs.length === 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "هیچ پرسنلی با کد منطقه مقصد مشخص شده یافت نشد",
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: transferSpecs,
+        total: transferSpecs.length,
+      });
+    }
+
+    // برای سایر جستجوها، فقط یک رکورد برگردان
     const transferSpec = await TransferApplicantSpec.findOne(searchQuery)
       .populate("createdBy", "firstName lastName fullName")
       .populate("currentWorkPlaceCode", "name province")
@@ -108,6 +165,18 @@ export async function GET(request) {
         },
       })
       .lean();
+
+    console.log(
+      "MongoDB query result:",
+      transferSpec ? "Found 1 record" : "No records found"
+    );
+    if (transferSpec) {
+      console.log("Found record nationalId:", transferSpec.nationalId);
+      console.log(
+        "Found record finalTransferDestinationCode:",
+        transferSpec.finalTransferDestinationCode
+      );
+    }
 
     if (!transferSpec) {
       return NextResponse.json(

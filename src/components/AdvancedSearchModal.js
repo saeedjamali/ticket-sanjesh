@@ -60,6 +60,11 @@ export default function AdvancedSearchModal({
     "destination_review",
     "destination_approval",
     "destination_rejection",
+    "temporary_transfer_approved",
+    "permanent_transfer_approved",
+    "destination_correction_approved",
+    "processing_stage_results",
+    "invalid_request",
   ]);
   const [rankingNeedsUpdate, setRankingNeedsUpdate] = useState(false);
 
@@ -272,6 +277,11 @@ export default function AdvancedSearchModal({
         "destination_review",
         "destination_approval",
         "destination_rejection",
+        "temporary_transfer_approved",
+        "permanent_transfer_approved",
+        "destination_correction_approved",
+        "processing_stage_results",
+        "invalid_request",
       ]);
     } else {
       setSelectedStatuses([]);
@@ -556,17 +566,17 @@ export default function AdvancedSearchModal({
                           )}
                         </p>
                       </div>
-                      <div className="bg-gray-50 p-3 rounded-lg">
+                      {/* <div className="bg-gray-50 p-3 rounded-lg">
                         <label className="text-sm text-gray-600">
                           کد وضعیت درخواست
                         </label>
                         <p className="font-semibold text-xs">
                           {searchData.transferSpec.currentRequestStatus}
                         </p>
-                      </div>
+                      </div> */}
 
                       {/* فیلدهای نتایج نهایی انتقال */}
-                      {searchData.transferSpec.finalTransferDestinationCode && (
+                      {/* {searchData.transferSpec.finalTransferDestinationCode && (
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <label className="text-sm text-gray-600">
                             کد منطقه مقصد نهایی
@@ -578,9 +588,9 @@ export default function AdvancedSearchModal({
                             }
                           </p>
                         </div>
-                      )}
+                      )} */}
 
-                      {searchData.transferSpec.finalResultReason && (
+                      {/* {searchData.transferSpec.finalResultReason && (
                         <div className="bg-gray-50 p-3 rounded-lg">
                           <label className="text-sm text-gray-600">
                             علت/توضیحات نتیجه
@@ -589,22 +599,8 @@ export default function AdvancedSearchModal({
                             {searchData.transferSpec.finalResultReason}
                           </p>
                         </div>
-                      )}
+                      )} */}
 
-                      {searchData.transferSpec.approvedClauses && (
-                        <div className="bg-gray-50 p-3 rounded-lg md:col-span-2">
-                          <label className="text-sm text-gray-600 block mb-2">
-                            بندهای موافقت شده
-                          </label>
-                          <ApprovedClausesDisplay
-                            approvedClauses={
-                              searchData.transferSpec.approvedClauses
-                            }
-                            variant="compact"
-                            showTitle={false}
-                          />
-                        </div>
-                      )}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <label className="text-sm text-gray-600">
                           نوع استخدام
@@ -621,7 +617,7 @@ export default function AdvancedSearchModal({
                             : searchData.transferSpec.employmentType}
                         </p>
                       </div>
-                      <div className="bg-gray-50 p-3 rounded-lg">
+                      {/* <div className="bg-gray-50 p-3 rounded-lg">
                         <label className="text-sm text-gray-600">
                           محل خدمت فعلی
                         </label>
@@ -639,7 +635,7 @@ export default function AdvancedSearchModal({
                             </span>
                           )}
                         </p>
-                      </div>
+                      </div> */}
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <label className="text-sm text-gray-600">
                           تاریخ ایجاد
@@ -779,6 +775,21 @@ export default function AdvancedSearchModal({
                               <p className="text-gray-800 mt-1 leading-relaxed">
                                 {searchData.transferSpec.finalResultReason}
                               </p>
+                            </div>
+                          )}
+
+                          {searchData.transferSpec.approvedClauses && (
+                            <div className="bg-gray-50 p-3 rounded-lg md:col-span-2">
+                              <label className="text-sm text-gray-600 block mb-2">
+                                بندهای موافقت شده
+                              </label>
+                              <ApprovedClausesDisplay
+                                approvedClauses={
+                                  searchData.transferSpec.approvedClauses
+                                }
+                                variant="detailed"
+                                showTitle={false}
+                              />
                             </div>
                           )}
                         </div>

@@ -39,6 +39,7 @@ import ImportantNotice from "@/components/ImportantNotice";
 
 export default function DocumentReviewPage() {
   const { user, userLoading } = useUser();
+
   const {
     isOpen,
     toggleSidebar,
@@ -133,6 +134,8 @@ export default function DocumentReviewPage() {
     useState("");
 
   const [exportingExcel, setExportingExcel] = useState(false);
+  const [exportingDistrictIncomingExcel, setExportingDistrictIncomingExcel] =
+    useState(false);
   const [helpers, setHelpers] = useState({
     employmentFields: [],
     genders: [],
@@ -998,6 +1001,247 @@ export default function DocumentReviewPage() {
     }
   };
 
+  // تابع دریافت گزارش اکسل ورودی‌های منطقه
+  const handleExportDistrictIncomingExcel = async () => {
+    try {
+      setExportingDistrictIncomingExcel(true);
+
+      // لاگ اطلاعات کاربر
+      console.log("=== DEBUG: District Incoming Excel Export ===");
+      console.log("User object:", user);
+      console.log("User role:", user?.role);
+      console.log("User district:", user?.district);
+      console.log("User district code:", user?.district?.code);
+
+      // بررسی دسترسی کاربر
+      if (user?.role !== "districtTransferExpert") {
+        console.log("ERROR: User role is not districtTransferExpert");
+        toast.error("شما به این عملیات دسترسی ندارید");
+        return;
+      }
+
+      // بررسی وجود کد منطقه کاربر
+      if (!user?.district?.code) {
+        console.log("ERROR: User district code is missing");
+        console.log("User district object:", user?.district);
+        toast.error("کد منطقه کاربر مشخص نیست");
+        return;
+      }
+
+      const userDistrictCode = user.district.code;
+      console.log("Using district code for search:", userDistrictCode);
+
+      // دریافت اطلاعات کامل از TransferApplicantSpec برای درخواست‌هایی که finalTransferDestinationCode برابر با کد منطقه کاربر است
+      const apiUrl = `/api/transfer-applicant-specs/advanced-search?finalTransferDestinationCode=${userDistrictCode}`;
+      console.log("API URL:", apiUrl);
+
+      const response = await fetch(apiUrl, {
+        headers: { "Content-Type": "application/json" },
+      });
+
+      console.log("API Response status:", response.status);
+      console.log("API Response ok:", response.ok);
+
+      const data = await response.json();
+      console.log("API Response data:", data);
+      console.log("Data success:", data.success);
+      console.log("Data array length:", data.data?.length);
+
+      if (!data.success) {
+        console.log("ERROR: API returned success=false");
+        console.log("API Error:", data.error);
+        toast.error(`خطا در دریافت داده‌ها: ${data.error || "نامشخص"}`);
+        return;
+      }
+
+      if (!data.data || data.data.length === 0) {
+        console.log(
+          "WARNING: No data found for district code:",
+          userDistrictCode
+        );
+        toast.error("هیچ ورودی برای منطقه شما یافت نشد");
+        return;
+      }
+
+      console.log(
+        "Found",
+        data.data.length,
+        "records for district:",
+        userDistrictCode
+      );
+
+      // نمایش نمونه‌ای از اولین رکورد برای بررسی ساختار داده
+      if (data.data.length > 0) {
+        console.log("Sample record (first):", data.data[0]);
+        console.log("Sample record fields:", {
+          firstName: data.data[0].firstName,
+          lastName: data.data[0].lastName,
+          nationalId: data.data[0].nationalId,
+          personnelCode: data.data[0].personnelCode,
+          currentWorkPlaceCode: data.data[0].currentWorkPlaceCode,
+          finalTransferDestinationCode:
+            data.data[0].finalTransferDestinationCode,
+          finalResultReason: data.data[0].finalResultReason,
+          currentRequestStatus: data.data[0].currentRequestStatus,
+          fieldCode: data.data[0].fieldCode,
+          phone: data.data[0].phone,
+          gender: data.data[0].gender,
+        });
+      }
+
+      // دریافت اطلاعات رشته‌های شغلی
+      console.log("Fetching employment fields...");
+      const fieldsResponse = await fetch("/api/employment-fields?limit=1000");
+      console.log("Employment fields API status:", fieldsResponse.status);
+
+      const fieldsData = await fieldsResponse.json();
+      console.log("Employment fields API response:", fieldsData);
+
+      const employmentFields = fieldsData.success ? fieldsData.data : [];
+      console.log("Employment fields array length:", employmentFields.length);
+
+      if (employmentFields.length > 0) {
+        console.log("Sample employment field:", employmentFields[0]);
+      }
+
+      // تابع کمکی برای دریافت عنوان رشته شغلی
+      const getFieldTitle = (fieldCode) => {
+        console.log("Getting field title for code:", fieldCode);
+
+        if (!fieldCode) {
+          console.log("No field code provided");
+          return "-";
+        }
+
+        if (!employmentFields || employmentFields.length === 0) {
+          console.log("Employment fields array is empty or null");
+          return "-";
+        }
+
+        const field = employmentFields.find(
+          (f) =>
+            String(f.fieldCode) === String(fieldCode) ||
+            f.fieldCode === fieldCode
+        );
+        console.log("Found field for code", fieldCode, ":", field);
+
+        if (!field) {
+          // اگر پیدا نشد، لیست کدهای موجود را نمایش بده
+          const availableCodes = employmentFields.map((f) => f.fieldCode);
+          console.log("Available field codes:", availableCodes);
+          console.log(
+            "Searching for code type:",
+            typeof fieldCode,
+            "value:",
+            fieldCode
+          );
+        }
+
+        if (field) {
+          console.log("Field title:", field.title);
+          return field.title;
+        } else {
+          console.log("No field found for code:", fieldCode);
+          return "-";
+        }
+      };
+
+      // تابع کمکی برای ترجمه وضعیت
+      const getStatusText = (status) => {
+        const statusMap = {
+          pending: "در انتظار",
+          under_review: "در حال بررسی",
+          source_approval: "تایید مبدا",
+          source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
+          province_review: "بررسی استان",
+          destination_approval: "تایید مقصد",
+          destination_rejection: "مخالفت مقصد",
+          temporary_transfer_approved: "موافقت با انتقال موقت",
+          permanent_transfer_approved: "موافقت با انتقال دائم",
+          destination_correction_approved: "موافقت با اصلاح مقصد",
+          processing_stage_results: "مطابق نتایج مرحله پردازشی",
+          invalid_request: "درخواست نامعتبر است",
+        };
+        return statusMap[status] || status || "-";
+      };
+
+      // آماده‌سازی داده‌ها برای اکسل
+      console.log("Preparing Excel data for", data.data.length, "records");
+      const excelData = data.data.map((spec, index) => {
+        const row = {
+          ردیف: index + 1,
+          نام: spec.firstName || "-",
+          "نام خانوادگی": spec.lastName || "-",
+          "کد ملی": spec.nationalId || "-",
+          "کد پرسنلی": spec.personnelCode || "-",
+          "شماره تماس": spec.mobile || "-",
+          جنسیت:
+            spec.gender === "male"
+              ? "مرد"
+              : spec.gender === "female"
+              ? "زن"
+              : "-",
+          "کد مبدا": spec.currentWorkPlaceCode || "-",
+          "کد مقصد": spec.finalTransferDestinationCode || "-",
+          "نتیجه انتقال": spec.finalResultReason || "-",
+          "وضعیت جاری": getStatusText(spec.currentRequestStatus),
+          "رشته شغلی": spec.fieldCode || "-",
+          "عنوان رشته شغلی": getFieldTitle(spec.fieldCode),
+        };
+
+        // لاگ اولین رکورد برای بررسی
+        if (index === 0) {
+          console.log("First Excel row:", row);
+        }
+
+        return row;
+      });
+
+      console.log("Excel data prepared, total rows:", excelData.length);
+
+      // ایجاد workbook و worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(excelData);
+
+      // تنظیم عرض ستون‌ها
+      const columnWidths = [
+        { wch: 8 }, // ردیف
+        { wch: 15 }, // نام
+        { wch: 20 }, // نام خانوادگی
+        { wch: 15 }, // کد ملی
+        { wch: 15 }, // کد پرسنلی
+        { wch: 15 }, // شماره تماس
+        { wch: 10 }, // جنسیت
+        { wch: 12 }, // کد مبدا
+        { wch: 12 }, // کد مقصد
+        { wch: 30 }, // نتیجه انتقال
+        { wch: 25 }, // وضعیت جاری
+        { wch: 12 }, // رشته شغلی
+        { wch: 30 }, // عنوان رشته شغلی
+      ];
+      ws["!cols"] = columnWidths;
+
+      // اضافه کردن worksheet به workbook
+      XLSX.utils.book_append_sheet(wb, ws, "ورودی‌های منطقه");
+
+      // تولید نام فایل با تاریخ و کد منطقه
+      const currentDate = new Date()
+        .toLocaleDateString("fa-IR")
+        .replace(/\//g, "-");
+      const fileName = `ورودی‌های-منطقه-${userDistrictCode}-${currentDate}.xlsx`;
+
+      // دانلود فایل
+      XLSX.writeFile(wb, fileName);
+
+      toast.success(`فایل اکسل با موفقیت دانلود شد: ${fileName}`);
+    } catch (error) {
+      console.error("Error exporting district incoming Excel:", error);
+      toast.error("خطا در تولید فایل اکسل ورودی‌های منطقه");
+    } finally {
+      setExportingDistrictIncomingExcel(false);
+    }
+  };
+
   // فیلتر کردن درخواست‌ها
   const filteredRequests = appealRequests.filter((request) => {
     const matchesSearch =
@@ -1800,26 +2044,53 @@ export default function DocumentReviewPage() {
                   </div>
                 </div>
 
-                {/* دکمه دریافت گزارش اکسل */}
-                <div className="md:w-64">
-                  <button
-                    onClick={handleExportToExcel}
-                    disabled={exportingExcel || filteredRequests.length === 0}
-                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    title="دریافت گزارش کامل اکسل"
-                  >
-                    {exportingExcel ? (
-                      <>
-                        <FaSpinner className="h-4 w-4 animate-spin" />
-                        در حال تولید گزارش...
-                      </>
-                    ) : (
-                      <>
-                        <FaFileExcel className="h-4 w-4" />
-                        گزارش کامل اکسل
-                      </>
-                    )}
-                  </button>
+                {/* دکمه‌های دریافت گزارش اکسل */}
+                <div className="flex flex-col md:flex-row gap-2 md:w-auto">
+                  {/* دکمه گزارش کامل */}
+                  <div className="md:w-64">
+                    <button
+                      onClick={handleExportToExcel}
+                      disabled={exportingExcel || filteredRequests.length === 0}
+                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                      title="دریافت گزارش کامل اکسل"
+                    >
+                      {exportingExcel ? (
+                        <>
+                          <FaSpinner className="h-4 w-4 animate-spin" />
+                          در حال تولید گزارش...
+                        </>
+                      ) : (
+                        <>
+                          <FaFileExcel className="h-4 w-4" />
+                          گزارش کامل اکسل
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* دکمه ورودی‌های منطقه - فقط برای districtTransferExpert */}
+                  {user?.role === "districtTransferExpert" && (
+                    <div className="md:w-64">
+                      <button
+                        onClick={handleExportDistrictIncomingExcel}
+                        disabled={exportingDistrictIncomingExcel}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                        title="دریافت گزارش ورودی‌های منطقه"
+                      >
+                        {exportingDistrictIncomingExcel ? (
+                          <>
+                            <FaSpinner className="h-4 w-4 animate-spin" />
+                            در حال تولید گزارش...
+                          </>
+                        ) : (
+                          <>
+                            <FaFileExcel className="h-4 w-4" />
+                            ورودی‌های منطقه
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* تعداد نتایج */}
