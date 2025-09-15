@@ -83,10 +83,13 @@ export default function DocumentReviewPage() {
       exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
       source_approval: "موافقت مبدا (موقت/دائم)",
       source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
-      province_review: "در حال بررسی توسط استان",
       temporary_transfer_approved: "موافقت با انتقال موقت",
       permanent_transfer_approved: "موافقت با انتقال دائم",
+      province_review: "درحال بررسی توسط اداره کل",
       invalid_request: "درخواست نامعتبر است",
+      destination_correction_approved: "موافقت با اصلاح مقصد",
+      processing_stage_results: "مطابق نتایج مرحله پردازشی",
+
       // province_approval: "موافقت استان",
       // province_rejection: "مخالفت استان",
       // // destination_review: "در حال بررسی مقصد",
@@ -716,6 +719,8 @@ export default function DocumentReviewPage() {
           // نتایج نهایی انتقال
           "کد منطقه مقصد نهایی": ts?.finalTransferDestinationCode || "-",
           "علت/توضیحات نتیجه": ts?.finalResultReason || "-",
+          // وضعیت پرسنل
+          "وضعیت پرسنل": getStatusText(request.currentRequestStatus),
 
           // اضافه کردن ستون‌های دلایل
           ...reasonsColumns,
@@ -792,9 +797,6 @@ export default function DocumentReviewPage() {
             }
             return "-";
           })(),
-
-          // وضعیت پرسنل
-          "وضعیت پرسنل": getStatusText(request.currentRequestStatus),
 
           // نظر اداره مبدا درباره نوع انتقال
           "نظر مبدا نوع انتقال":
