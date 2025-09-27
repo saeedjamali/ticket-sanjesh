@@ -1444,7 +1444,7 @@ export default function TransferApplicantSpecsPage() {
         exception_eligibility_approval: "تایید مشمولیت",
         exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
         source_approval: "موافقت مبدا (موقت/دائم)",
-        source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
+        source_rejection: "مخالفت مبدا بدلیل کمبود نیرو",
         province_review: "در حال بررسی توسط استان",
         // province_approval: "موافقت استان",
         // province_rejection: "مخالفت استان",

@@ -82,7 +82,7 @@ export default function DocumentReviewPage() {
       exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
       exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
       source_approval: "موافقت مبدا (موقت/دائم)",
-      source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
+      source_rejection: "مخالفت مبدا بدلیل کمبود نیرو",
       temporary_transfer_approved: "موافقت با انتقال موقت",
       permanent_transfer_approved: "موافقت با انتقال دائم",
       province_review: "درحال بررسی توسط اداره کل",
@@ -301,7 +301,7 @@ export default function DocumentReviewPage() {
     },
     {
       value: "source_rejection",
-      label: "مخالفت مبدا (علیرغم مشمولیت)",
+      label: "مخالفت مبدا بدلیل کمبود نیرو",
       color: "bg-red-600",
       icon: FaThumbsDown,
     },
@@ -1210,7 +1210,7 @@ export default function DocumentReviewPage() {
           pending: "در انتظار",
           under_review: "در حال بررسی",
           source_approval: "تایید مبدا",
-          source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
+          source_rejection: "مخالفت مبدا بدلیل کمبود نیرو",
           province_review: "بررسی استان",
           destination_approval: "تایید مقصد",
           destination_rejection: "مخالفت مقصد",
@@ -1947,7 +1947,7 @@ export default function DocumentReviewPage() {
       exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
 
       // وضعیت‌های نظر مبدا
-      source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
+      source_rejection: "مخالفت مبدا بدلیل کمبود نیرو",
       temporary_transfer_approved: "موافقت با انتقال موقت",
       permanent_transfer_approved: "موافقت با انتقال دائم",
 

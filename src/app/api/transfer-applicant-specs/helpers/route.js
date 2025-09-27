@@ -112,7 +112,7 @@ export async function GET(request) {
           label: "فاقد شرایط (عدم احراز مشمولیت)",
         },
         { value: "source_approval", label: "موافقت مبدا (موقت/دائم)" },
-        { value: "source_rejection", label: "مخالفت مبدا (علیرغم مشمولیت)" },
+        { value: "source_rejection", label: "مخالفت مبدا بدلیل کمبود نیرو" },
         { value: "province_review", label: "در حال بررسی توسط استان" },
         // { value: "province_approval", label: "موافقت استان" },
         // { value: "province_rejection", label: "مخالفت استان" },

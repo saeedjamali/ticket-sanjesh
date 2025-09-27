@@ -83,7 +83,7 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
     } else if (currentStatus === "source_rejection") {
       baseSteps.push({
         status: "source_rejection",
-        title: "مخالفت مبدا (علیرغم مشمولیت)",
+        title: "مخالفت مبدا بدلیل کمبود نیرو",
         description: "درخواست توسط منطقه مبدا رد شد",
       });
     } else {
@@ -285,7 +285,7 @@ function ReadOnlyRequestView({ userSpecs, onBack, districts = [] }) {
       source_review: "درحال بررسی مشمولیت",
       exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
       exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
-      source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
+      source_rejection: "مخالفت مبدا بدلیل کمبود نیرو",
       source_approval: "موافقت مبدا (موقت/دائم)",
       temporary_transfer_approved: "موافقت با انتقال موقت",
       permanent_transfer_approved: "موافقت با انتقال دائم",
@@ -2261,7 +2261,7 @@ export default function EmergencyTransferPage() {
     } else if (currentStatus === "source_rejection") {
       baseSteps.push({
         status: "source_rejection",
-        title: "مخالفت مبدا (علیرغم مشمولیت)",
+        title: "مخالفت مبدا بدلیل کمبود نیرو",
         description: "درخواست توسط منطقه مبدا رد شد",
       });
     } else {
@@ -2371,7 +2371,7 @@ export default function EmergencyTransferPage() {
       exception_eligibility_approval: "تایید مشمولیت",
       exception_eligibility_rejection: "رد مشمولیت (فاقد شرایط)",
       source_approval: "موافقت مبدا (موقت/دائم)",
-      source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
+      source_rejection: "مخالفت مبدا بدلیل کمبود نیرو",
       province_review: "در حال بررسی توسط استان",
       // province_approval: "موافقت استان",
       // province_rejection: "مخالفت استان",

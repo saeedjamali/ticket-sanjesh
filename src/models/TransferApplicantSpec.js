@@ -490,7 +490,7 @@ TransferApplicantSpecSchema.methods.getRequestStatusText = function (status) {
     source_review: "درحال بررسی مشمولیت",
     exception_eligibility_rejection: "فاقد شرایط (عدم احراز مشمولیت)",
     exception_eligibility_approval: "تایید مشمولیت، نظر مبدأ نامشخص",
-    source_rejection: "مخالفت مبدا (علیرغم مشمولیت)",
+    source_rejection: "مخالفت مبدا بدلیل کمبود نیرو",
     temporary_transfer_approved: "موافقت با انتقال موقت",
     permanent_transfer_approved: "موافقت با انتقال دائم",
     province_review: "درحال بررسی توسط اداره کل",
