@@ -44,7 +44,8 @@ export async function POST(req) {
 
         // password: "Saeed@435",
         password: "@108180&%$@ALi",
-        line: "9830007206",
+        line: "983000610320",
+        // line: "9830007206",
         mobile: phone,
         message: `کد اعتبارسنجی سامانه رصد : ${code}  `,
         type: 0,
