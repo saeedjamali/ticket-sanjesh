@@ -38,8 +38,12 @@ export async function POST(req) {
     try {
       // ارسال پیامک با استفاده از axios
       await axios.post("https://sms.3300.ir/api/wsSend.ashx", {
-        username: "Esari",
-        password: "Saeed@435",
+        // پنل امور اداری
+        // username: "Esari",
+        username: "sanjesh_razavi800",
+
+        // password: "Saeed@435",
+        password: "@108180&%$@ALi",
         line: "9830007206",
         mobile: phone,
         message: `کد اعتبارسنجی سامانه رصد : ${code}  `,
