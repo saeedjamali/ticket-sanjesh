@@ -62,12 +62,11 @@ export async function POST(req) {
         // پنل امور اداری
         // username: "Esari",
         username: "sanjesh_razavi800",
-
         password: "@108180&%$@ALi",
         // پنل امور اداری
         // password: "Saeed@435",
         //line: "9830007206",
-        line: "3000610320",
+        line: "983000610320",
         mobile: user.phone,
         message: `سامانه رصد رمز عبور جدید شما: ${newPassword}`,
         type: 0,
