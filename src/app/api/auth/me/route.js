@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 export async function GET(request) {
   try {
     const user = await authService.validateToken(request);
-    console.log("user from api------>", user);
+   
     if (!user) {
       return NextResponse.json(
         { success: false, error: "لطفا وارد حساب کاربری خود شوید" },

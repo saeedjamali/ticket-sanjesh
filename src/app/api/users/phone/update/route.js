@@ -37,13 +37,13 @@ export async function PUT(request) {
     }
 
     // بررسی اینکه آیا شماره موبایل قبلاً توسط کاربر دیگری استفاده شده است
-    const existingUser = await User.findOne({ phone, _id: { $ne: user.id } });
-    if (existingUser) {
-      return NextResponse.json(
-        { success: false, message: "این شماره موبایل قبلاً ثبت شده است" },
-        { status: 400 }
-      );
-    }
+    // const existingUser = await User.findOne({ phone, _id: { $ne: user.id } });
+    // if (existingUser) {
+    //   return NextResponse.json(
+    //     { success: false, message: "این شماره موبایل قبلاً ثبت شده است" },
+    //     { status: 400 }
+    //   );
+    // }
 
     // به‌روزرسانی شماره موبایل کاربر
     await User.findByIdAndUpdate(user.id, {
