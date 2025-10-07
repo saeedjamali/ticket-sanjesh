@@ -57,7 +57,7 @@ export default function MaintenancePage() {
           <div className="grid md:grid-cols-3 gap-4 text-sm">
             <div className="flex items-center justify-center p-3 bg-blue-50 rounded-lg">
               <FaClock className="text-blue-600 ml-2" />
-              <span className="text-gray-700">بروزرسانی سریع</span>
+              <span className="text-gray-700">بروزرسانی</span>
             </div>
             <div className="flex items-center justify-center p-3 bg-green-50 rounded-lg">
               <FaTools className="text-green-600 ml-2" />
